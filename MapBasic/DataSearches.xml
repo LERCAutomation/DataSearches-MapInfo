@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+WARNING: This file should be changed carefully and a backup should be
+taken before any changes so that they can be backed out.  Changed lines
+can also be commented out as below.
+-->
+
+<!--
+This config file contains all the variables used by the DataSearches
+MapBasic tool.
+
+The 'configuration' node is the 'root' node and signifies the start of the
+contents of the configuration file.
+
+The 'DataSearches' node contains all of the entries relating to the
+MapBasic tool variables.
+
+Each entry relates to a file, folder, table name, column name or SQL statement
+used by the MapBasic tool to select and export species data for the GiGL
+partners.
+-->
+
+<configuration>
+<DataSearches>
+
+  <!-- The existing file location under which all data search sub-folders will be created -->
+  <DefaultPath>
+	<value>D:\Andy\GiGL\Data Searches\New\Reports</value>
+  </DefaultPath>
+
+  <!-- The sub-folder where all data search extracts will be created -->
+  <GISFolder>
+	<value>GIS</value>
+  </GISFolder>
+
+  <!-- The prefix of the log file name created by the tool to output messages -->
+  <LogFilePrefix>
+	<value>Data_Search_</value>
+  </LogFilePrefix>
+
+  <!-- The default size to use for the buffer -->
+  <DefaultBufferSize>
+	<value>1</value>
+  </DefaultBufferSize>
+
+  <!-- The default option (position in the table) to use for the buffer units -->
+  <DefaultBufferUnit>
+	<value>3</value>
+  </DefaultBufferUnit>
+
+  <!-- The options for the buffer units -->
+  <BufferUnits>
+	<value>centimetres;cm$metres;m$kilometres;km$feet;ft$yards;yd$miles;mi$</value>
+  </BufferUnits>
+
+  <!-- The maximum number of records what will be extracted in any one search extract -->
+  <RecMax>
+	<value>1000000</value>
+  </RecMax>
+
+  <!-- The name of the table to use as the search area -->
+  <SearchTable>
+	<value>SiteSearchSites</value>
+  </SearchTable>
+
+  <!-- The buffer aggregate column values -->
+  <SearchValues>
+	<value>ref=ref,organisation=organisation,site=site,radius=radius</value>
+  </SearchValues>
+
+  <!-- The column name in the search area table used to store the search reference -->
+  <SearchColumn>
+	<value>ref</value>
+  </SearchColumn>
+
+  <!-- The names, local names, suffixes, SQL clauses and formats of the map tables -->
+  <MapTables>
+	<AoDs>
+		<TableName>
+			<value>AOD</value>
+		</TableName>
+		<Suffix>
+			<value>_aods</value>
+		</Suffix>
+		<Columns>
+			<value>Number</value>
+		</Columns>
+		<Criteria>
+			<value>Group By Number Order By Number</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</AoDs>
+	<Boroughs>
+		<TableName>
+			<value>LBPolygonsMeridian</value>
+		</TableName>
+		<Suffix>
+			<value>_boroughs</value>
+		</Suffix>
+		<Columns>
+			<value>BoroughCode, BoroughName</value>
+		</Columns>
+		<Criteria>
+			<value>Group By BoroughCode, BoroughName Order By BoroughCode</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</Boroughs>
+	<SACs>
+		<TableName>
+			<value>SACLondon</value>
+		</TableName>
+		<Suffix>
+			<value>_sacs</value>
+		</Suffix>
+		<Columns>
+			<value>SAC_Name</value>
+		</Columns>
+		<Criteria>
+			<value>Group By SAC_Name Order By SAC_Name</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</SACs>
+	<SPAs>
+		<TableName>
+			<value>SPALondon</value>
+		</TableName>
+		<Suffix>
+			<value>_spas</value>
+		</Suffix>
+		<Columns>
+			<value>SPA_Name</value>
+		</Columns>
+		<Criteria>
+			<value>Group By SPA_Name Order By SPA_Name</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</SPAs>
+	<Ramsars>
+		<TableName>
+			<value>RAMSARLondon</value>
+		</TableName>
+		<Suffix>
+			<value>_ramsars</value>
+		</Suffix>
+		<Columns>
+			<value>Ramsar_Name</value>
+		</Columns>
+		<Criteria>
+			<value>Group By Ramsar_Name Order By Ramsar_Name</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</Ramsars>
+	<SSSIs>
+		<TableName>
+			<value>SSSILondon</value>
+		</TableName>
+		<Suffix>
+			<value>_sssis</value>
+		</Suffix>
+		<Columns>
+			<value>SSSI_Name</value>
+		</Columns>
+		<Criteria>
+			<value>Group By SSSI_Name Order By SSSI_Name</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</SSSIs>
+	<NNRs>
+		<TableName>
+			<value>NNRLondon</value>
+		</TableName>
+		<Suffix>
+			<value>_nnrs</value>
+		</Suffix>
+		<Columns>
+			<value>NNR_Name</value>
+		</Columns>
+		<Criteria>
+			<value>Group By NNR_Name Order By NNR_Name</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</NNRs>
+	<LNRs>
+		<TableName>
+			<value>LocalNatureReserves_LNR_</value>
+		</TableName>
+		<Suffix>
+			<value>_lnrs</value>
+		</Suffix>
+		<Columns>
+			<value>Sitename</value>
+		</Columns>
+		<Criteria>
+			<value>Group By Sitename Order By Sitename</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</LNRs>
+	<SINCs>
+		<TableName>
+			<value>GiGL_SINCs</value>
+		</TableName>
+		<Suffix>
+			<value>_sincs</value>
+		</Suffix>
+		<Columns>
+			<value>Site_number</value>
+		</Columns>
+		<Criteria>
+			<value>Group By Site_number Order By Site_number</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</SINCs>
+	<RIGS>
+		<TableName>
+			<value>RIGSandLIGS</value>
+		</TableName>
+		<Suffix>
+			<value>_rigs</value>
+		</Suffix>
+		<Columns>
+			<value>GLA_ID</value>
+		</Columns>
+		<Criteria>
+			<value>Group By GLA_ID Order By GLA_ID</value>
+		</Criteria>
+		<Format>
+			<value>Txt</value>
+		</Format>
+	</RIGS>
+	<SppAll>
+		<TableName>
+			<value>GiGL_AllSpp</value>
+		</TableName>
+		<Suffix>
+			<value>_sppall</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(GiGL_AllSpp.obj), CentroidY(GiGL_AllSpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(GiGL_AllSpp.obj)"SppX", CentroidY(GiGL_AllSpp.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
+		</Columns>
+		<Criteria>
+			<value>And CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppAll>
+	<SppProt>
+		<TableName>
+			<value>DesignatedSpp</value>
+		</TableName>
+		<Suffix>
+			<value>_sppprot</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(DesignatedSpp.obj), CentroidY(DesignatedSpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(DesignatedSpp.obj)"SppX", CentroidY(DesignatedSpp.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
+		</Columns>
+		<Criteria>
+			<value>And CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppProt>
+	<SppProtVague>
+		<TableName>
+			<value>GiGL_CoarseResolutionSpp</value>
+		</TableName>
+		<Suffix>
+			<value>_sppprotvague</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(GiGL_CoarseResolutionSpp.obj), CentroidY(GiGL_CoarseResolutionSpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(GiGL_CoarseResolutionSpp.obj)"SppX", CentroidY(GiGL_CoarseResolutionSpp.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS, GRPRECISION</value>
+		</Columns>
+		<Criteria>
+			<value>And (STATUS_PLANNING &lt;&gt; "" OR STATUS_OTHER &lt;&gt; "") And CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppProtVague>
+	<SppConf>
+		<TableName>
+			<value>DesignatedSpp</value>
+		</TableName>
+		<Suffix>
+			<value>_sppconf</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, 0"DISTANCE", 0"SppX", 0"SppY", 0"SearchX", 0"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
+		</Columns>
+		<Criteria>
+			<value>And CONFIDENTIAL = "Y" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppConf>
+	<SppLISI>
+		<TableName>
+			<value>GiGL_LISISpp</value>
+		</TableName>
+		<Suffix>
+			<value>_spplisi</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(GiGL_LISISpp.obj), CentroidY(GiGL_LISISpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
+		</Columns>
+		<Criteria>
+			<value>Order By SORTORDER, LATIN_NAME</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppLISI>
+	<SppLISIVague>
+		<TableName>
+			<value>GiGL_CoarseResolutionSpp</value>
+		</TableName>
+		<Suffix>
+			<value>_spplisivague</value>
+		</Suffix>
+		<Columns>
+			<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(GiGL_CoarseResolutionSpp.obj), CentroidY(GiGL_CoarseResolutionSpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
+		</Columns>
+		<Criteria>
+			<value>And STATUS_LISI &lt;&gt; "" Order By SORTORDER, LATIN_NAME</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</SppLISIVague>
+	<HabSurveys>
+		<TableName>
+			<value>GiGL_habitat</value>
+		</TableName>
+		<Suffix>
+			<value>_habsurvey</value>
+		</Suffix>
+		<Columns>
+			<value>SiteName, PolygonID, GridRef, AreaHa, SurveyDate, HabitatShortName, HabitatClassification</value>
+		</Columns>
+		<Criteria>
+			<value>Order By SiteRef, SurveyDate Desc</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</HabSurveys>
+	<BAPHabitats>
+		<TableName>
+			<value>GiGL_BAP_Condition</value>
+		</TableName>
+		<Suffix>
+			<value>_baphabitat</value>
+		</Suffix>
+		<Columns>
+			<value>SiteName, PolygonID, GridRef, PolygonAreaHa, DataCreatedDate, ConditionShort, SuitabilityShort</value>
+		</Columns>
+		<Criteria>
+			<value>Order By SiteRef, DataCreatedDate Desc</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</BAPHabitats>
+	<OpenSpaces>
+		<TableName>
+			<value>GiGL_openspace_sites</value>
+		</TableName>
+		<Suffix>
+			<value>_openspace</value>
+		</Suffix>
+		<Columns>
+			<value>Name, ID, GridRef, Area_ha, PPG17, Principal_SpaceType, Other_SpaceTypes, Designation_Statutory, Designation_Non_Statutory, Designation_Openspace, Access, Features</value>
+		</Columns>
+		<Criteria>
+			<value>Order By Name, ID</value>
+		</Criteria>
+		<Format>
+			<value>Dbf</value>
+		</Format>
+	</OpenSpaces>
+  </MapTables>
+
+</DataSearches>
+</configuration>

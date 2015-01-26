@@ -1,0 +1,130 @@
+'* DataSearches is a MapInfo tool to lists all the available MapInfo
+'* habitat, species and other layers and allows the user to select
+'* which layers to extract for the current data search.
+'*
+'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
+'* 
+'* This file is part of the MapInfo tool 'DataSearches'.
+'* 
+'* DataSearches is free software: you can redistribute it and/or modify
+'* it under the terms of the GNU General Public License as published by
+'* the Free Software Foundation, either version 3 of the License, or
+'* (at your option) any later version.
+'* 
+'* DataSearches is distributed in the hope that it will be useful,
+'* but WITHOUT ANY WARRANTY; without even the implied warranty of
+'* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'* GNU General Public License for more details.
+'* 
+'* You should have received a copy of the GNU General Public License
+'* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
+'*
+'***************************************************************
+'* GenFunctions v1.4
+'*
+'* Contains general functions used by the DataSearches tool.
+'*
+'*
+'* Created:			Andy Foy - February 2013
+'* Last revised:	Andy Foy - April 2013
+'***************************************************************
+Include "DataSearches.def"
+
+Function TableIsOpen (ByVal sTabName As String) As Logical
+'*************************************************
+'* Check if the table is open
+'*************************************************
+
+	'-------------------------------------------------
+	' Determine the number of open tables
+	'-------------------------------------------------
+	Dim iCounter, iNumberOfTables As Integer
+	iNumberOfTables = NumTables()
+
+	'-------------------------------------------------
+	' Return FALSE if there are no open tables
+	'-------------------------------------------------
+	If iNumberOfTables = 0 Then
+		TableIsOpen = FALSE
+		Exit Function
+	End If
+
+	'-------------------------------------------------
+	' Loop through the open tables looking for the
+	' require table name. If found return TRUE
+	'-------------------------------------------------
+	For iCounter = 1 to iNumberOfTables
+		If TableInfo(iCounter, TAB_INFO_NAME) = sTabName Then
+			TableIsOpen = TRUE
+			Exit Function
+		End If
+	Next
+
+End Function
+
+Function StringToArrays(ByVal sString As String, aArrayA() As String, aArrayB() As String, sDelimRows As String, sDelimCols As String) As Integer
+'*************************************************
+'* Split a 2-dimensional array string to two
+'* arrays
+'*************************************************
+
+Dim iPosSepRow As Integer, iPosSepCol As Integer
+Dim iLastPosSepRow As Integer, iLastPosSepCol As Integer
+Dim iLenString As Integer
+Dim iThisRow As Integer
+Dim iLenSepRow As Integer, iLenSepCol As Integer
+    
+	iLenString = Len(sString)
+	iThisRow = 0
+    
+	If iLenString > 0 Then
+
+       iLenSepRow = Len(sDelimRows)
+       iLenSepCol = Len(sDelimCols)
+		
+		iPosSepRow = InStr(1, sString, sDelimRows)
+       iPosSepCol = InStr(iPosSepRow, sString, sDelimCols)
+
+       iLastPosSepRow = 1 - iLenSepCol
+       iLastPosSepCol = 1 - iLenSepRow
+
+       Do While iPosSepRow > 0
+
+			iThisRow = iThisRow + 1
+
+			' Store Row
+			aArrayA(iThisRow) = Mid$(sString, iLastPosSepCol + iLenSepCol, iPosSepRow - iLastPosSepCol - iLenSepCol)
+			aArrayB(iThisRow) = Mid$(sString, iPosSepRow + iLenSepRow, iPosSepCol - iPosSepRow - iLenSepRow)
+
+			' Store the last positions
+	       iLastPosSepRow = iPosSepRow
+	       iLastPosSepCol = iPosSepCol
+
+			' Find the next positions
+			iPosSepRow = InStr(iLastPosSepRow + iLenSepRow, sString, sDelimRows)
+	       iPosSepCol = InStr(iLastPosSepCol + iLenSepCol, sString, sDelimCols)
+
+       Loop
+
+		ReDim aArrayA(iThisRow)
+		ReDim aArrayB(iThisRow)
+
+	End If
+
+	StringToArrays = iThisRow
+
+End Function
+
+Function IsNumeric (byval sVal As String) as Logical
+'*************************************************
+'* Check if a string is numeric (as a float value)
+'*************************************************
+Dim i As Integer
+For i = 1 to Len(sVal)
+	If Not InStr(1, " 0123456789.+-e", Mid$(sVal,i,1)) Then
+		'String contains a non-numeric character!
+		Exit Function
+	End If
+Next
+IsNumeric = 1
+End Function 

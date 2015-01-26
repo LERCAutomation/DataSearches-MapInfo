@@ -1,0 +1,1119 @@
+'* DataSearches is a MapInfo tool to lists all the available MapInfo
+'* habitat, species and other layers and allows the user to select
+'* which layers to extract for the current data search.
+'*
+'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
+'* 
+'* This file is part of the MapInfo tool 'DataSearches'.
+'* 
+'* DataSearches is free software: you can redistribute it and/or modify
+'* it under the terms of the GNU General Public License as published by
+'* the Free Software Foundation, either version 3 of the License, or
+'* (at your option) any later version.
+'* 
+'* DataSearches is distributed in the hope that it will be useful,
+'* but WITHOUT ANY WARRANTY; without even the implied warranty of
+'* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'* GNU General Public License for more details.
+'* 
+'* You should have received a copy of the GNU General Public License
+'* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
+'*
+'***************************************************************
+'*DataSearches v1.31
+'*
+'* Creates a dialog window which lists all the available MapInfo
+'* habitat, species and other layers and allows the user to select
+'* which layers to extract for the current data search.
+'*
+'*
+'* Created:			Andy Foy - February 2013
+'* Last revised:	Andy Foy - April 2013
+'***************************************************************
+Include "DataSearches.def"
+
+Sub Main
+'***************************************************************
+'* Main sub-routine
+'***************************************************************
+
+	'-------------------------------------------------
+	' Create a new menu
+	'-------------------------------------------------
+	Create Menu "&Data Searches" As
+	   "&Run Data Searches ..." Calling OpenDialog,
+	   "(-",
+	   "&About Data Searches ..." Calling AboutBox,
+	   "E&xit Data Searches" Calling egsit
+
+	'-------------------------------------------------
+	' Add the new menu item to the Tools menu
+	'-------------------------------------------------
+	Alter Menu "Tools" Add
+		"Data Searches" As "Data Searches"
+
+	Exit Sub
+
+End Sub
+
+Sub OpenDialog
+'***************************************************************
+'* Create the user dialog window
+'***************************************************************
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+    OnError Goto ErrorTrap
+
+	'-------------------------------------------------
+	' Retrieve the default values from the config file
+	'-------------------------------------------------
+	Call GetDefaultValues
+
+	'-------------------------------------------------
+	' Build a new dialog window
+	'-------------------------------------------------
+	Dialog
+		Title "Data Extractor" Calling DialogSetup
+		Width 235
+		Height 220
+		Position 50, 70
+
+	'-------------------------------------------------
+	' Add an edit text box for the search reference
+	'-------------------------------------------------
+	Control StaticText Title "Search Ref:"
+		Position 10,10
+	Control EditText
+		ID 1
+		Position 10,20
+		Into sSearchRef
+
+	'-------------------------------------------------
+	' Add a MapInfo table listbox
+	'-------------------------------------------------
+	Control StaticText Title "MapInfo Tables:"
+		Position 10,40
+	Control MultiListBox
+		ID 3
+		Title ""
+		Position 10,55
+		Height 150
+		Width 100
+
+	'-------------------------------------------------
+	' Add a radio group for the buffer units
+	'-------------------------------------------------
+	Control StaticText Title "Buffer units:"
+		Position 140,40
+	Control RadioGroup
+		ID 4
+		Value iDefaultBufferUnit
+		Title From Variable aMapUnits
+		Position 140,55
+		Into iBufferInt
+
+	'-------------------------------------------------
+	' Add an edit text box for the buffer size
+	'-------------------------------------------------
+	Control StaticText Title "Buffer size:"
+		Position 140,10
+	Control EditText
+		ID 5
+		Value sDefaultBufferSize
+		Position 140,20
+		Into sBufferSize
+
+	'-------------------------------------------------
+	' Add a checkbox for clearing the log file
+	'-------------------------------------------------
+	Control CheckBox
+		ID 6
+		Title "Clear log file?"
+		Position 10,180
+		Value FALSE
+		Into bClearLog
+
+	'-------------------------------------------------
+	' Add Ok and cancel buttons
+	'-------------------------------------------------
+	Control CancelButton
+		Position 140,200
+		Width 40
+	Control OKButton
+		Position 185,200
+		Width 40
+		Calling CheckSelection
+
+	If bSelectionValid = False Then
+		Goto Done
+	End If
+
+	If CommandInfo(CMD_INFO_DLG_OK) And
+		iExtractTot > 0 Then
+
+		'-------------------------------------------------
+		' Store the selected buffer unit text
+		'-------------------------------------------------
+		sBufferUnit = aMapAbbrevs(iBufferInt)
+
+		'-------------------------------------------------
+		' Create the request folder if it doesn't
+		' already exist
+		'-------------------------------------------------
+		Dim sLocalPath As String
+		sLocalPath = sDefaultPath + "\" + sSearchRef
+		Dim iSuccess, iSecurity As Integer
+		iSecurity = 0
+		iSuccess = SetCurrentDirectory(sLocalPath)
+		if iSuccess = 0 Then
+			iSuccess = CreateDirectory(sLocalPath, iSecurity)
+			if iSuccess = 0 Then
+				Note "Error creating search folder. Process terminated."
+				Exit Sub
+			End If
+		End If
+
+		'-------------------------------------------------
+		' Create the GIS sub-folder if it doesn't
+		' already exist
+		'-------------------------------------------------
+		sLocalPath = sDefaultPath + "\" + sSearchRef & "\" + sGISFolder
+		iSecurity = 0
+		iSuccess = SetCurrentDirectory(sLocalPath)
+		if iSuccess = 0 Then
+			iSuccess = CreateDirectory(sLocalPath, iSecurity)
+			if iSuccess = 0 Then
+				Note "Error creating search sub-folder. Process terminated."
+				Exit Sub
+			End If
+		End If
+
+		'-------------------------------------------------
+		' Set the log file name for the output messages
+		'-------------------------------------------------
+		sLogFileName = sDefaultPath + "\" + sSearchRef & "\" + sGISFolder + "\" + sLogFilePrefix + sSearchRef + ".log"
+
+		'-------------------------------------------------
+		' Clear the log file
+		'-------------------------------------------------
+		If bClearLog = True Then
+			If FileExists(sLogFileName) Then
+				Kill sLogFileName
+			End If
+		End If
+
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("Process started!")
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("")
+
+		'-------------------------------------------------
+		' Find the window numbers of all map windows
+		'-------------------------------------------------
+		Dim iNumWindows As Integer
+		iNumWindows = NumWindows()
+		Dim iWindowNum As Integer, iNum As Integer
+		iNum = 0
+		For iWindowNum = 1 to iNumWindows
+			If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
+				iNum = iNum + 1
+				aWindowId(iNum) = WindowId(iWindowNum)
+			End If
+		Next
+		Redim aWindowId(iNum)
+
+		'-------------------------------------------------
+		' Call the subroutine to buffer the search area
+		' with the required size and units
+		'-------------------------------------------------
+		Call BufferSearch
+		Dim lResponse As Logical
+		If sBufferTable = "" Then
+			Call MyPrint("Error buffering search reference.")
+			Call MyPrint("")
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process stopped!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Process stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
+			Goto Response
+		End If
+
+		'-------------------------------------------------
+		' Process the selections one by one
+		'-------------------------------------------------
+		iExtractCnt = 1
+		ProgressBar "Processing data search " + sSearchRef + " ..."
+			Calling ProcessExtracts
+			Range iExtractTot
+
+		If CommandInfo(CMD_INFO_STATUS) Then
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process completed!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Processing complete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
+		Else
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process interrupted by user!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
+		End If
+
+Response:
+		'-------------------------------------------------
+		' Ask the user if they want to see the log file
+		'-------------------------------------------------
+		If lResponse = True Then
+			'-------------------------------------------------
+			' Open the Message window and clear it
+			'-------------------------------------------------
+			Close Window Message
+			Open Window Message
+			Set Window Message
+				Position (7,4)
+				Width 6
+				Height 5
+			Print(chr$(12))
+
+			'-------------------------------------------------
+			' Display the log file in the message window
+			'-------------------------------------------------
+			Call PrintLogFile
+
+		End If
+
+	End If
+
+Done:
+	Exit Sub
+	
+ErrorTrap:
+	Note str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Resume Done
+
+End Sub
+
+Sub GetDefaultValues
+'***************************************************************
+'* Retrieve all the default values from the config file
+'* which is a XML document
+'***************************************************************
+
+	Dim bParseError As SmallInt
+	Dim hXMLDoc As MIXmlDocument
+	Dim hXMLRoot As MIXmlNode
+	Dim hXMLNode As MIXmlNode
+	Dim hXMLFilesNodeParent As MIXmlNode
+	Dim hXMLFilesNodeList As MIXMLNodeList
+	Dim hXMLFilesNode As MIXmlNode
+
+	OnError Goto GetVariablesError
+
+	'-------------------------------------------------
+	' Create a document handle
+	'-------------------------------------------------
+	hXMLDoc = MIXmlDocumentCreate()
+	If hXMLDoc Then
+
+		'-------------------------------------------------
+		' Load the document into the document handle
+		'-------------------------------------------------
+		Dim iXMLLoad As SmallInt
+		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + "DataSearches.xml", bParseError, FALSE, FALSE)
+		if iXMLLoad > 0 Then
+
+			'-------------------------------------------------
+			' Get a handle on the XML root node of the document
+			'-------------------------------------------------
+			hXMLRoot = MIXmlDocumentGetRootNode(hXMLDoc)
+			If hXMLRoot Then
+
+				'-------------------------------------------------
+				' Get a handle on the DataSearches node
+				'-------------------------------------------------
+				hXMLNode = MIXmlSelectSingleNode(hXMLRoot, "DataSearches")
+	          If hXMLNode Then
+	
+					'-------------------------------------------------
+					' Load the default values from the child nodes
+					' under the DataSearches node
+					'-------------------------------------------------
+					' Default file path to store extracts in sub-folders
+					sDefaultPath = GetSingleNodeValue(hXMLNode, "DefaultPath")
+
+					' Sub-folder where all the extract files will be stored
+					sGISFolder = GetSingleNodeValue(hXMLNode, "GISFolder")
+
+					' Log file name prefix for storing output messages
+					sLogFilePrefix = GetSingleNodeValue(hXMLNode, "LogFilePrefix")
+
+					' Maximum number of records to be downloaded at one time
+					iRecMax = GetSingleNodeValue(hXMLNode, "RecMax")
+
+					' Default size to use for the buffer
+					sDefaultBufferSize = GetSingleNodeValue(hXMLNode, "DefaultBufferSize")
+
+					' Default unit to use for the buffer
+					iDefaultBufferUnit = GetSingleNodeValue(hXMLNode, "DefaultBufferUnit")
+
+					' Units to use for the buffer
+					sBufferUnits = GetSingleNodeValue(hXMLNode, "BufferUnits")
+
+					' Name of the table to use as the search area
+					sSearchTable = GetSingleNodeValue(hXMLNode, "SearchTable")
+
+					' Column values used when buffering the search area in the search table
+					sSearchValues = GetSingleNodeValue(hXMLNode, "SearchValues")
+
+					' Name of the column in the search table used to store the search reference
+					sSearchColumn = GetSingleNodeValue(hXMLNode, "SearchColumn")
+
+					'-------------------------------------------------
+					' Get a handle on the MapTables node
+					'-------------------------------------------------
+					hXMLFilesNodeParent = MIXmlSelectSingleNode(hXMLNode, "MapTables")
+
+					'-------------------------------------------------
+					' Get a handle on the node map of the above node
+					'-------------------------------------------------
+					hXMLFilesNodeList = MIXMLGetChildList(hXMLFilesNodeParent)
+
+					'-------------------------------------------------
+					' Get a handle on the first attribute in the node map
+					'-------------------------------------------------
+					hXMLFilesNode = MIXMLGetNextNode(hXMLFilesNodeList)
+
+					'-------------------------------------------------
+					' Loop through all the attributes in the node map
+					' storing the names and statements in arrays
+					'-------------------------------------------------
+					Dim i As Integer
+					i = 0
+					Do while hXMLFilesNode
+						
+						i = i + 1
+						Redim aFileMapTables(i)
+						Redim aFileMapNames(i)
+						Redim aFileMapSuffixes(i)
+						Redim aFileMapColumns(i)
+						Redim aFileMapCriteria(i)
+						Redim aFileMapFormats(i)
+
+						' Name of the Map table
+						aFileMapTables(i) = GetNodeName(hXMLFilesNode)
+
+						' Local MapInfo name of the Map table
+						aFileMapNames(i) = GetSingleNodeValue(hXMLFilesNode, "TableName")
+
+						' Suffix applied to map table when saving
+						aFileMapSuffixes(i) = GetSingleNodeValue(hXMLFilesNode, "Suffix")
+
+						' SQL clause used to retrieve the required rows from the map table
+						aFileMapColumns(i) = GetSingleNodeValue(hXMLFilesNode, "Columns")
+
+						' SQL clause used to select or order the required rows from the map table
+						aFileMapCriteria(i) = GetSingleNodeValue(hXMLFilesNode, "Criteria")
+
+						' Format required for the extract of the map table
+						aFileMapFormats(i) = GetSingleNodeValue(hXMLFilesNode, "Format")
+
+						'-------------------------------------------------
+						' Get a handle on the next attribute in the node map
+						'-------------------------------------------------
+						hXMLFilesNode = MIXMLGetNextNode(hXMLFilesNodeList)
+					Loop
+
+				End If
+
+			End If
+
+		Else
+
+			Note "Error : " + MIGetErrorMessage()
+			Goto CleanUp
+
+		End If
+
+	End If
+
+	'-------------------------------------------------
+	' Seperate the Buffer Units into two arrays
+	'-------------------------------------------------
+	Dim sDelimRows As String, sDelimCols As String
+	sDelimRows = ";"
+	sDelimCols = "$"
+	Dim iRows As Integer
+	iRows = StringToArrays(sBufferUnits, aMapUnits(), aMapAbbrevs(), sDelimRows, sDelimCols)
+	If iRows = 0 Then
+		Note "Error : No Buffer Units found"
+		Goto CleanUp
+	End If
+
+CleanUp:
+	'-------------------------------------------------
+	' Destroy the handles
+	'-------------------------------------------------
+	If hXMLFilesNode Then Call MIXmlNodeDestroy(hXMLFilesNode) End If
+	If hXMLFilesNodeList Then Call MIXmlNodeListDestroy(hXMLFilesNodeList) End If
+	If hXMLFilesNodeParent Then Call MIXmlNodeDestroy(hXMLFilesNodeParent) End If
+	If hXMLNode Then Call MIXmlNodeDestroy(hXMLNode) End If
+	If hXMLRoot Then Call MIXmlNodeDestroy(hXMLRoot) End If
+	If hXMLDoc Then Call MIXmlDocumentDestroy(hXMLDoc) End If
+
+	Exit Sub
+
+GetVariablesError:
+	Note str$(Err()) + ": " + Error$()
+	Exit Sub
+
+End Sub
+
+Sub DialogSetup
+'***************************************************************
+' Setup the dialog window listboxes
+'***************************************************************
+
+	'-------------------------------------------------
+	' Clear the Message window and close it
+	'-------------------------------------------------
+	Print(Chr$(12))
+	Close Window Message
+
+	'-------------------------------------------------
+	' Loop through all the MapInfo tables listed in the
+	' config file and add them to the Map Tables list
+	' if they are open in MapInfo
+	'-------------------------------------------------
+
+	Dim j As Integer
+	j = 0
+	Dim i As Integer
+	For i = 1 to UBound(aFileMapTables)
+
+		'-------------------------------------------------
+		' Concatenate all the Map tables into an array
+		'-------------------------------------------------
+		If TableIsOpen(aFileMapNames(i)) Then
+			j = j + 1
+
+			aMapTables(j) = aFileMapTables(i)
+			aMapNames(j) = aFileMapNames(i)
+			aMapSuffixes(j) = aFileMapSuffixes(i)
+			aMapColumns(j) = aFileMapColumns(i)
+			aMapCriteria(j) = aFileMapCriteria(i)
+			aMapFormats(j) = aFileMapFormats(i)
+		Else
+			Note "Error: Table " + aFileMapTables(i) + " is not open as " + aFileMapNames(i)
+		End If
+
+	Next
+
+	Redim aMapTables(j)
+	Redim aMapNames(j)
+	Redim aMapSuffixes(j)
+	Redim aMapColumns(j)
+	Redim aMapCriteria(j)
+	Redim aMapFormats(j)
+
+	'-------------------------------------------------
+	' Update the Map Table list to show the list of tables
+	'-------------------------------------------------
+	Alter Control 3 Title From Variable aMapTables
+
+Exit Sub
+
+End Sub
+
+Sub CheckSelection
+'***************************************************************
+'* Check the user's selections and process according
+'***************************************************************
+
+	bSelectionValid = False
+
+	iExtractTot = 0
+
+	'-------------------------------------------------
+	' Check if the user has entered a search reference
+	'-------------------------------------------------
+	If ReadControlValue(1) = "" Then
+		Note "No search reference has been entered!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if the user has selected at least one table
+	'-------------------------------------------------
+	iMapTable = ReadControlValue(3)
+	if iMapTable = 0 then
+		Note "No tables have been selected!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Count the number of extracts to run
+	'-------------------------------------------------
+	iExtractCnt = 0
+	Do While iMapTable > 0
+		'-------------------------------------------------
+		' Increment the counter
+		'-------------------------------------------------
+		iExtractTot = iExtractTot + 1
+
+		aMapTableSelected(iExtractTot) = aMapTables(iMapTable)
+		aMapNameSelected(iExtractTot) = aMapNames(iMapTable)
+		aMapSuffixSelected(iExtractTot) = aMapSuffixes(iMapTable)
+		aMapColumnSelected(iExtractTot) = aMapColumns(iMapTable)
+		aMapCriteriaSelected(iExtractTot) = aMapCriteria(iMapTable)
+		aMapFormatSelected(iExtractTot) = aMapFormats(iMapTable)
+
+		'-------------------------------------------------
+		' Read the next table selected in the list
+		'-------------------------------------------------
+		iMapTable = ReadControlValue(3)
+	Loop
+
+	'-------------------------------------------------
+	' Check if the user has selected a buffer unit
+	'-------------------------------------------------
+	If ReadControlValue(4) = 0 Then
+		Note "No buffer unit has been selected!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if the user has entered a buffer size
+	'-------------------------------------------------
+	If ReadControlValue(5) = "" Then
+		Note "No buffer size has been entered!"
+		Exit Sub
+	End If
+	If isNumeric(ReadControlValue(5)) = False Then
+		Note "The buffer size is not numeric!"
+		Exit Sub
+	End If
+
+	bSelectionValid = True
+
+End Sub
+
+Sub BufferSearch
+'*************************************************
+'* Routine to buffer the search area with the
+'* required size and units.
+'*************************************************
+
+	Call MyPrint("------------------------------------------------------------------------")
+	Call MyPrint("Buffering reference '" + sSearchRef + "' for " + sBufferSize + sBufferUnit + " ...")
+
+	'-------------------------------------------------
+	' Setup the local path and buffer table names
+	'-------------------------------------------------
+	Dim sLocalPath As String
+	sLocalPath = sDefaultPath + "\" + sSearchRef & "\" + sGISFolder
+	Dim sTempTable As String
+	sTempTable = "Search_Area"
+	Dim sLocalTable As String
+	sLocalTable = "Buffer_" + sSearchRef + "_" + sBufferSize + sBufferUnit
+	sBufferTable = "Buffer_Area"
+
+	'-------------------------------------------------
+	' Find the layer number of the search table by
+	' looking through all the windows until it is
+	' found
+	'-------------------------------------------------
+	Dim iNumWindows As Integer
+	iNumWindows = UBound(aWindowId)
+	Dim iWindowNum As Integer
+	For iWindowNum = 1 to iNumWindows
+		Dim iNumTables As Integer
+		Dim iNumSearchTable as Integer
+		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+		For iNumSearchTable = 1 to iNumTables
+			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+				Goto EditLayer
+			End If
+		Next
+	Next
+
+EditLayer:
+	'-------------------------------------------------
+	' Make the layer visible if it is not already
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
+	End If
+	
+	'-------------------------------------------------
+	' Make the layer editable if it is not already
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_EDITABLE) = False Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
+	End If
+
+	'-------------------------------------------------
+	' Save the search area table (in case it has
+	' unsaved edits
+	'-------------------------------------------------
+	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
+		Call MyPrint("Saving table " + sSearchTable + " ...")
+		Commit Table sSearchTable
+	End If
+
+	'-------------------------------------------------
+	' Check if the old buffer table is
+	' already/still open and close it if it is
+	'-------------------------------------------------
+	If TableIsOpen(sLocalTable) Then
+		Call MyPrint("Closing buffer table ...")
+		Close Table sLocalTable
+	End If
+
+	'-------------------------------------------------
+	' Check if the temporary table is
+	' already/still open and close it if it is
+	'-------------------------------------------------
+	If TableIsOpen(sTempTable) Then
+		Call MyPrint("Closing temporary table ...")
+		Close Table sTempTable
+	End If
+
+	'-------------------------------------------------
+	' Select the required reference in the search table
+	' and put it into the temporary table
+	'-------------------------------------------------
+	Call MyPrint("Selecting reference ...")
+	Dim sCmd as String
+	sCmd = "Select * from " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Count the number of objects that have
+	' been selected in the temporary table
+	'-------------------------------------------------
+	Dim iRecTotal As Integer
+	iRecTotal = TableInfo(sTempTable, TAB_INFO_NROWS)
+
+	'-------------------------------------------------
+	' Check if any records were selected
+	'-------------------------------------------------
+	If iRecTotal = 0 Then
+		Call MyPrint("Reference '" + sSearchRef + "' not found in '" + sSearchTable + "'.")
+		Note "Reference '" + sSearchRef + "' not found in '" + sSearchTable + "'."
+		sBufferTable = ""
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Buffer the selected search reference (in the
+	' temporary table)
+	'-------------------------------------------------
+	Call MyPrint("Buffering the search reference ...")
+	sCmd = "Create Object As Buffer From " + sTempTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data ref=ref,organisation=organisation,site=site,radius=" + Chr$(34) + sBufferSize + sBufferUnit + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Close the temporary table
+	'-------------------------------------------------
+	Call MyPrint("Closing temporary table ...")
+	Close Table sTempTable
+
+	'-------------------------------------------------
+	' Check if the buffer table is
+	' already/still open and close it if it is
+	'-------------------------------------------------
+	If TableIsOpen(sBufferTable) Then
+		Call MyPrint("Closing buffer table ...")
+		Close Table sBufferTable
+	End If
+
+	'-------------------------------------------------
+	' Save the buffer table
+	'-------------------------------------------------
+	Call MyPrint("Saving buffer table ...")
+	sCmd = "Commit Table Selection As " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Close the selection table
+	'-------------------------------------------------
+	Close Table Selection
+
+	'-------------------------------------------------
+	' Close the latest query table
+	'-------------------------------------------------
+	Dim t As SmallInt
+	For t = NumTables() to 1 Step -1
+		If TableInfo(t, TAB_INFO_TEMP) Then
+			Close Table TableInfo(t, TAB_INFO_NAME)
+			Exit For
+		End If
+	Next 
+
+	'-------------------------------------------------
+	' Open the new buffered table
+	'-------------------------------------------------
+	Call MyPrint("Opening buffer table ...")
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sBufferTable
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Undo the updates to the search table to remove the temporary buffered object
+	'-------------------------------------------------
+	Rollback Table sSearchTable
+
+	'-------------------------------------------------
+	' Make the layer non-editable
+	'-------------------------------------------------
+	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
+
+	Call MyPrint("Buffering complete.")
+	Call MyPrint("")
+
+End Sub
+
+Sub ProcessExtracts
+'***************************************************************
+'* Process each combination of table and partner
+'***************************************************************
+
+	Dim sMapTable As String, sMapName As String, sMapSuffix As String
+	Dim sMapColumn As String, sMapCriteria As String, sMapFormat As String
+	sMapTable = aMapTableSelected(iExtractCnt)
+	sMapName = aMapNameSelected(iExtractCnt)
+	sMapSuffix = aMapSuffixSelected(iExtractCnt)
+	sMapColumn = aMapColumnSelected(iExtractCnt)
+	sMapCriteria = aMapCriteriaSelected(iExtractCnt)
+	sMapFormat = aMapFormatSelected(iExtractCnt)
+
+	Call MyPrint("Processing search '" + sSearchRef + "', table " + sMapTable + " ...")
+
+	Call MyPrint("Starting table " + iExtractCnt + " of " + iExtractTot + " ...")
+
+	'-------------------------------------------------
+	' Call the subroutine to select the records from
+	' the selected table
+	'-------------------------------------------------
+	Call SelectMaps(sMapTable, sMapName, sMapSuffix, sMapColumn, sMapCriteria, sMapFormat)
+
+	Call MyPrint("Completed table " + iExtractCnt + " of " + iExtractTot + ".")
+	Call MyPrint("")
+
+	If iExtractCnt = iExtractTot Then
+		'-------------------------------------------------
+		' Rename the local buffer table
+		'-------------------------------------------------
+		Call MyPrint("Renaming buffer table ...")
+		Call MyPrint("")
+		Close Table sBufferTable
+
+		Dim sLocalPath As String, sLocalTable As String
+		sLocalPath = sDefaultPath + "\" + sSearchRef & "\" + sGISFolder
+		sLocalTable = "Buffer_" + sSearchRef + "_" + sBufferSize + sBufferUnit
+		Dim sCmd As String
+		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
+		Run Command (sCmd)
+
+		'-------------------------------------------------
+		' Add the local buffer table to all map windows and
+		' zoom to the extent of the new buffered table
+		'-------------------------------------------------
+		Dim iNumWindows As Integer
+		iNumWindows = UBound(aWindowId)
+		Dim iWindowNum As Integer
+		For iWindowNum = 1 to iNumWindows
+
+			'-------------------------------------------------
+			' Add the local buffer table to the map window
+			'-------------------------------------------------
+			Add Map Window aWindowId(iWindowNum) Layer sLocalTable
+
+			'-------------------------------------------------
+			' Get the layer number of the buffer table (just added)
+			'-------------------------------------------------
+			Dim iNumTables As Integer
+			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+			Dim	iNumBufferTable as Integer
+			For iNumBufferTable = 1 to iNumTables
+				If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sLocalTable Then
+					Exit For
+				End If
+			Next
+
+			'-------------------------------------------------
+			' Set the symbology for the local buffer table
+			'-------------------------------------------------
+			Set Map Window aWindowId(iWindowNum) Layer iNumBufferTable Display Global Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)
+
+			'-------------------------------------------------
+			' Zoom to the local buffer table
+			'-------------------------------------------------
+			Set Map Window aWindowId(iWindowNum) Zoom Entire Layer iNumBufferTable
+
+		Next
+
+		Call MyPrint("Processing for data search complete.")
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("")
+	End If
+	
+	'-------------------------------------------------
+	' Increment the progress bar to show progress
+	'-------------------------------------------------
+	ProgressBar = iExtractCnt
+
+	'-------------------------------------------------
+	' Go to the next selection in the list
+	'-------------------------------------------------
+	iExtractCnt = iExtractCnt + 1
+	If iExtractCnt > iExtractTot Then
+		'-------------------------------------------------
+		' Halt processing
+		'-------------------------------------------------
+		ProgressBar = -1
+	End If
+
+End Sub
+
+Sub SelectMaps(sMapTable As String,
+	sMapName As String,
+	sMapSuffix As String,
+	sMapColumn As String,
+	sMapCriteria As String,
+	sMapFormat As String)
+'*************************************************
+'* Routine to select the records from the
+'* MapInfo table name passed in the call that
+'* intersect with the boundary passed in the call.
+'*************************************************
+
+	OnError Goto ErrorTrap
+
+	Call MyPrint("Processing Table = '" + sMapTable + "' ...")
+
+	'-------------------------------------------------
+	' Setup the temporary and local table names
+	'-------------------------------------------------
+	Dim sLocalPath, sLocalName As String
+	sLocalPath = sDefaultPath + "\" + sSearchRef & "\" + sGISFolder
+	sLocalName = sSearchRef + sMapSuffix
+
+	'-------------------------------------------------
+	' Check if the local table is already/still open
+	' and close it if it is
+	'-------------------------------------------------
+	If TableIsOpen(sLocalName) Then
+		Call MyPrint("Closing local table ...")
+		Close Table sLocalName
+	End If
+
+	'-------------------------------------------------
+	' Execute the SQL statement to select the table
+	' records intersecting with the required
+	' partner boundary
+	'-------------------------------------------------
+	Call MyPrint("Executing spatial selection ...")
+	Dim sCmd as String
+	sCmd = "Select " + sMapColumn + " from " + sMapName + ", " + sBufferTable + " Where " + sMapName + ".obj Intersects " + sBufferTable + ".obj " + sMapCriteria + " Into S" + sLocalName
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Count the number of records that have
+	' been selected
+	'-------------------------------------------------
+	Dim iRecTotal As Integer
+	iRecTotal = TableInfo("S" + sLocalName, TAB_INFO_NROWS)
+
+	'-------------------------------------------------
+	' Check if the maximum number of records will be
+	' exceeded
+	'-------------------------------------------------
+	If iRecTotal > iRecMax Then
+		Call MyPrint("Record count exceeds maximum of " + iRecMax + " - table skipped.")
+		Close Table "S" + sLocalName
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if any records were extracted
+	'-------------------------------------------------
+	If iRecTotal = 0 Then
+		Call MyPrint("No records found - table skipped.")
+		Close Table "S" + sLocalName
+		Exit Sub
+	End If
+
+	Call MyPrint("" + iRecTotal + " records selected.")
+
+	'-------------------------------------------------
+	' Save the local table
+	'-------------------------------------------------
+	Call MyPrint("Saving local table ...")
+	sCmd = "Commit Table S" + sLocalName + " As " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Close the selection table
+	'-------------------------------------------------
+	Close Table Selection
+
+	'-------------------------------------------------
+	' Close the local table and re-open it (as it seems
+	' to get locked somehow and won't drop)
+	'-------------------------------------------------
+	Close Table "S" + sLocalName
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " As S" + sLocalName
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Export the table as a DBF file
+	'-------------------------------------------------
+	If UCase$(sMapFormat) = "DBF" Then
+		Call MyPrint("Exporting as a DBF file ...")
+		Export "S" + sLocalName
+			Into sLocalPath + "\" + sLocalName + ".dbf"
+			Type "DBF"
+			CharSet "WindowsLatin1"
+			Overwrite
+	End If
+
+	'-------------------------------------------------
+	' Export the table as a text file
+	'-------------------------------------------------
+	If UCase$(sMapFormat) = "TXT" Then
+		Call MyPrint("Exporting as a TXT file ...")
+		Export "S" + sLocalName
+			Into sLocalPath + "\" + sLocalName + ".txt"
+			Type "ASCII"
+			Delimiter ","
+			CharSet "WindowsLatin1"
+			Overwrite
+	End If
+
+	'-------------------------------------------------
+	' Close the local table and re-open it (as it seems
+	' to get locked somehow and won't drop)
+	'-------------------------------------------------
+	If UCase$(sMapFormat) <> "TAB" Then
+		Call MyPrint("Dropping the MapInfo table ...")
+		Drop Table "S" + sLocalName
+	End If
+
+	Exit Sub
+
+ErrorTrap:
+	Note str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Sub
+
+End Sub
+
+Sub AboutBox
+'***************************************************************
+'* Display the 'About' dialog box
+'***************************************************************
+
+	Dialog
+		Title "About Data Searches 1.31"
+		Width 230
+		Height 115
+
+	Control StaticText
+		Title "This program will extract all required GIS layers that"
+		Position 10,10
+	Control StaticText
+		Title "intersect with a given feature with a specified buffer."
+		Position 10,20
+	Control StaticText
+		Title "The user can select which layers to extract from, the"
+		Position 10,30
+	Control StaticText
+		Title "data search feature to select and the buffer to apply."
+		Position 10,40
+	Control StaticText
+		Title "Created by Andy Foy Consulting."
+		Position 10,60
+	Control StaticText
+		Title "Copyright© 2012-2013 Greenspace Information for Greater London."
+		Position 10,70
+	Control OKButton
+		Position 185,95
+
+End Sub
+
+Sub MyPrint(ByVal sMsg As String)
+'***************************************************************
+'* Bespoke print function
+'***************************************************************
+
+	'-------------------------------------------------
+	' Open the log file for output
+	'-------------------------------------------------
+	Open File sLogFileName For Append As #1
+
+	'-------------------------------------------------
+	' Write the message passed to the output file
+	'-------------------------------------------------
+	Print #1, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"H:mm:ss") + " : " + sMsg
+
+	'-------------------------------------------------
+	' Close the output file
+	'-------------------------------------------------
+	Close File #1
+
+End Sub
+
+Sub PrintLogFile()
+'***************************************************************
+'* Print the log file to the message window
+'***************************************************************
+
+	'-------------------------------------------------
+	' Open the log file for input
+	'-------------------------------------------------
+	Open File sLogFileName For Input As #99
+
+	'-------------------------------------------------
+	' Get the first line
+	'-------------------------------------------------
+	Dim sMsg As String
+	Line Input #99, sMsg
+
+	'-------------------------------------------------
+	' Loop through all the lines until the log file
+	' is empty
+	'-------------------------------------------------
+	Do Until EOF(99)
+		'-------------------------------------------------
+		' Print the log file line to the message window
+		'-------------------------------------------------
+		Print sMsg
+
+		'-------------------------------------------------
+		' Get the first line
+		'-------------------------------------------------
+		Line Input #99, sMsg
+	Loop
+
+	'-------------------------------------------------
+	' Refresh the message window
+	'-------------------------------------------------
+	Update Window WIN_MESSAGE
+
+	'-------------------------------------------------
+	' Close the log file
+	'-------------------------------------------------
+	Close File #99
+
+End Sub
+
+Sub egsit
+'***************************************************************
+'* Exit the program
+'***************************************************************
+
+	End Program
+
+End Sub

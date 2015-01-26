@@ -1,0 +1,5 @@
+[Link]
+Application=DataSearches.mbx
+Module=DataSearches.mbo
+Module=GenFunctions.mbo
+Module=XMLFunctions.mbo
