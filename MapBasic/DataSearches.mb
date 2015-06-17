@@ -20,14 +20,14 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'*DataSearches v1.31
+'*DataSearches v1.32
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
 '*
-'* Created:			Andy Foy - February 2013
+'* Created:		Andy Foy - February 2013
 '* Last revised:	Andy Foy - April 2013
 '***************************************************************
 Include "DataSearches.def"
@@ -1016,7 +1016,7 @@ Sub AboutBox
 '***************************************************************
 
 	Dialog
-		Title "About Data Searches 1.31"
+		Title "About Data Searches 1.32"
 		Width 230
 		Height 115
 

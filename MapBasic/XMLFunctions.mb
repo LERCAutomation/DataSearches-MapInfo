@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright Â© 2013 Greenspace Information for Greater London (GiGL)
+'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -26,7 +26,7 @@
 '* configuration files.
 '*
 '*
-'* Created:			Andy Foy - February 2013
+'* Created:		Andy Foy - February 2013
 '* Last revised:	Andy Foy - April 2013
 '***************************************************************
 Include "DataSearches.def"
