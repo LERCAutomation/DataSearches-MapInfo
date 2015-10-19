@@ -30,6 +30,23 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - October 2015
+'*
+'* *****************  Version 1.40  *****************
+'* Author: Andy Foy		Date: 19/10/2015
+'* A. Added lookup of site name from access database, or input
+'*    by user.
+'* B. Changed buffer units to a popup menu.
+'* C. Enable selected tables to be kept and added to the
+'*    active map window (with/without labels)
+'* D. Enable map labels to be overwritten with sequential
+'*    number either within each table or across all tables.
+'* E. Optionally create a combined sites table containing
+'*    details of all selected sites within search area.
+'* F. Enable variables to be used within some file paths
+'*    and file name variables in the XML file.
+'* G. Set the buffer search area symbology from an XML
+'*    variable.
+'*
 '***************************************************************
 Include "DataSearches.def"
 

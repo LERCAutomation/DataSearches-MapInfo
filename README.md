@@ -1,9 +1,10 @@
 Data Searches
 =============
 
-Data Searches Tool v1.31
+Data Searches Tool v1.40
 
-Copyright © 2013 Greenspace Information for Greater London (GiGL)
+Copyright © 2013 GiGL
+Copyright © 2015 TVERC, GiGL
 
 Overview
 --------
