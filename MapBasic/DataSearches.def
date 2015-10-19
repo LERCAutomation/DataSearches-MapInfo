@@ -2,7 +2,8 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
+'* Copyright © 2013 GiGL
+'* Copyright © 2015 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -80,16 +81,31 @@ Declare Sub SelectMaps
 	(sMapTable As String,
 	sMapName As String,
 	sMapSuffix As String,
-	sMapColumn As String,
+	sMapColumns As String,
 	sMapCriteria As String,
-	sMapFormat As String)
+	sMapKeyColumns As String,
+	sMapFormat As String,
+	sMapKeep As String,
+	sMapLabelColumn As String,
+	sMapLabelClause As String,
+	sMapSiteColumns As String,
+	sMapSiteCriteria As String)
 Declare Sub AboutBox
 Declare Sub egsit
 Declare Sub MyPrint
 	(ByVal sMsg As String)
 Declare Sub PrintLogFile
 Declare Sub BufferSearch
+Declare Sub CreateCombinedSitesTable
 Declare Sub ProcessExtracts
+Declare Sub OverwriteMapLabels
+	(sTableName As String,
+	sMapKeyColumn As String,
+	sLabelColumn As String)
+Declare Sub AddToCombinedSitesTable
+	(sTableName As String,
+	sSitesColumns As String,
+	sSitesCriteria As String)
 
 Declare Sub MIXmlDocumentDestroy Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentDestroy" (
@@ -121,7 +137,19 @@ Declare Function StringToArrays
 	sDelimRows As String,
 	sDelimCols As String) As Integer
 Declare Function IsNumeric
-	(byval sVal As String) as Logical
+	(ByVal sVal As String) As Logical
+Declare Function KeepNumbersAndSpaces
+	(ByVal strInput As String,
+	repChar As String) As String
+Declare Function RemoveSpecialChars
+	(ByVal strInput As String) As String
+Declare Function StringReplace
+	(ByVal sToBeSearched As String,
+	ByVal sSearchFor As String,
+	ByVal sReplaceWith As String) As String
+Declare Function ColumnExists
+	(ByVal sTableName As String,
+	ByVal sColName As String) As Logical
 
 Declare Function CreateDirectory Lib "kernel32"
 	Alias "CreateDirectoryA"
@@ -183,51 +211,98 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 '-------------------------------------------------
 ' Declare the global variables
 '-------------------------------------------------
-Global sDefaultPath As String
+Global sDatabase As String
+Global sEnquiriesDir As String
+Global sRepChar As String
+Global sSaveRootDir As String
+Global sSaveFolder As String
 Global sGISFolder As String
+Global sLocalPath As String
+Global sLogFileName As String
+Global sLogFile As String
+
 Global sDefaultBufferSize As String
 Global iDefaultBufferUnit As SmallInt
-Global sBufferUnits As String
-Global sLogFilePrefix As String
-Global sLogFileName As String
+Global sBufferUnitOptions As String
+Global aBufferUnits(99) As String
+Global aBufferAbbrevs(99) As String
+Global iBufferInt As SmallInt
+Global sBufferSymbology As String
+
 Global sSearchTable As String
 Global sSearchColumn As String
+Global sAggregateColumns As String
+
+Global sAddSelectedTablesOptions As String
+Global iDefaultAddSelectedTables As SmallInt
+Global iAddSelectedTables As SmallInt
+
+Global sOverwriteLabelOptions As String
+Global iDefaultOverwriteLabels As SmallInt
+Global iOverwriteLabels As SmallInt
+
+Global sDefaultCombinedSitesTable As String
+Global bCreateCombinedSitesTable As Logical
+
+Global sCombinedSitesTable As String
+Global sCombinedSitesColumns As String
+Global sCombinedSitesSuffix As String
+Global sCombinedSitesFormat As String
+
 Global sSearchValues As String
 Global sSearchRef As String
-
-Global aMapUnits(99) As String
-Global aMapAbbrevs(99) As String
+Global sSiteName As String
+Global sShortRefNo As String
+Global sSubRefNo As String
 
 Global aFileMapTables(99) As String
 Global aFileMapNames(99) As String
 Global aFileMapSuffixes(99) As String
 Global aFileMapColumns(99) As String
 Global aFileMapCriteria(99) As String
+Global aFileMapKeyColumn(99) As String
 Global aFileMapFormats(99) As String
+Global aFileMapKeep(99) As String
+Global aFileMapLabelColumn(99) As String
+Global aFileMapLabelClause(99) As String
+Global aFileMapSiteColumns(99) As String
+Global aFileMapSiteCriteria(99) As String
 
 Global aMapTables(99) As String
 Global aMapNames(99) As String
 Global aMapSuffixes(99) As String
 Global aMapColumns(99) As String
 Global aMapCriteria(99) As String
+Global aMapKeyColumn(99) As String
 Global aMapFormats(99) As String
+Global aMapKeep(99) As String
+Global aMapLabelColumn(99) As String
+Global aMapLabelClause(99) As String
+Global aMapSiteColumns(99) As String
+Global aMapSiteCriteria(99) As String
 
 Global aMapTableSelected(99) As String
 Global aMapNameSelected(99) As String
 Global aMapSuffixSelected(99) As String
-Global aMapColumnSelected(99) As String
+Global aMapColumnsSelected(99) As String
 Global aMapCriteriaSelected(99) As String
+Global aMapKeyColumnSelected(99) As String
 Global aMapFormatSelected(99) As String
+Global aMapKeepSelected(99) As String
+Global aMapLabelColumnSelected(99) As String
+Global aMapLabelClauseSelected(99) As String
+Global aMapSiteColumnsSelected(99) As String
+Global aMapSiteCriteriaSelected(99) As String
 
 Global iExtractTot As Integer
 Global iExtractCnt As Integer
 Global iMapTable As Integer
 Global iRecMax As Integer
 Global bClearLog As Logical
-Global sBufferSize As String
-Global iBufferInt As SmallInt
-Global sBufferUnit As String
+Global iMapLabelCounter As Integer
 
-Global bSelectionValid As Logical
+Global sBufferSize As String
+Global sBufferUnit As String
 Global sBufferTable As String
+
 Global aWindowId(99) As Integer

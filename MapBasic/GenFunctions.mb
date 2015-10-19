@@ -2,7 +2,8 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
+'* Copyright © 2013 GiGL
+'* Copyright © 2015 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,13 +21,13 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* GenFunctions v1.4
+'* GenFunctions v1.41
 '*
 '* Contains general functions used by the DataSearches tool.
 '*
 '*
-'* Created:		Andy Foy - February 2013
-'* Last revised:	Andy Foy - April 2013
+'* Created:			Andy Foy - February 2013
+'* Last revised:	Andy Foy - October 2015
 '***************************************************************
 Include "DataSearches.def"
 
@@ -115,16 +116,120 @@ Dim iLenSepRow As Integer, iLenSepCol As Integer
 
 End Function
 
-Function IsNumeric (byval sVal As String) as Logical
+Function IsNumeric (ByVal sVal As String) As Logical
 '*************************************************
 '* Check if a string is numeric (as a float value)
 '*************************************************
 Dim i As Integer
-For i = 1 to Len(sVal)
-	If Not InStr(1, " 0123456789.+-e", Mid$(sVal,i,1)) Then
-		'String contains a non-numeric character!
-		Exit Function
-	End If
-Next
-IsNumeric = 1
+
+	IsNumeric = 0
+
+	For i = 1 to Len(sVal)
+		If Not InStr(1, " 0123456789.+-e", Mid$(sVal,i,1)) Then
+			'String contains a non-numeric character!
+			Exit Function
+		End If
+	Next
+
+	IsNumeric = 1
+
 End Function 
+
+Function KeepNumbersAndSpaces(ByVal strInput As String, repChar As String) As String
+'*************************************************
+'* Remove alphabetic and special characters from a sting, leaving
+'* only numerics and the default replace character.
+'*************************************************
+Dim i As Integer, c As String, strReturn as String
+
+	strReturn = ""
+
+	For i = 1 To Len(strInput)  ' Do with each Character in input string...
+	    c = Mid$(strInput, i, 1) ' Get actual char
+	    If IsNumeric(c) Or c = " " Then ' If numeric or a space then append to output
+	        strReturn = strReturn & c
+	    End If
+	    If Not IsNumeric(c) And InStr(1, repChar, c) And repChar <> " " Then '   If keep character then append space to output
+	        strReturn = strReturn & " "
+	    End If
+	Next
+
+	KeepNumbersAndSpaces = strReturn
+
+End Function
+
+Function RemoveSpecialChars(ByVal strInput As String) As String
+'*************************************************
+'* Remove any special characters from a sting that can't be used in
+'* folder or file names.
+'*************************************************
+
+    strInput = StringReplace(strInput, "$", "")
+    strInput = StringReplace(strInput, ":", "")
+    strInput = StringReplace(strInput, "*", "")
+    strInput = StringReplace(strInput, "\", "")
+    strInput = StringReplace(strInput, "/", "")
+    strInput = StringReplace(strInput, "*", "")
+    strInput = StringReplace(strInput, "?", "")
+    strInput = StringReplace(strInput, "<", "")
+    strInput = StringReplace(strInput, ">", "")
+    strInput = StringReplace(strInput, "|", "")
+
+    RemoveSpecialChars = strInput
+
+End Function
+
+Function StringReplace(ByVal sToBeSearched As String, ByVal sSearchFor As String, ByVal sReplaceWith As String) As String
+'*************************************************
+'* Finds and replaces one string with another
+'* in a given string
+'*************************************************
+
+Dim i, nLenR, nLenS As Integer
+
+	OnError GoTo ErrorOccured
+	
+	StringReplace = sToBeSearched
+	
+	nLenR = Len(sReplaceWith)
+	nLenS = Len(sSearchFor)
+	i = InStr(1, sToBeSearched, sSearchFor)
+	Do While i > 0
+	   sToBeSearched = Left$(sToBeSearched,i - 1) + sReplaceWith
+	               + Right$(sToBeSearched, Len(sToBeSearched) - ((i - 1) + nLenS))
+	   i = InStr(i + nLenR, sToBeSearched, sSearchFor)
+	Loop
+	
+	StringReplace = sToBeSearched
+	
+	Exit Function
+
+ErrorOccured:
+
+End Function
+
+Function ColumnExists(ByVal sTableName As String, ByVal sColName As String) As Logical
+'*************************************************
+'* Check if the column exists in the table
+'*************************************************
+
+	'-------------------------------------------------
+	' Loop through all the columns looking for the
+	' required name
+	'-------------------------------------------------
+	Dim i, j As Integer
+	Dim sColName0 As String
+
+	ColumnExists = False
+
+	For i = 1 to TableInfo(sTableName, TAB_INFO_NCOLS)
+ 
+       sColName0 = ColumnInfo(sTableName, "col"&i, COL_INFO_NAME)
+		If UCase$(sColName) = UCase$(sColName0) Then
+ 			ColumnExists = True
+			Exit For
+		End If
+
+	Next
+
+End Function
