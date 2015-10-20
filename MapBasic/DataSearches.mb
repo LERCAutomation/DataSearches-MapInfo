@@ -244,6 +244,9 @@ Sub GetDefaultValues
 	Dim hXMLFilesNodeList As MIXMLNodeList
 	Dim hXMLFilesNode As MIXmlNode
 
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
 	OnError Goto GetDefaultsError
 
 	'-------------------------------------------------
@@ -370,6 +373,9 @@ Sub GetDefaultValues
 					'-------------------------------------------------
 					hXMLFilesNode = MIXMLGetNextNode(hXMLFilesNodeList)
 
+					'-------------------------------------------------
+					' Trap errors
+					'-------------------------------------------------
 					OnError Goto GetVariablesError
 
 					'-------------------------------------------------
@@ -403,8 +409,11 @@ Sub GetDefaultValues
 						' Format required for the extract of the map table
 						aFileMapFormats(i) = GetSingleNodeValue(hXMLFilesNode, "Format")
 
-						' Format required for the extract of the map table
+						' Whether the layer can be retained after exporting
 						aFileMapKeep(i) = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
+
+						' Whether the label column can be overwritten
+						aFileMapOverwrite(i) = GetSingleNodeValue(hXMLFilesNode, "OverwriteLabels")
 
 						' Column name containing the map labels
 						aFileMapLabelColumn(i) = GetSingleNodeValue(hXMLFilesNode, "LabelColumn")
@@ -432,6 +441,7 @@ Sub GetDefaultValues
 					Redim aFileMapKeyColumn(i)
 					Redim aFileMapFormats(i)
 					Redim aFileMapKeep(i)
+					Redim aFileMapOverwrite(i)
 					Redim aFileMapLabelColumn(i)
 					Redim aFileMapLabelClause(i)
 					Redim aFileMapSiteColumns(i)
@@ -449,6 +459,11 @@ Sub GetDefaultValues
 		End If
 
 	End If
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto GetDefaultsError
 
 	'-------------------------------------------------
 	' Seperate the Buffer Unit options into two arrays
@@ -522,6 +537,7 @@ Sub DialogSetup
 			aMapKeyColumn(j) = aFileMapKeyColumn(i)
 			aMapFormats(j) = aFileMapFormats(i)
 			aMapKeep(j) = aFileMapKeep(i)
+			aMapOverwrite(j) = aFileMapOverwrite(i)
 			aMapLabelColumn(j) = aFileMapLabelColumn(i)
 			aMapLabelClause(j) = aFileMapLabelClause(i)
 			aMapSiteColumns(j) = aFileMapSiteColumns(i)
@@ -540,6 +556,7 @@ Sub DialogSetup
 	Redim aMapKeyColumn(j)
 	Redim aMapFormats(j)
 	Redim aMapKeep(j)
+	Redim aMapOverwrite(j)
 	Redim aMapLabelColumn(j)
 	Redim aMapLabelClause(j)
 	Redim aMapSiteColumns(j)
@@ -579,6 +596,11 @@ Sub CheckSelection
 '***************************************************************
 '* Check the user's selections and process according
 '***************************************************************
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Store the dialog variables
@@ -638,6 +660,7 @@ Sub CheckSelection
 		aMapKeyColumnSelected(iExtractTot) = aMapKeyColumn(iMapTable)
 		aMapFormatSelected(iExtractTot) = aMapFormats(iMapTable)
 		aMapKeepSelected(iExtractTot) = aMapKeep(iMapTable)
+		aMapOverwriteSelected(iExtractTot) = aMapOverwrite(iMapTable)
 		aMapLabelColumnSelected(iExtractTot) = aMapLabelColumn(iMapTable)
 		aMapLabelClauseSelected(iExtractTot) = aMapLabelClause(iMapTable)
 		aMapSiteColumnsSelected(iExtractTot) = aMapSiteColumns(iMapTable)
@@ -693,10 +716,13 @@ Sub CheckSelection
 			Close Table Enquiries
 		End If
 	
+		'-------------------------------------------------
+		' Ignore the error trying to open the table
+		'-------------------------------------------------
 		OnError Goto RegisterTable
 	
 		'-------------------------------------------------
-		' Open the 'Enquiries' table
+		' Try and open the 'Enquiries' table
 		'-------------------------------------------------
 		Dim sCmd As String
 		sCmd = "Open Table " + Chr$(34) + sEnquiriesTable + Chr$(34) + " As Enquiries"
@@ -704,8 +730,14 @@ Sub CheckSelection
 	
 RegisterTable:
 	
-		OnError Goto 0
+		'-------------------------------------------------
+		' Trap errors
+		'-------------------------------------------------
+		OnError Goto ErrorTrap
 	
+		'-------------------------------------------------
+		' If the 'Enquiries' table isn't open ...
+		'-------------------------------------------------
 		If TableIsOpen("Enquiries") = False Then
 	
 			'-------------------------------------------------
@@ -914,13 +946,22 @@ RegisterTable:
 		Calling ProcessExtracts
 		Range iExtractTot
 
-	If CommandInfo(CMD_INFO_STATUS) = False Then
-		Call MyPrint("")
-		Call MyPrint("----------------------------------------------------------------------")
-		Call MyPrint("Process interrupted by user!")
-		Call MyPrint("----------------------------------------------------------------------")
-		lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
-		Goto Response
+	If CommandInfo(CMD_INFO_STATUS) Then
+		If iExtractCnt <= iExtractTot Then
+			Call MyPrint("")
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process did not complete!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Processing incomplete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
+			Goto Response
+		End If
+	Else
+			Call MyPrint("")
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process interrupted by user!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Show log file?", "Yes", "No")
+			Goto Response
 	End If
 
 	'-------------------------------------------------
@@ -1048,6 +1089,13 @@ Response:
 		Call PrintLogFile
 
 	End If
+
+	Exit Sub
+
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Sub
 
 End Sub
 
@@ -1269,10 +1317,15 @@ Sub ProcessExtracts
 '* Process each combination of table and partner
 '***************************************************************
 
+	'-------------------------------------------------
+	' Trap errors by skipping to the next selection
+	'-------------------------------------------------
+	OnError Goto NextSelection
+
 	Dim sMapTable As String, sMapName As String, sMapSuffix As String
 	Dim sMapColumns As String, sMapCriteria As String, sMapKeyColumn As String
-	Dim sMapFormat As String, sMapKeep As String, sMapLabelClause As String
-	Dim sMapLabelColumn As String
+	Dim sMapFormat As String, sMapKeep As String, sMapOverwrite As String
+	Dim sMapLabelClause As String, sMapLabelColumn As String
 	Dim sMapSiteColumns As String, sMapSiteCriteria As String
 	
 	sMapTable = aMapTableSelected(iExtractCnt)
@@ -1283,6 +1336,7 @@ Sub ProcessExtracts
 	sMapKeyColumn = aMapKeyColumnSelected(iExtractCnt)
 	sMapFormat = aMapFormatSelected(iExtractCnt)
 	sMapKeep = aMapKeepSelected(iExtractCnt)
+	sMapOverwrite = aMapOverwriteSelected(iExtractCnt)
 	sMapLabelColumn = aMapLabelColumnSelected(iExtractCnt)
 	sMapLabelClause = aMapLabelClauseSelected(iExtractCnt)
 	sMapSiteColumns = aMapSiteColumnsSelected(iExtractCnt)
@@ -1294,27 +1348,35 @@ Sub ProcessExtracts
 	' Call the subroutine to select the records from
 	' the selected table
 	'-------------------------------------------------
+	
 	Call SelectMaps(sMapTable, sMapName, sMapSuffix, sMapColumns, sMapCriteria,
-		sMapKeyColumn, sMapFormat, sMapKeep, sMapLabelColumn, sMapLabelClause,
-		sMapSiteColumns, sMapSiteCriteria)
+		sMapKeyColumn, sMapFormat, sMapKeep, sMapOverwrite, sMapLabelColumn,
+		sMapLabelClause, sMapSiteColumns, sMapSiteCriteria)
 
 	Call MyPrint("Completed table = '" + sMapTable + "'.")
 	Call MyPrint("")
 
-	'-------------------------------------------------
-	' Increment the progress bar to show progress
-	'-------------------------------------------------
-	ProgressBar = iExtractCnt
+NextSelection:
+	Call MyPrint("NextSelection ...")
 
 	'-------------------------------------------------
-	' Go to the next selection in the list
+	' Increment the progress bar counter
 	'-------------------------------------------------
 	iExtractCnt = iExtractCnt + 1
+
+	'-------------------------------------------------
+	' If all the tables in the list have been processed
+	'-------------------------------------------------
 	If iExtractCnt > iExtractTot Then
 		'-------------------------------------------------
 		' Halt processing
 		'-------------------------------------------------
 		ProgressBar = -1
+	Else
+		'-------------------------------------------------
+		' Show progress
+		'-------------------------------------------------
+		ProgressBar = iExtractCnt
 	End If
 
 End Sub
@@ -1327,6 +1389,7 @@ Sub SelectMaps(sMapTable As String,
 	sMapKeyColumn As String,
 	sMapFormat As String,
 	sMapKeep As String,
+	sMapOverwrite As String,
 	sMapLabelColumn As String,
 	sMapLabelClause As String,
 	sMapSiteColumns As String,
@@ -1337,6 +1400,9 @@ Sub SelectMaps(sMapTable As String,
 '* intersect with the boundary passed in the call.
 '*************************************************
 
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
 	OnError Goto ErrorTrap
 
 	'-------------------------------------------------
@@ -1431,8 +1497,8 @@ Sub SelectMaps(sMapTable As String,
 		' it is to be overwritten
 		'-------------------------------------------------
 		If (bCreateCombinedSitesTable And Instr(1, sMapSiteColumns, sMapLabelColumn) = 0)
-		Or Instr(1, sMapColumns, sMapLabelColumn) = 0
-		Or iOverwriteLabels > 1 Then
+		Or (Instr(1, sMapColumns, sMapLabelColumn) = 0)
+		Or (iOverwriteLabels > 1) Then
 			
 			'-------------------------------------------------
 			' Add the column to the combined sites table
@@ -1448,7 +1514,7 @@ Sub SelectMaps(sMapTable As String,
 	'-------------------------------------------------
 	' If the map labels are to be overwritten
 	'-------------------------------------------------
-	If iOverwriteLabels > 1 Then
+	If iOverwriteLabels > 1	And UCase$(sMapOverwrite) = "YES" Then
 
 		'-------------------------------------------------
 		' Reset the map label counter if a running total
@@ -1471,8 +1537,7 @@ Sub SelectMaps(sMapTable As String,
 	' there are columns from this table to add,
 	' then add the column details
 	'-------------------------------------------------
-	If bCreateCombinedSitesTable
-	And sMapSiteColumns <> "" Then
+	If bCreateCombinedSitesTable And sMapSiteColumns <> "" Then
 
 		'-------------------------------------------------
 		' Add the site details to the combined sites
@@ -1534,18 +1599,42 @@ Sub SelectMaps(sMapTable As String,
 		iWindowId = FrontWindow()
 
 		If iWindowId > 0 Then
+			
 			'-------------------------------------------------
 			' Add the local table to the map window
 			'-------------------------------------------------
 			Call MyPrint("Adding layer to map ...")
 			Add Map Window iWindowId Layer sLocalName
 
+			'-------------------------------------------------
+			' If the layer is to be added with labels ...
+			'-------------------------------------------------
 			If iAddSelectedTables = 3 Then
+
+				'-------------------------------------------------
+				' If the table doesn't contain the map label
+				' column then don't use it for the labels
+				'-------------------------------------------------
+				If ColumnExists(sLocalName, sMapLabelColumn) = False Then
+					sMapLabelColumn = ""
+					sMapLabelClause = ""
+				End If
+					
+				'-------------------------------------------------
+				' Set the map label clause if not already set
+				'-------------------------------------------------
+				If sMapLabelClause = "" Then
+					If sMapLabelColumn = "" Then
+						sMapLabelClause = "Auto On"
+					Else
+						sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+					End If
+				End If
 
 				'-------------------------------------------------
 				' Display the labels for the layer
 				'-------------------------------------------------
-				Call MyPrint("Settings labels to layer ...")
+				Call MyPrint("Settings labels for layer ...")
 				sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + sMapLabelClause
 				Run Command (sCmd)
 
@@ -1581,6 +1670,11 @@ Sub OverwriteMapLabels
 '* number starting from the counter
 '***************************************************************
 
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
+
 	Dim sCmd as String
 
 	Set ProgressBars Off
@@ -1598,7 +1692,7 @@ Sub OverwriteMapLabels
 	Dim iRows As Integer
 	iRows = TableInfo(MapLabels, TAB_INFO_NROWS)
 
-	Call MyPrint("Setting map labels for " + FormatNumber$(iRows) + " rows ...")
+	Call MyPrint("Overwritting map labels for " + FormatNumber$(iRows) + " rows ...")
 
 	'-------------------------------------------------
 	' If any rows were selected then set the object
@@ -1687,6 +1781,13 @@ CleanUp:
 	'-------------------------------------------------
 	Run Menu command M_QUERY_UNSELECT
 
+	Exit Sub
+
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Goto CleanUp
+
 End Sub
 
 Sub AddToCombinedSitesTable
@@ -1694,7 +1795,13 @@ Sub AddToCombinedSitesTable
 	sSitesColumns As String,
 	sSitesCriteria As String)
 '***************************************************************
+'* Add the site details to the combined sites table
 '***************************************************************
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
 
 	Dim sCmd as String
 
@@ -1743,6 +1850,13 @@ CleanUp:
 	' Unselect all records
 	'-------------------------------------------------
 	Run Menu command M_QUERY_UNSELECT
+
+	Exit Sub
+
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Goto CleanUp
 
 End Sub
 

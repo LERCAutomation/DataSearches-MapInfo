@@ -86,6 +86,7 @@ Declare Sub SelectMaps
 	sMapKeyColumns As String,
 	sMapFormat As String,
 	sMapKeep As String,
+	sMapOverwrite As String,
 	sMapLabelColumn As String,
 	sMapLabelClause As String,
 	sMapSiteColumns As String,
@@ -263,6 +264,7 @@ Global aFileMapCriteria(99) As String
 Global aFileMapKeyColumn(99) As String
 Global aFileMapFormats(99) As String
 Global aFileMapKeep(99) As String
+Global aFileMapOverwrite(99) As String
 Global aFileMapLabelColumn(99) As String
 Global aFileMapLabelClause(99) As String
 Global aFileMapSiteColumns(99) As String
@@ -276,6 +278,7 @@ Global aMapCriteria(99) As String
 Global aMapKeyColumn(99) As String
 Global aMapFormats(99) As String
 Global aMapKeep(99) As String
+Global aMapOverwrite(99) As String
 Global aMapLabelColumn(99) As String
 Global aMapLabelClause(99) As String
 Global aMapSiteColumns(99) As String
@@ -289,6 +292,7 @@ Global aMapCriteriaSelected(99) As String
 Global aMapKeyColumnSelected(99) As String
 Global aMapFormatSelected(99) As String
 Global aMapKeepSelected(99) As String
+Global aMapOverwriteSelected(99) As String
 Global aMapLabelColumnSelected(99) As String
 Global aMapLabelClauseSelected(99) As String
 Global aMapSiteColumnsSelected(99) As String

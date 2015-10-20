@@ -111,7 +111,7 @@ partners.
 
 	<!-- The options for overwritting the map labels -->
 	<OverwriteLabelOptions>
-		<value>No;Yes - Reset Counter;Yes - Incremental Counter</value>
+		<value>No;Yes - Reset Counter;Yes - Increment Counter</value>
 	</OverwriteLabelOptions>
 
 	<!-- Whether any map label columns should be overwritten -->
@@ -164,6 +164,9 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>Yes</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value>Map_Label</value>
 			</LabelColumn>
@@ -199,6 +202,9 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>Yes</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value>Map_Label</value>
 			</LabelColumn>
@@ -234,6 +240,9 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>Yes</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value>Map_Label</value>
 			</LabelColumn>
@@ -269,6 +278,9 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>Yes</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value>Map_Label</value>
 			</LabelColumn>
@@ -304,17 +316,20 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>NNR_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With NNR_Name Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"NNR", NNR_Name, NNR_Area, Map_Label</value>
+				<value>"NNR", NNR_Name, NNR_Area, " "</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By NNR_Name, Map_Label Order By NNR_Name, Map_Label</value>
+				<value>Group By NNR_Name Order By NNR_Name</value>
 			</CombinedSitesCriteria>
 		</NNRs>
 		<LNRs>
@@ -339,17 +354,20 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>LNR_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With LNR_Name Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"LNR", LNR_Name, LNR_Area, Map_Label</value>
+				<value>"LNR", LNR_Name, LNR_Area, " "</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By LNR_Name, Map_Label Order By LNR_Name, Map_Label</value>
+				<value>Group By LNR_Name Order By LNR_Name</value>
 			</CombinedSitesCriteria>
 		</LNRs>
 		<LWS>
@@ -374,6 +392,9 @@ partners.
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>Yes</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value>Map_Label</value>
 			</LabelColumn>
@@ -409,6 +430,9 @@ partners.
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value></value>
 			</LabelColumn>
@@ -444,6 +468,9 @@ partners.
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
 			<LabelColumn>
 				<value></value>
 			</LabelColumn>
