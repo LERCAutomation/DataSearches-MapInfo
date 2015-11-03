@@ -3,7 +3,7 @@ Data Searches
 
 Data Searches Tool v1.40
 
-Copyright © 2013 GiGL
+Copyright © 2012-2013 GiGL
 Copyright © 2015 TVERC, GiGL
 
 Overview
