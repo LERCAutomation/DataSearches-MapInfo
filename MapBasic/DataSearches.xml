@@ -16,9 +16,8 @@ contents of the configuration file.
 The 'DataSearches' node contains all of the entries relating to the
 MapBasic tool variables.
 
-Each entry relates to a file, folder, table name, column name or SQL statement
-used by the MapBasic tool to select and export species data for the GiGL
-partners.
+Each entry relates to a file, folder, table name, column name or other variable
+used by the MapBasic tool to select and export MapInfo data for each data search.
 -->
 
 <configuration>
@@ -33,6 +32,16 @@ partners.
 	<EnquiriesDir>
 		<value>D:\Andy\TVERC\Data Searches\Access</value>
 	</EnquiriesDir>
+
+	<!-- The field name of the search reference unique value. -->
+	<RefColumn>
+		<value>EnquiryRef</value>
+	</RefColumn>
+
+	<!-- The field name of the search reference site name. -->
+	<SiteColumn>
+		<value>SiteName</value>
+	</SiteColumn>
 
 	<!-- The character(s) used to replace any special characters in folder names. -->
 	<RepChar>
@@ -54,7 +63,7 @@ partners.
 		<value>GIS</value>
 	</GISFolder>
 
-	<!-- The prefix of the log file name created by the tool to output messages -->
+	<!-- The log file name created by the tool to output messages -->
 	<LogFileName>
 		<value>DataSearch_%subref%.log</value>
 	</LogFileName>

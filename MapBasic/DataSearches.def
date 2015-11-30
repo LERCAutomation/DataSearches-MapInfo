@@ -214,6 +214,8 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 '-------------------------------------------------
 Global sDatabase As String
 Global sEnquiriesDir As String
+Global sRefColumn As String
+Global sSiteColumn As String
 Global sRepChar As String
 Global sSaveRootDir As String
 Global sSaveFolder As String
