@@ -19,7 +19,7 @@ The Data Searches Tool requires the following:
 Source Code
 -----------
 The source code for the Data Extractor Tool is open source and can be downloaded from:
-<https://github.com/LRCAutomation/Data-Searches>
+<https://github.com/LERCAutomation/DataSearches-MapInfo>
 
 License Information
 -------------------
