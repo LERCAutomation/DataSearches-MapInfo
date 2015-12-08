@@ -212,6 +212,7 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 '-------------------------------------------------
 ' Declare the global variables
 '-------------------------------------------------
+Global sVersion As String
 Global sDatabase As String
 Global sEnquiriesDir As String
 Global sRefColumn As String
@@ -311,4 +312,5 @@ Global sBufferSize As String
 Global sBufferUnit As String
 Global sBufferTable As String
 
+Global iNumWindows As Integer
 Global aWindowId(99) As Integer

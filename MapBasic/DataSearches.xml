@@ -425,10 +425,10 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>_sppprot</value>
 			</Suffix>
 			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(GiGL_AllSpp.obj), CentroidY(GiGL_AllSpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(GiGL_AllSpp.obj)"SppX", CentroidY(GiGL_AllSpp.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
+				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
 			</Columns>
 			<Criteria>
-				<value>Where CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+				<value>And CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
 			</Criteria>
 			<KeyColumn>
 				<value>LATIN_NAME</value>
@@ -463,7 +463,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>_sppinns</value>
 			</Suffix>
 			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(GiGL_LISISpp.obj), CentroidY(GiGL_LISISpp.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
+				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
 			</Columns>
 			<Criteria>
 				<value>Order By SORTORDER, LATIN_NAME</value>

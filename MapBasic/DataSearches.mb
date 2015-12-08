@@ -29,7 +29,7 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - October 2015
+'* Last revised:	Andy Foy - December 2015
 '*
 '* *****************  Version 1.40  *****************
 '* Author: Andy Foy		Date: 19/10/2015
@@ -56,6 +56,11 @@ Sub Main
 '***************************************************************
 
 	'-------------------------------------------------
+	' Set the version number
+	'-------------------------------------------------
+	sVersion = "1.40"
+
+	'-------------------------------------------------
 	' Create a new menu
 	'-------------------------------------------------
 	Create Menu "&Data Searches" As
@@ -69,6 +74,18 @@ Sub Main
 	'-------------------------------------------------
 	Alter Menu "Tools" Add
 		"Data Searches" As "Data Searches"
+
+'	'-------------------------------------------------
+'	' Create a new buttonpad
+'	'-------------------------------------------------
+'	Create ButtonPad "DataTools" As
+'		PushButton
+'			HelpMsg "Open Data Searches Tool"
+'			Calling OpenDialog
+'			Icon MI_ICON_SEARCH_BDY
+'		Title "Data Tools"
+'		Width 3
+'		Fixed
 
 	Exit Sub
 
@@ -93,7 +110,7 @@ Sub OpenDialog
 	' Build a new dialog window
 	'-------------------------------------------------
 	Dialog
-		Title "Data Extractor"
+		Title "Data Searches " + sVersion
 		Width 235
 		Height 250
 		Position 50, 70
@@ -519,11 +536,16 @@ Sub DialogSetup
 	Close Window Message
 
 	'-------------------------------------------------
+	' Store the names of any tables not open
+	'-------------------------------------------------
+	Dim sClosedTables As String
+	sClosedTables = ""
+
+	'-------------------------------------------------
 	' Loop through all the MapInfo tables listed in the
 	' config file and add them to the Map Tables list
 	' if they are open in MapInfo
 	'-------------------------------------------------
-
 	Dim j As Integer
 	j = 0
 	Dim i As Integer
@@ -549,10 +571,20 @@ Sub DialogSetup
 			aMapSiteColumns(j) = aFileMapSiteColumns(i)
 			aMapSiteCriteria(j) = aFileMapSiteCriteria(i)
 		Else
-			Note "Warning: Table " + aFileMapTables(i) + " is not open as " + aFileMapNames(i)
+			'-------------------------------------------------
+			' Store the name of the closed table
+			'-------------------------------------------------
+			sClosedTables = sClosedTables + Chr$(13) + aFileMapNames(i)
 		End If
 
 	Next
+
+	'-------------------------------------------------
+	' Warn the user of the closed tables
+	'-------------------------------------------------
+	If sClosedTables <> "" Then
+		Note "Warning: The following tables are not open ..." + Chr$(13)+ sClosedTables
+	End If
 
 	Redim aMapTables(j)
 	Redim aMapNames(j)
@@ -917,7 +949,6 @@ FindNextPos:
 	'-------------------------------------------------
 	' Find the window numbers of all map windows
 	'-------------------------------------------------
-	Dim iNumWindows As Integer
 	iNumWindows = NumWindows()
 	Dim iWindowNum As Integer, iNum As Integer
 	iNum = 0
@@ -1433,7 +1464,7 @@ Sub SelectMaps(sMapTable As String,
 	' Setup the local table name and temp name
 	'-------------------------------------------------
 	Dim sLocalName As String, sExportName As String, sExportTemp As String
-	sLocalName = sMapName + "_" + sSubRefNo
+	sLocalName = sMapTable + "_" + sSubRefNo
 	sExportName = sSubRefNo + sMapSuffix
 	sExportTemp = "X" + sMapSuffix
 
@@ -1491,7 +1522,7 @@ Sub SelectMaps(sMapTable As String,
 	End If
 
 	'-------------------------------------------------
-	' Check if any records were extracted
+	' Check if any records were selected
 	'-------------------------------------------------
 	If iRecTotal = 0 Then
 		Call MyPrint("No records found - table skipped.")
@@ -1549,7 +1580,8 @@ Sub SelectMaps(sMapTable As String,
 	End If
 
 	'-------------------------------------------------
-	' If the map labels are to be overwritten
+	' If the user wants to overwrite the map labels,
+	' and this table allows it, then overwrite them
 	'-------------------------------------------------
 	If iOverwriteLabels > 1	And UCase$(sMapOverwrite) = "YES" Then
 
@@ -1586,14 +1618,15 @@ Sub SelectMaps(sMapTable As String,
 
 	'-------------------------------------------------
 	' Execute the SQL statement to select only the
-	' table columns required for the export
+	' table columns required for the export into
+	' a temporary table
 	'-------------------------------------------------
 	Call MyPrint("Executing selection for export ...")
-	sCmd = "Select " + sMapColumns + " From " + sSelectName + " " + sMapCriteria + " Into " + sExportTemp
+	sCmd = "Select " + sMapColumns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + sMapCriteria + " Into " + sExportTemp
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Export the table as a DBF file
+	' Export the temporary table as a DBF file
 	'-------------------------------------------------
 	If UCase$(sMapFormat) = "DBF" Then
 		Call MyPrint("Exporting as a DBF file ...")
@@ -1605,7 +1638,7 @@ Sub SelectMaps(sMapTable As String,
 	End If
 
 	'-------------------------------------------------
-	' Export the table as a text file
+	' Export the temporary table as a text file
 	'-------------------------------------------------
 	If UCase$(sMapFormat) = "TXT" Then
 		Call MyPrint("Exporting as a TXT file ...")
@@ -1625,68 +1658,161 @@ Sub SelectMaps(sMapTable As String,
 	End If
 	
 	'-------------------------------------------------
+	' Close the selection table
+	'-------------------------------------------------
+	If TableIsOpen(sSelectName) Then
+		Close Table sSelectName
+	End If
+
+	'-------------------------------------------------
 	' Add the local table to the map if required
 	'-------------------------------------------------
 	If iAddSelectedTables > 1 And UCase$(sMapKeep) = "YES" Then
 		
 		'-------------------------------------------------
-		' Add the local table to the current active window
+		' Re-open the selection table with the correct
+		' name
 		'-------------------------------------------------
-		Dim iWindowId As Integer
-		iWindowId = FrontWindow()
-
-		If iWindowId > 0 Then
-			
+		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " As " + sLocalName
+		Run Command (sCmd)
+	
+		'-------------------------------------------------
+		' Add the local table to the same window that
+		' the original table is mapped in, otherwise
+		' add it to the active map window
+		'-------------------------------------------------
+		Dim bTableAdded As Logical
+		bTableAdded = False
+		Dim iWindowNum As Integer
+		For iWindowNum = 1 to iNumWindows
+		
 			'-------------------------------------------------
-			' Add the local table to the map window
+			' Find the layer number for the original table
 			'-------------------------------------------------
-			Call MyPrint("Adding layer to map ...")
-			Add Map Window iWindowId Layer sLocalName
-
-			'-------------------------------------------------
-			' If the layer is to be added with labels ...
-			'-------------------------------------------------
-			If iAddSelectedTables = 3 Then
-
-				'-------------------------------------------------
-				' If the table doesn't contain the map label
-				' column then don't use it for the labels
-				'-------------------------------------------------
-				If ColumnExists(sLocalName, sMapLabelColumn) = False Then
-					sMapLabelColumn = ""
-					sMapLabelClause = ""
+			Dim iNumTables As Integer
+			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+			Dim	iNumTable As Integer, bMapFound As Logical
+			bMapFound = False
+			For iNumTable = 1 to iNumTables
+				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = sMapName Then
+					bMapFound = True
+					Exit For
 				End If
-					
+			Next
+		
+			'-------------------------------------------------
+			' If the original table was found then add
+			' the local table to the same map window
+			'-------------------------------------------------
+			If bMapFound = True Then
+
 				'-------------------------------------------------
-				' Set the map label clause if not already set
+				' Add the local table to the same map window
 				'-------------------------------------------------
-				If sMapLabelClause = "" Then
-					If sMapLabelColumn = "" Then
-						sMapLabelClause = "Auto On"
-					Else
-						sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+				Call MyPrint("Adding layer to map window ...")
+				Add Map Window aWindowId(iWindowNum) Layer sLocalName
+				
+				bTableAdded = True
+
+				'-------------------------------------------------
+				' If the layer is to be added with labels ...
+				'-------------------------------------------------
+				If iAddSelectedTables = 3 Then
+	
+					'-------------------------------------------------
+					' If the table doesn't contain the map label
+					' column then don't use it for the labels
+					'-------------------------------------------------
+					If ColumnExists(sLocalName, sMapLabelColumn) = False Then
+						sMapLabelColumn = ""
+						sMapLabelClause = ""
 					End If
+						
+					'-------------------------------------------------
+					' Set the map label clause if not already set
+					'-------------------------------------------------
+					If sMapLabelClause = "" Then
+						If sMapLabelColumn = "" Then
+							sMapLabelClause = "Auto On"
+						Else
+							sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+						End If
+					End If
+	
+					'-------------------------------------------------
+					' Display the labels for the layer
+					'-------------------------------------------------
+					Call MyPrint("Settings labels for layer ...")
+					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + sMapLabelClause
+					Run Command (sCmd)
+	
 				End If
-
-				'-------------------------------------------------
-				' Display the labels for the layer
-				'-------------------------------------------------
-				Call MyPrint("Settings labels for layer ...")
-				sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + sMapLabelClause
-				Run Command (sCmd)
 
 			End If
+		
+		Next
+
+		'-------------------------------------------------
+		' If the local table has not been added to any
+		' map windows
+		'-------------------------------------------------
+		If bTableAdded = False Then
+
+			'-------------------------------------------------
+			' Get the id of the active window
+			'-------------------------------------------------
+			Dim iWindowId As Integer
+			iWindowId = FrontWindow()
+
+			'-------------------------------------------------
+			' If there is an active window
+			'-------------------------------------------------
+			If iWindowId > 0 Then
+				
+				'-------------------------------------------------
+				' Add the local table to the map window
+				'-------------------------------------------------
+				Call MyPrint("Adding layer to active map window ...")
+				Add Map Window iWindowId Layer sLocalName
 	
+				'-------------------------------------------------
+				' If the layer is to be added with labels ...
+				'-------------------------------------------------
+				If iAddSelectedTables = 3 Then
+	
+					'-------------------------------------------------
+					' If the table doesn't contain the map label
+					' column then don't use it for the labels
+					'-------------------------------------------------
+					If ColumnExists(sLocalName, sMapLabelColumn) = False Then
+						sMapLabelColumn = ""
+						sMapLabelClause = ""
+					End If
+						
+					'-------------------------------------------------
+					' Set the map label clause if not already set
+					'-------------------------------------------------
+					If sMapLabelClause = "" Then
+						If sMapLabelColumn = "" Then
+							sMapLabelClause = "Auto On"
+						Else
+							sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+						End If
+					End If
+	
+					'-------------------------------------------------
+					' Display the labels for the layer
+					'-------------------------------------------------
+					Call MyPrint("Settings labels for layer ...")
+					sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + sMapLabelClause
+					Run Command (sCmd)
+	
+				End If
+		
+			End If
+			
 		End If
 		
-	Else
-
-		'-------------------------------------------------
-		' Delete the local table as not required
-		'-------------------------------------------------
-		Call MyPrint("Dropping the MapInfo table ...")
-		Drop Table sLocalName
-
 	End If
 
 	Exit Sub
@@ -1906,7 +2032,7 @@ Sub AboutBox
 '***************************************************************
 
 	Dialog
-		Title "About Data Searches 1.40"
+		Title "About Data Searches " + sVersion
 		Width 230
 		Height 115
 
@@ -1926,7 +2052,7 @@ Sub AboutBox
 		Title "Created by Andy Foy Consulting."
 		Position 10,60
 	Control StaticText
-		Title "Copyright© 2012-2013 GiGL, 2015 TVERC & GiGL."
+		Title "Copyright© 2012-2013 GiGL, 2015 TVERC, GiGL."
 		Position 10,70
 	Control OKButton
 		Position 185,95
