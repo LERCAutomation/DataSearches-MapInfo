@@ -489,7 +489,7 @@ Sub GetDefaultValues
 	OnError Goto GetDefaultsError
 
 	'-------------------------------------------------
-	' Seperate the Buffer Unit options into two arrays
+	' Separate the Buffer Unit options into two arrays
 	'-------------------------------------------------
 	Dim sDelimRows As String, sDelimCols As String
 	sDelimRows = ";"
