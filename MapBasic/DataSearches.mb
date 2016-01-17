@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.40
+'* DataSearches v1.41
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,10 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - December 2015
+'* Last revised:	Andy Foy - January 2016
+'*
+'* *****************  Version 1.41  *****************
+'* A. Count list of tables not already open in MapInfo.
 '*
 '* *****************  Version 1.40  *****************
 '* Author: Andy Foy		Date: 19/10/2015
@@ -58,7 +61,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.40"
+	sVersion = "1.41"
 
 	'-------------------------------------------------
 	' Create a new menu
@@ -538,8 +541,9 @@ Sub DialogSetup
 	'-------------------------------------------------
 	' Store the names of any tables not open
 	'-------------------------------------------------
-	Dim sClosedTables As String
+	Dim sClosedTables As String, iClosedCount As Integer
 	sClosedTables = ""
+	iClosedCount = 0
 
 	'-------------------------------------------------
 	' Loop through all the MapInfo tables listed in the
@@ -575,6 +579,7 @@ Sub DialogSetup
 			' Store the name of the closed table
 			'-------------------------------------------------
 			sClosedTables = sClosedTables + Chr$(13) + aFileMapNames(i)
+			iClosedCount = iClosedCount + 1
 		End If
 
 	Next
@@ -582,8 +587,12 @@ Sub DialogSetup
 	'-------------------------------------------------
 	' Warn the user of the closed tables
 	'-------------------------------------------------
-	If sClosedTables <> "" Then
-		Note "Warning: The following tables are not open ..." + Chr$(13)+ sClosedTables
+	If iClosedCount > 0 Then
+		If iClosedCount = 1 Then
+			Note "Warning: the following table is not open ..." + Chr$(13) + sClosedTables
+		Else
+			Note "Warning: " + iClosedCount + " tables are not open, including ..." + Chr$(13)+ sClosedTables
+		End If
 	End If
 
 	Redim aMapTables(j)
