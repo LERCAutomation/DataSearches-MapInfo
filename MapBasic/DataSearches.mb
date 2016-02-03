@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 TVERC, GiGL
+'* Copyright © 2015 - 2016 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -2062,7 +2062,7 @@ Sub AboutBox
 		Title "Created by Andy Foy Consulting."
 		Position 10,60
 	Control StaticText
-		Title "Copyright© 2012-2013 GiGL, 2015 TVERC, GiGL."
+		Title "Copyright© 2012-2013 GiGL, 2015 - 2016 TVERC, GiGL."
 		Position 10,70
 	Control OKButton
 		Position 185,95
