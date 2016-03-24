@@ -161,9 +161,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>SAC_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By SAC_Name Order By SAC_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>SAC_Name</value>
 			</KeyColumn>
@@ -199,9 +202,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>SPA_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By SPA_Name Order By SPA_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>SPA_Name</value>
 			</KeyColumn>
@@ -237,9 +243,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>Ramsar_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By Ramsar_Name Order By Ramsar_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>Ramsar_Name</value>
 			</KeyColumn>
@@ -275,9 +284,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>SSSI_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By SSSI_Name Order By SSSI_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>SSSI_Name</value>
 			</KeyColumn>
@@ -313,9 +325,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>NNR_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By NNR_Name Order By NNR_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>NNR_Name</value>
 			</KeyColumn>
@@ -351,9 +366,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>LNR_Name</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By LNR_Name Order By LNR_Name</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>LNR_Name</value>
 			</KeyColumn>
@@ -389,9 +407,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>Site_number</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Group By Site_number Order By Site_number</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>Site_number</value>
 			</KeyColumn>
@@ -427,9 +448,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
 			</Columns>
-			<Criteria>
-				<value>And CONFIDENTIAL = "" Order By SORTORDER, LATIN_NAME, DISTANCE</value>
-			</Criteria>
+			<SelectCriteria>
+				<value>And CONFIDENTIAL = ""</value>
+			</SelectCriteria>
+			<ExtractCriteria>
+				<value>Order By SORTORDER, LATIN_NAME, DISTANCE</value>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>LATIN_NAME</value>
 			</KeyColumn>
@@ -465,9 +489,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<Columns>
 				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
 			</Columns>
-			<Criteria>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExtractCriteria>
 				<value>Order By SORTORDER, LATIN_NAME</value>
-			</Criteria>
+			</ExtractCriteria>
 			<KeyColumn>
 				<value>LATIN_NAME</value>
 			</KeyColumn>

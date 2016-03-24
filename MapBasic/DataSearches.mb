@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.43
+'* DataSearches v1.44
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -30,6 +30,14 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - March 2016
+'*
+'* *****************  Version 1.44  *****************
+'* Author: Andy Foy		Date: 24/03/2016
+'* A. Split SQL criteria into separate selection and
+'*    export criteria.
+'* B. Logging separate record counts for selection
+'*    and export.
+'* C. Delete layers no kept for map display.
 '*
 '* *****************  Version 1.43  *****************
 '* Author: Andy Foy		Date: 14/03/2016
@@ -72,7 +80,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.43"
+	sVersion = "1.44"
 
 	'-------------------------------------------------
 	' Create a new menu
@@ -426,43 +434,46 @@ Sub GetDefaultValues
 						i = i + 1
 
 						' Name of the Map table
-						aFileMapTables(i) = GetNodeName(hXMLFilesNode)
+						AllMaps(i).Table = GetNodeName(hXMLFilesNode)
 
 						' Local MapInfo name of the Map table
-						aFileMapNames(i) = GetSingleNodeValue(hXMLFilesNode, "TableName")
+						AllMaps(i).Name = GetSingleNodeValue(hXMLFilesNode, "TableName")
 
 						' Suffix applied to map table when saving
-						aFileMapSuffixes(i) = GetSingleNodeValue(hXMLFilesNode, "Suffix")
+						AllMaps(i).Suffix = GetSingleNodeValue(hXMLFilesNode, "Suffix")
 
 						' SQL clause used to retrieve the required rows from the map table
-						aFileMapColumns(i) = GetSingleNodeValue(hXMLFilesNode, "Columns")
+						AllMaps(i).Columns = GetSingleNodeValue(hXMLFilesNode, "Columns")
 
 						' SQL clause used to select or order the required rows from the map table
-						aFileMapCriteria(i) = GetSingleNodeValue(hXMLFilesNode, "Criteria")
+						AllMaps(i).SelectCriteria = GetSingleNodeValue(hXMLFilesNode, "SelectCriteria")
+
+						' SQL clause used to select or order the required rows for export
+						AllMaps(i).ExportCriteria = GetSingleNodeValue(hXMLFilesNode, "ExportCriteria")
 
 						' Key column used to determine unique records in the map table
-						aFileMapKeyColumn(i) = GetSingleNodeValue(hXMLFilesNode, "KeyColumn")
+						AllMaps(i).KeyColumn = GetSingleNodeValue(hXMLFilesNode, "KeyColumn")
 
 						' Format required for the extract of the map table
-						aFileMapFormats(i) = GetSingleNodeValue(hXMLFilesNode, "Format")
+						AllMaps(i).Format = GetSingleNodeValue(hXMLFilesNode, "Format")
 
 						' Whether the layer can be retained after exporting
-						aFileMapKeep(i) = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
+						AllMaps(i).Keep = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
 
 						' Whether the label column can be overwritten
-						aFileMapOverwrite(i) = GetSingleNodeValue(hXMLFilesNode, "OverwriteLabels")
+						AllMaps(i).Overwrite = GetSingleNodeValue(hXMLFilesNode, "OverwriteLabels")
 
 						' Column name containing the map labels
-						aFileMapLabelColumn(i) = GetSingleNodeValue(hXMLFilesNode, "LabelColumn")
+						AllMaps(i).LabelColumn = GetSingleNodeValue(hXMLFilesNode, "LabelColumn")
 
 						' Clause for setting the map labels
-						aFileMapLabelClause(i) = GetSingleNodeValue(hXMLFilesNode, "LabelClause")
+						AllMaps(i).LabelClause = GetSingleNodeValue(hXMLFilesNode, "LabelClause")
 
 						' Column name(s) to include in the combined sites table
-						aFileMapSiteColumns(i) = GetSingleNodeValue(hXMLFilesNode, "CombinedSitesColumns")
+						AllMaps(i).SiteColumns = GetSingleNodeValue(hXMLFilesNode, "CombinedSitesColumns")
 
 						' Criteria for selecting site details for the combined sites table
-						aFileMapSiteCriteria(i) = GetSingleNodeValue(hXMLFilesNode, "CombinedSitesCriteria")
+						AllMaps(i).SiteCriteria = GetSingleNodeValue(hXMLFilesNode, "CombinedSitesCriteria")
 
 						'-------------------------------------------------
 						' Get a handle on the next attribute in the node map
@@ -470,19 +481,7 @@ Sub GetDefaultValues
 						hXMLFilesNode = MIXMLGetNextNode(hXMLFilesNodeList)
 					Loop
 
-					Redim aFileMapTables(i)
-					Redim aFileMapNames(i)
-					Redim aFileMapSuffixes(i)
-					Redim aFileMapColumns(i)
-					Redim aFileMapCriteria(i)
-					Redim aFileMapKeyColumn(i)
-					Redim aFileMapFormats(i)
-					Redim aFileMapKeep(i)
-					Redim aFileMapOverwrite(i)
-					Redim aFileMapLabelColumn(i)
-					Redim aFileMapLabelClause(i)
-					Redim aFileMapSiteColumns(i)
-					Redim aFileMapSiteCriteria(i)
+					Redim AllMaps(i)
 
 				End If
 
@@ -564,32 +563,35 @@ Sub DialogSetup
 	Dim j As Integer
 	j = 0
 	Dim i As Integer
-	For i = 1 to UBound(aFileMapTables)
+	For i = 1 to UBound(AllMaps)
 
 		'-------------------------------------------------
 		' Concatenate all the Map tables into an array
 		'-------------------------------------------------
-		If TableIsOpen(aFileMapNames(i)) Then
+		If TableIsOpen(AllMaps(i).Name) Then
 			j = j + 1
 
-			aMapTables(j) = aFileMapTables(i)
-			aMapNames(j) = aFileMapNames(i)
-			aMapSuffixes(j) = aFileMapSuffixes(i)
-			aMapColumns(j) = aFileMapColumns(i)
-			aMapCriteria(j) = aFileMapCriteria(i)
-			aMapKeyColumn(j) = aFileMapKeyColumn(i)
-			aMapFormats(j) = aFileMapFormats(i)
-			aMapKeep(j) = aFileMapKeep(i)
-			aMapOverwrite(j) = aFileMapOverwrite(i)
-			aMapLabelColumn(j) = aFileMapLabelColumn(i)
-			aMapLabelClause(j) = aFileMapLabelClause(i)
-			aMapSiteColumns(j) = aFileMapSiteColumns(i)
-			aMapSiteCriteria(j) = aFileMapSiteCriteria(i)
+			OpenMaps(j).Table = AllMaps(i).Table
+			OpenMaps(j).Name = AllMaps(i).Name
+			OpenMaps(j).Suffix = AllMaps(i).Suffix
+			OpenMaps(j).Columns = AllMaps(i).Columns
+			OpenMaps(j).SelectCriteria = AllMaps(i).SelectCriteria
+			OpenMaps(j).ExportCriteria = AllMaps(i).ExportCriteria
+			OpenMaps(j).KeyColumn = AllMaps(i).KeyColumn
+			OpenMaps(j).Format = AllMaps(i).Format
+			OpenMaps(j).Keep = AllMaps(i).Keep
+			OpenMaps(j).Overwrite = AllMaps(i).Overwrite
+			OpenMaps(j).LabelColumn = AllMaps(i).LabelColumn
+			OpenMaps(j).LabelClause = AllMaps(i).LabelClause
+			OpenMaps(j).SiteColumns = AllMaps(i).SiteColumns
+			OpenMaps(j).SiteCriteria = AllMaps(i).SiteCriteria
+			
+			aOpenTables(j) = AllMaps(i).Table
 		Else
 			'-------------------------------------------------
 			' Store the name of the closed table
 			'-------------------------------------------------
-			sClosedTables = sClosedTables + Chr$(13) + aFileMapNames(i)
+			sClosedTables = sClosedTables + Chr$(13) + AllMaps(i).Name
 			iClosedCount = iClosedCount + 1
 		End If
 
@@ -606,24 +608,13 @@ Sub DialogSetup
 		End If
 	End If
 
-	Redim aMapTables(j)
-	Redim aMapNames(j)
-	Redim aMapSuffixes(j)
-	Redim aMapColumns(j)
-	Redim aMapCriteria(j)
-	Redim aMapKeyColumn(j)
-	Redim aMapFormats(j)
-	Redim aMapKeep(j)
-	Redim aMapOverwrite(j)
-	Redim aMapLabelColumn(j)
-	Redim aMapLabelClause(j)
-	Redim aMapSiteColumns(j)
-	Redim aMapSiteCriteria(j)
+	Redim OpenMaps(j)
+	Redim aOpenTables(j)
 
 	'-------------------------------------------------
 	' Update the Map Table list to show the list of tables
 	'-------------------------------------------------
-	Alter Control 3 Title From Variable aMapTables
+	Alter Control 3 Title From Variable aOpenTables
 
 SetDefaults:
 
@@ -710,25 +701,28 @@ Sub CheckSelection
 		'-------------------------------------------------
 		iExtractTot = iExtractTot + 1
 
-		aMapTableSelected(iExtractTot) = aMapTables(iMapTable)
-		aMapNameSelected(iExtractTot) = aMapNames(iMapTable)
-		aMapSuffixSelected(iExtractTot) = aMapSuffixes(iMapTable)
-		aMapColumnsSelected(iExtractTot) = aMapColumns(iMapTable)
-		aMapCriteriaSelected(iExtractTot) = aMapCriteria(iMapTable)
-		aMapKeyColumnSelected(iExtractTot) = aMapKeyColumn(iMapTable)
-		aMapFormatSelected(iExtractTot) = aMapFormats(iMapTable)
-		aMapKeepSelected(iExtractTot) = aMapKeep(iMapTable)
-		aMapOverwriteSelected(iExtractTot) = aMapOverwrite(iMapTable)
-		aMapLabelColumnSelected(iExtractTot) = aMapLabelColumn(iMapTable)
-		aMapLabelClauseSelected(iExtractTot) = aMapLabelClause(iMapTable)
-		aMapSiteColumnsSelected(iExtractTot) = aMapSiteColumns(iMapTable)
-		aMapSiteCriteriaSelected(iExtractTot) = aMapSiteCriteria(iMapTable)
+			SelectedMaps(iExtractTot).Table = OpenMaps(iMapTable).Table
+			SelectedMaps(iExtractTot).Name = OpenMaps(iMapTable).Name
+			SelectedMaps(iExtractTot).Suffix = OpenMaps(iMapTable).Suffix
+			SelectedMaps(iExtractTot).Columns = OpenMaps(iMapTable).Columns
+			SelectedMaps(iExtractTot).SelectCriteria = OpenMaps(iMapTable).SelectCriteria
+			SelectedMaps(iExtractTot).ExportCriteria = OpenMaps(iMapTable).ExportCriteria
+			SelectedMaps(iExtractTot).KeyColumn = OpenMaps(iMapTable).KeyColumn
+			SelectedMaps(iExtractTot).Format = OpenMaps(iMapTable).Format
+			SelectedMaps(iExtractTot).Keep = OpenMaps(iMapTable).Keep
+			SelectedMaps(iExtractTot).Overwrite = OpenMaps(iMapTable).Overwrite
+			SelectedMaps(iExtractTot).LabelColumn = OpenMaps(iMapTable).LabelColumn
+			SelectedMaps(iExtractTot).LabelClause = OpenMaps(iMapTable).LabelClause
+			SelectedMaps(iExtractTot).SiteColumns = OpenMaps(iMapTable).SiteColumns
+			SelectedMaps(iExtractTot).SiteCriteria = OpenMaps(iMapTable).SiteCriteria
 
 		'-------------------------------------------------
 		' Read the next table selected in the list
 		'-------------------------------------------------
 		iMapTable = ReadControlValue(3)
 	Loop
+
+	Redim SelectedMaps(iExtractTot)
 
 	'-------------------------------------------------
 	' Check if the user has entered a buffer size
@@ -1017,6 +1011,11 @@ FindNextPos:
 		Calling ProcessExtracts
 		Range iExtractTot
 
+	'-------------------------------------------------
+	' Don't trap any errors
+	'-------------------------------------------------
+	OnError Goto IgnoreError
+	
 	If CommandInfo(CMD_INFO_STATUS) Then
 		If iExtractCnt <= iExtractTot Then
 			Call MyPrint("")
@@ -1027,14 +1026,19 @@ FindNextPos:
 			Goto Response
 		End If
 	Else
-			Call MyPrint("")
-			Call MyPrint("----------------------------------------------------------------------")
-			Call MyPrint("Process interrupted by user!")
-			Call MyPrint("----------------------------------------------------------------------")
-			lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
-			Goto Response
+		Call MyPrint("")
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("Process interrupted by user!")
+		Call MyPrint("----------------------------------------------------------------------")
+		lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+		Goto Response
 	End If
 
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
+	
 	'-------------------------------------------------
 	' Export the combined sites table
 	'-------------------------------------------------
@@ -1144,6 +1148,11 @@ FindNextPos:
 
 	Next
 
+	'-------------------------------------------------
+	' Don't trap any errors
+	'-------------------------------------------------
+	OnError Goto IgnoreError
+	
 	Call MyPrint("")
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Process completed!")
@@ -1174,6 +1183,9 @@ ErrorTrap:
 	Note "Error: " + str$(Err()) + ": " + Error$()
 	Call MyPrint(str$(Err()) + ": " + Error$())
 	Exit Sub
+
+IgnoreError:
+	Resume Next
 
 End Sub
 
@@ -1400,38 +1412,32 @@ Sub ProcessExtracts
 	'-------------------------------------------------
 	OnError Goto NextSelection
 
-	Dim sMapTable As String, sMapName As String, sMapSuffix As String
-	Dim sMapColumns As String, sMapCriteria As String, sMapKeyColumn As String
-	Dim sMapFormat As String, sMapKeep As String, sMapOverwrite As String
-	Dim sMapLabelClause As String, sMapLabelColumn As String
-	Dim sMapSiteColumns As String, sMapSiteCriteria As String
-	
-	sMapTable = aMapTableSelected(iExtractCnt)
-	sMapName = aMapNameSelected(iExtractCnt)
-	sMapSuffix = aMapSuffixSelected(iExtractCnt)
-	sMapColumns = aMapColumnsSelected(iExtractCnt)
-	sMapCriteria = aMapCriteriaSelected(iExtractCnt)
-	sMapKeyColumn = aMapKeyColumnSelected(iExtractCnt)
-	sMapFormat = aMapFormatSelected(iExtractCnt)
-	sMapKeep = aMapKeepSelected(iExtractCnt)
-	sMapOverwrite = aMapOverwriteSelected(iExtractCnt)
-	sMapLabelColumn = aMapLabelColumnSelected(iExtractCnt)
-	sMapLabelClause = aMapLabelClauseSelected(iExtractCnt)
-	sMapSiteColumns = aMapSiteColumnsSelected(iExtractCnt)
-	sMapSiteCriteria = aMapSiteCriteriaSelected(iExtractCnt)
+	Dim SelectedMap As MapDetails
+	SelectedMap.Table = SelectedMaps(iExtractCnt).Table
+	SelectedMap.Name = SelectedMaps(iExtractCnt).Name
+	SelectedMap.Suffix = SelectedMaps(iExtractCnt).Suffix
+	SelectedMap.Columns = SelectedMaps(iExtractCnt).Columns
+	SelectedMap.SelectCriteria = SelectedMaps(iExtractCnt).SelectCriteria
+	SelectedMap.ExportCriteria = SelectedMaps(iExtractCnt).ExportCriteria
+	SelectedMap.KeyColumn = SelectedMaps(iExtractCnt).KeyColumn
+	SelectedMap.Format = SelectedMaps(iExtractCnt).Format
+	SelectedMap.Keep = SelectedMaps(iExtractCnt).Keep
+	SelectedMap.Overwrite = SelectedMaps(iExtractCnt).Overwrite
+	SelectedMap.LabelColumn = SelectedMaps(iExtractCnt).LabelColumn
+	SelectedMap.LabelClause = SelectedMaps(iExtractCnt).LabelClause
+	SelectedMap.SiteColumns = SelectedMaps(iExtractCnt).SiteColumns
+	SelectedMap.SiteCriteria = SelectedMaps(iExtractCnt).SiteCriteria
 
-	Call MyPrint("Processing table = '" + sMapTable + "' (" + iExtractCnt + " of " + iExtractTot + ") ...")
+	Call MyPrint("Processing table = '" + SelectedMap.Table + "' (" + iExtractCnt + " of " + iExtractTot + ") ...")
 
 	'-------------------------------------------------
 	' Call the subroutine to select the records from
 	' the selected table
 	'-------------------------------------------------
 	
-	Call SelectMaps(sMapTable, sMapName, sMapSuffix, sMapColumns, sMapCriteria,
-		sMapKeyColumn, sMapFormat, sMapKeep, sMapOverwrite, sMapLabelColumn,
-		sMapLabelClause, sMapSiteColumns, sMapSiteCriteria)
+	Call SelectMaps(SelectedMap)
 
-	Call MyPrint("Completed table = '" + sMapTable + "'.")
+	Call MyPrint("Completed table = '" + SelectedMap.Table + "'.")
 	Call MyPrint("")
 
 NextSelection:
@@ -1458,19 +1464,7 @@ NextSelection:
 
 End Sub
 
-Sub SelectMaps(sMapTable As String,
-	sMapName As String,
-	sMapSuffix As String,
-	sMapColumns As String,
-	sMapCriteria As String,
-	sMapKeyColumn As String,
-	sMapFormat As String,
-	sMapKeep As String,
-	sMapOverwrite As String,
-	sMapLabelColumn As String,
-	sMapLabelClause As String,
-	sMapSiteColumns As String,
-	sMapSiteCriteria As String)
+Sub SelectMaps(SelectedMap As MapDetails)
 '*************************************************
 '* Routine to select the records from the
 '* MapInfo table name passed in the call that
@@ -1486,9 +1480,9 @@ Sub SelectMaps(sMapTable As String,
 	' Setup the local table name and temp name
 	'-------------------------------------------------
 	Dim sLocalName As String, sExportName As String, sExportTemp As String
-	sLocalName = sMapTable + "_" + sSubRefNo
-	sExportName = sSubRefNo + sMapSuffix
-	sExportTemp = "X" + sMapSuffix
+	sLocalName = SelectedMap.Table + "_" + sSubRefNo
+	sExportName = sSubRefNo + SelectedMap.Suffix
+	sExportTemp = "X" + SelectedMap.Suffix
 
 	Dim sSelectName As String
 	sSelectName = "Select_Table"
@@ -1519,10 +1513,10 @@ Sub SelectMaps(sMapTable As String,
 	'-------------------------------------------------
 	Call MyPrint("Executing spatial selection ...")
 	Dim sCmd as String
-	If sMapKeyColumn = "" Then
-		sCmd = "Select * From " + sMapName + " Where obj Intersects Any (Select Obj From " + sBufferTable + ") Into " + sSelectName
+	If SelectedMap.KeyColumn = "" Then
+		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + SelectedMap.SelectCriteria + " Into " + sSelectName
 	Else
-		sCmd = "Select * From " + sMapName + " Where obj Intersects Any (Select Obj From " + sBufferTable + ") Order By " + sMapKeyColumn + " Into " + sSelectName
+		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + SelectedMap.SelectCriteria + " Order By " + SelectedMap.KeyColumn + " Into " + sSelectName
 	End If
 	Run Command (sCmd)
 
@@ -1578,23 +1572,23 @@ Sub SelectMaps(sMapTable As String,
 	' If the table doesn't already contain the
 	' map label column
 	'-------------------------------------------------
-	If sMapLabelColumn <> ""
-	And ColumnExists(sSelectName, sMapLabelColumn) = False Then
+	If SelectedMap.LabelColumn <> ""
+	And ColumnExists(sSelectName, SelectedMap.LabelColumn) = False Then
 
 		'-------------------------------------------------
 		' If the map label column is needed for the
 		' combined sites table, or the export file, or
 		' it is to be overwritten
 		'-------------------------------------------------
-		If (bCreateCombinedSitesTable And Instr(1, sMapSiteColumns, sMapLabelColumn) = 0)
-		Or (Instr(1, sMapColumns, sMapLabelColumn) = 0)
+		If (bCreateCombinedSitesTable And Instr(1, SelectedMap.SiteColumns, SelectedMap.LabelColumn) = 0)
+		Or (Instr(1, SelectedMap.Columns, SelectedMap.LabelColumn) = 0)
 		Or (iOverwriteLabels > 1) Then
 			
 			'-------------------------------------------------
 			' Add the column to the combined sites table
 			'-------------------------------------------------
-			Call MyPrint("Adding column " + sMapLabelColumn + "...")
-			sCmd = "Alter Table " + sSelectName + " ( Add " + sMapLabelColumn + " Char(10) )"
+			Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
+			sCmd = "Alter Table " + sSelectName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
 			Run Command (sCmd)
 		
 		End If
@@ -1605,7 +1599,7 @@ Sub SelectMaps(sMapTable As String,
 	' If the user wants to overwrite the map labels,
 	' and this table allows it, then overwrite them
 	'-------------------------------------------------
-	If iOverwriteLabels > 1	And UCase$(sMapOverwrite) = "YES" Then
+	If iOverwriteLabels > 1	And UCase$(SelectedMap.Overwrite) = "YES" Then
 
 		'-------------------------------------------------
 		' Reset the map label counter if a running total
@@ -1619,7 +1613,7 @@ Sub SelectMaps(sMapTable As String,
 		' Overwrite the map labels (adding the map
 		' label column if required)
 		'-------------------------------------------------
-		Call OverwriteMapLabels(sSelectName, sMapKeyColumn, sMapLabelColumn)
+		Call OverwriteMapLabels(sSelectName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
 
 	End If
 
@@ -1628,13 +1622,13 @@ Sub SelectMaps(sMapTable As String,
 	' there are columns from this table to add,
 	' then add the column details
 	'-------------------------------------------------
-	If bCreateCombinedSitesTable And sMapSiteColumns <> "" Then
+	If bCreateCombinedSitesTable And SelectedMap.SiteColumns <> "" Then
 
 		'-------------------------------------------------
 		' Add the site details to the combined sites
 		' table
 		'-------------------------------------------------
-		Call AddToCombinedSitesTable(sSelectName, sMapSiteColumns, sMapSiteCriteria)
+		Call AddToCombinedSitesTable(sSelectName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
 		
 	End If
 
@@ -1644,13 +1638,30 @@ Sub SelectMaps(sMapTable As String,
 	' a temporary table
 	'-------------------------------------------------
 	Call MyPrint("Executing selection for export ...")
-	sCmd = "Select " + sMapColumns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + sMapCriteria + " Into " + sExportTemp
+	sCmd = "Select " + SelectedMap.Columns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
 	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Count the number of records that have
+	' been selected for export
+	'-------------------------------------------------
+	iRecTotal = TableInfo(sExportTemp, TAB_INFO_NROWS)
+
+	'-------------------------------------------------
+	' Check if any records were selected
+	'-------------------------------------------------
+	If iRecTotal = 0 Then
+		Call MyPrint("No records found for export - table skipped.")
+		Close Table sExportTemp
+		Exit Sub
+	End If
+
+	Call MyPrint("" + iRecTotal + " records to be exported.")
 
 	'-------------------------------------------------
 	' Export the temporary table as a DBF file
 	'-------------------------------------------------
-	If UCase$(sMapFormat) = "DBF" Then
+	If UCase$(SelectedMap.Format) = "DBF" Then
 		Call MyPrint("Exporting as a DBF file ...")
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".dbf"
@@ -1662,7 +1673,7 @@ Sub SelectMaps(sMapTable As String,
 	'-------------------------------------------------
 	' Export the temporary table as a TXT file
 	'-------------------------------------------------
-	If UCase$(sMapFormat) = "TXT" Then
+	If UCase$(SelectedMap.Format) = "TXT" Then
 		Call MyPrint("Exporting as a TXT file ...")
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".txt"
@@ -1675,7 +1686,7 @@ Sub SelectMaps(sMapTable As String,
 	'-------------------------------------------------
 	' Export the temporary table as a CSV file
 	'-------------------------------------------------
-	If UCase$(sMapFormat) = "CSV" Then
+	If UCase$(SelectedMap.Format) = "CSV" Then
 		Call MyPrint("Exporting as a CSV file ...")
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".csv"
@@ -1692,16 +1703,19 @@ Sub SelectMaps(sMapTable As String,
 	End If
 	
 	'-------------------------------------------------
-	' Close the selection table
+	' If the local table is not required then
+	' delete it, otherwise close it
 	'-------------------------------------------------
-	If TableIsOpen(sSelectName) Then
+	If UCase$(SelectedMap.Keep) <> "YES" Then
+		Drop Table sSelectName
+	Else
 		Close Table sSelectName
 	End If
-
+		
 	'-------------------------------------------------
 	' Add the local table to the map if required
 	'-------------------------------------------------
-	If iAddSelectedTables > 1 And UCase$(sMapKeep) = "YES" Then
+	If iAddSelectedTables > 1 And UCase$(SelectedMap.Keep) = "YES" Then
 		
 		'-------------------------------------------------
 		' Re-open the selection table with the correct
@@ -1728,7 +1742,7 @@ Sub SelectMaps(sMapTable As String,
 			Dim	iNumTable As Integer, bMapFound As Logical
 			bMapFound = False
 			For iNumTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = sMapName Then
+				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.Name Then
 					bMapFound = True
 					Exit For
 				End If
@@ -1757,19 +1771,19 @@ Sub SelectMaps(sMapTable As String,
 					' If the table doesn't contain the map label
 					' column then don't use it for the labels
 					'-------------------------------------------------
-					If ColumnExists(sLocalName, sMapLabelColumn) = False Then
-						sMapLabelColumn = ""
-						sMapLabelClause = ""
+					If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
+						SelectedMap.LabelColumn = ""
+						SelectedMap.LabelClause = ""
 					End If
 						
 					'-------------------------------------------------
 					' Set the map label clause if not already set
 					'-------------------------------------------------
-					If sMapLabelClause = "" Then
-						If sMapLabelColumn = "" Then
-							sMapLabelClause = "Auto On"
+					If SelectedMap.LabelClause = "" Then
+						If SelectedMap.LabelColumn = "" Then
+							SelectedMap.LabelClause = "Auto On"
 						Else
-							sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+							SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn + " Auto On"
 						End If
 					End If
 	
@@ -1777,7 +1791,7 @@ Sub SelectMaps(sMapTable As String,
 					' Display the labels for the layer
 					'-------------------------------------------------
 					Call MyPrint("Settings labels for layer ...")
-					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + sMapLabelClause
+					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 					Run Command (sCmd)
 	
 				End If
@@ -1818,19 +1832,19 @@ Sub SelectMaps(sMapTable As String,
 					' If the table doesn't contain the map label
 					' column then don't use it for the labels
 					'-------------------------------------------------
-					If ColumnExists(sLocalName, sMapLabelColumn) = False Then
-						sMapLabelColumn = ""
-						sMapLabelClause = ""
+					If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
+						SelectedMap.LabelColumn = ""
+						SelectedMap.LabelClause = ""
 					End If
 						
 					'-------------------------------------------------
 					' Set the map label clause if not already set
 					'-------------------------------------------------
-					If sMapLabelClause = "" Then
-						If sMapLabelColumn = "" Then
-							sMapLabelClause = "Auto On"
+					If SelectedMap.LabelClause = "" Then
+						If SelectedMap.LabelColumn = "" Then
+							SelectedMap.LabelClause = "Auto On"
 						Else
-							sMapLabelClause = "With " + sMapLabelColumn + " Auto On"
+							SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn + " Auto On"
 						End If
 					End If
 	
@@ -1838,7 +1852,7 @@ Sub SelectMaps(sMapTable As String,
 					' Display the labels for the layer
 					'-------------------------------------------------
 					Call MyPrint("Settings labels for layer ...")
-					sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + sMapLabelClause
+					sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 					Run Command (sCmd)
 	
 				End If
@@ -2124,7 +2138,7 @@ Sub PrintLogFile()
 	' Open the log file in Notepad
 	'-------------------------------------------------
 	Dim sCmd As String
-	sCmd = "Run Program " +  + Chr$(34) + "NotePad.exe " + sLogFileName + Chr$(34)
+	sCmd = "Run Program " +  + Chr$(34) + "NotePad.exe " + sLogFile + Chr$(34)
 	Run Command (sCmd)
 
 End Sub

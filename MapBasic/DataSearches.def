@@ -55,6 +55,23 @@ Type PROCESS_INFORMATION
 	dwThreadID As Integer
 End Type
 
+Type MapDetails
+	Table As String
+	Name As String
+	Suffix As String
+	Columns As String
+	SelectCriteria As String
+	ExportCriteria As String
+	KeyColumn As String
+	Format As String
+	Keep As String
+	Overwrite As String
+	LabelColumn As String
+	LabelClause As String
+	SiteColumns As String
+	SiteCriteria As String
+End Type
+
 '-------------------------------------------------
 ' Define the custom keywords
 '-------------------------------------------------
@@ -80,19 +97,7 @@ Declare Sub OpenDialog
 Declare Sub DialogSetup
 Declare Sub CheckSelection
 Declare Sub SelectMaps
-	(sMapTable As String,
-	sMapName As String,
-	sMapSuffix As String,
-	sMapColumns As String,
-	sMapCriteria As String,
-	sMapKeyColumns As String,
-	sMapFormat As String,
-	sMapKeep As String,
-	sMapOverwrite As String,
-	sMapLabelColumn As String,
-	sMapLabelClause As String,
-	sMapSiteColumns As String,
-	sMapSiteCriteria As String)
+	(SelectedMap As MapDetails)
 Declare Sub AboutBox
 Declare Sub egsit
 Declare Sub MyPrint
@@ -261,47 +266,11 @@ Global sSiteName As String
 Global sShortRefNo As String
 Global sSubRefNo As String
 
-Global aFileMapTables(99) As String
-Global aFileMapNames(99) As String
-Global aFileMapSuffixes(99) As String
-Global aFileMapColumns(99) As String
-Global aFileMapCriteria(99) As String
-Global aFileMapKeyColumn(99) As String
-Global aFileMapFormats(99) As String
-Global aFileMapKeep(99) As String
-Global aFileMapOverwrite(99) As String
-Global aFileMapLabelColumn(99) As String
-Global aFileMapLabelClause(99) As String
-Global aFileMapSiteColumns(99) As String
-Global aFileMapSiteCriteria(99) As String
+Global AllMaps(99) As MapDetails
+Global OpenMaps(99) As MapDetails
+Global SelectedMaps(99) As MapDetails
 
-Global aMapTables(99) As String
-Global aMapNames(99) As String
-Global aMapSuffixes(99) As String
-Global aMapColumns(99) As String
-Global aMapCriteria(99) As String
-Global aMapKeyColumn(99) As String
-Global aMapFormats(99) As String
-Global aMapKeep(99) As String
-Global aMapOverwrite(99) As String
-Global aMapLabelColumn(99) As String
-Global aMapLabelClause(99) As String
-Global aMapSiteColumns(99) As String
-Global aMapSiteCriteria(99) As String
-
-Global aMapTableSelected(99) As String
-Global aMapNameSelected(99) As String
-Global aMapSuffixSelected(99) As String
-Global aMapColumnsSelected(99) As String
-Global aMapCriteriaSelected(99) As String
-Global aMapKeyColumnSelected(99) As String
-Global aMapFormatSelected(99) As String
-Global aMapKeepSelected(99) As String
-Global aMapOverwriteSelected(99) As String
-Global aMapLabelColumnSelected(99) As String
-Global aMapLabelClauseSelected(99) As String
-Global aMapSiteColumnsSelected(99) As String
-Global aMapSiteCriteriaSelected(99) As String
+Global aOpenTables(99) As String
 
 Global iExtractTot As Integer
 Global iExtractCnt As Integer
