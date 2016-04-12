@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.44
+'* DataSearches v1.45
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -30,6 +30,12 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - March 2016
+'*
+'* *****************  Version 1.45  *****************
+'* Author: Andy Foy		Date: 11/04/2016
+'* A. Add button to lookup Site Name from database
+'*    using search reference.
+'* B. Hide controls if default value is blank.
 '*
 '* *****************  Version 1.44  *****************
 '* Author: Andy Foy		Date: 24/03/2016
@@ -80,7 +86,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.44"
+	sVersion = "1.45"
 
 	'-------------------------------------------------
 	' Create a new menu
@@ -150,6 +156,17 @@ Sub OpenDialog
 		'Into sSearchRef
 
 	'-------------------------------------------------
+	' Add a Find button for the search reference
+	'-------------------------------------------------
+	Control Button
+		ID 91
+		Title "Find"
+		Position 90,20
+		Width 40
+		Hide
+		Calling GetSiteName
+
+	'-------------------------------------------------
 	' Add an edit text box for the site name
 	'-------------------------------------------------
 	Control StaticText Title "Site Name:"
@@ -213,10 +230,10 @@ Sub OpenDialog
 	' to the map window
 	'-------------------------------------------------
 	Control StaticText Title "Add Selected Tables to Map:"
+		ID 19
 		Position 120,135
 	Control PopupMenu
 		ID 9
-		Value iDefaultAddSelectedTables
 		Title sAddSelectedTablesOptions
 		Position 120,145
 		Width 100
@@ -226,10 +243,10 @@ Sub OpenDialog
 	' Add a radio group for overwritting map labels
 	'-------------------------------------------------
 	Control StaticText Title "Overwrite Map Labels:"
+		ID 20
 		Position 120,170
 	Control PopupMenu
 		ID 10
-		Value iDefaultOverwriteLabels
 		Title sOverwriteLabelOptions
 		Position 120,180
 		Width 100
@@ -372,13 +389,25 @@ Sub GetDefaultValues
 					sAddSelectedTablesOptions = GetSingleNodeValue(hXMLNode, "AddSelectedTablesOptions")
 
 					' Default option for adding selected tables to the map window
-					iDefaultAddSelectedTables = GetSingleNodeValue(hXMLNode, "DefaultAddSelectedTables")
+					Dim sDefaultAddSelectedTables As String
+					sDefaultAddSelectedTables = GetSingleNodeValue(hXMLNode, "DefaultAddSelectedTables")
+					If sDefaultAddSelectedTables = "" Then
+						iDefaultAddSelectedTables = 0
+					Else
+						iDefaultAddSelectedTables = sDefaultAddSelectedTables
+					End If
 
 					' Options for for overwritting the map labels
 					sOverwriteLabelOptions = GetSingleNodeValue(hXMLNode, "OverwriteLabelOptions")
 
 					' Whether any map label columns should be overwritten
-					iDefaultOverwriteLabels = GetSingleNodeValue(hXMLNode, "DefaultOverwriteLabels")
+					Dim sDefaultOverwriteLabels As String
+					sDefaultOverwriteLabels = GetSingleNodeValue(hXMLNode, "DefaultOverwriteLabels")
+					If sDefaultOverwriteLabels = "" Then
+						iDefaultOverwriteLabels = 0
+					Else
+						iDefaultOverwriteLabels = sDefaultOverwriteLabels
+					End If
 
 					' Whether a combined sites table should be created
 					sDefaultCombinedSitesTable = GetSingleNodeValue(hXMLNode, "DefaultCombinedSitesTable")
@@ -619,9 +648,18 @@ Sub DialogSetup
 SetDefaults:
 
 	'-------------------------------------------------
-	' Set the default value for creating a combined
-	' sites table
+	' Set the default values for controls
 	'-------------------------------------------------
+	If iDefaultAddSelectedTables > 0 Then
+		Alter Control 9 Value iDefaultAddSelectedTables
+	Else
+		Alter Control 9 Value 1
+	End If
+	If iDefaultOverwriteLabels > 0 Then
+		Alter Control 10 Value iDefaultOverwriteLabels
+	Else
+		Alter Control 10 Value 1
+	End If
 	If UCase$(sDefaultCombinedSitesTable) = "Y" OR UCase$(sDefaultCombinedSitesTable) = "YES" Then
 		Alter Control 11 Value TRUE
 	Else
@@ -629,125 +667,38 @@ SetDefaults:
 	End If
 
 	'-------------------------------------------------
-	' Enable the site name field if there is no
-	' database
+	' Hide the controls if the defaults are blank
 	'-------------------------------------------------
-	If sDatabase = "" Then
-		Alter Control 2 Enable
+	If iDefaultAddSelectedTables = 0 Then
+		Alter Control 19 Hide
+		Alter Control 9 Hide
+	End If
+	If iDefaultOverwriteLabels = 0 Then
+		Alter Control 20 Hide
+		Alter Control 10 Hide
+	End If
+	If sDefaultCombinedSitesTable = "" Then
+		Alter Control 11 Hide
 	End If
 
+	'-------------------------------------------------
+	' If there is no database enable the site name
+	' field, otherwise show the 'Show' button
+	'-------------------------------------------------
+	If sDatabase = "" or sEnquiriesDir = "" Then
+		Alter Control 2 Enable
+	Else
+		Alter Control 91 Show
+	End If
 
 Exit Sub
 
 End Sub
 
-Sub CheckSelection
+Sub GetSiteName
 '***************************************************************
-'* Check the user's selections and process according
+'* Get the site name for the search ref from the database
 '***************************************************************
-
-	'-------------------------------------------------
-	' Trap errors
-	'-------------------------------------------------
-	OnError Goto ErrorTrap
-
-	'-------------------------------------------------
-	' Store the dialog variables
-	'-------------------------------------------------
-	sSearchRef = ReadControlValue(1)
-	If sDatabase = "" Then
-		sSiteName = ReadControlValue(2)
-	End If
-	sBufferSize = ReadControlValue(4)
-	iBufferInt = ReadControlValue(5)
-	bClearLog = ReadControlValue(6)
-	iAddSelectedTables = ReadControlValue(9)
-	iOverwriteLabels = ReadControlValue(10)
-	bCreateCombinedSitesTable = ReadControlValue(11)
-
-	'-------------------------------------------------
-	' Check if the user has entered a search reference
-	'-------------------------------------------------
-	If sSearchRef = "" Then
-		Note "Error: No search reference has been entered!"
-		Exit Sub
-	End If
-
-	'-------------------------------------------------
-	' Check if the user has entered a site name
-	'-------------------------------------------------
-	If sSiteName = "" and sDatabase = "" Then
-		Note "Error: No site name has been entered!"
-		Exit Sub
-	End If
-
-	'-------------------------------------------------
-	' Check if the user has selected at least one table
-	'-------------------------------------------------
-	iMapTable = ReadControlValue(3)
-	if iMapTable = 0 then
-		Note "Error: No tables have been selected!"
-		Exit Sub
-	End If
-
-	'-------------------------------------------------
-	' Count the number of extracts to run
-	'-------------------------------------------------
-	iExtractTot = 0
-	iExtractCnt = 0
-	Do While iMapTable > 0
-		'-------------------------------------------------
-		' Increment the counter
-		'-------------------------------------------------
-		iExtractTot = iExtractTot + 1
-
-			SelectedMaps(iExtractTot).Table = OpenMaps(iMapTable).Table
-			SelectedMaps(iExtractTot).Name = OpenMaps(iMapTable).Name
-			SelectedMaps(iExtractTot).Suffix = OpenMaps(iMapTable).Suffix
-			SelectedMaps(iExtractTot).Columns = OpenMaps(iMapTable).Columns
-			SelectedMaps(iExtractTot).SelectCriteria = OpenMaps(iMapTable).SelectCriteria
-			SelectedMaps(iExtractTot).ExportCriteria = OpenMaps(iMapTable).ExportCriteria
-			SelectedMaps(iExtractTot).KeyColumn = OpenMaps(iMapTable).KeyColumn
-			SelectedMaps(iExtractTot).Format = OpenMaps(iMapTable).Format
-			SelectedMaps(iExtractTot).Keep = OpenMaps(iMapTable).Keep
-			SelectedMaps(iExtractTot).Overwrite = OpenMaps(iMapTable).Overwrite
-			SelectedMaps(iExtractTot).LabelColumn = OpenMaps(iMapTable).LabelColumn
-			SelectedMaps(iExtractTot).LabelClause = OpenMaps(iMapTable).LabelClause
-			SelectedMaps(iExtractTot).SiteColumns = OpenMaps(iMapTable).SiteColumns
-			SelectedMaps(iExtractTot).SiteCriteria = OpenMaps(iMapTable).SiteCriteria
-
-		'-------------------------------------------------
-		' Read the next table selected in the list
-		'-------------------------------------------------
-		iMapTable = ReadControlValue(3)
-	Loop
-
-	Redim SelectedMaps(iExtractTot)
-
-	'-------------------------------------------------
-	' Check if the user has entered a buffer size
-	'-------------------------------------------------
-	If sBufferSize = "" Then
-		Note "Error: No buffer size has been entered!"
-		Exit Sub
-	End If
-	If isNumeric(ReadControlValue(4)) = False Then
-		Note "Error: The buffer size is not numeric!"
-		Exit Sub
-	End If
-
-	'-------------------------------------------------
-	' Check if the user has selected a buffer unit
-	'-------------------------------------------------
-	If iBufferInt = 0 Then
-		Note "Error: No buffer unit has been selected!"
-		Exit Sub
-	End If
-
-	'-------------------------------------------------
-	' Store the buffer unit option
-	'-------------------------------------------------
-	sBufferUnit = aBufferAbbrevs(iBufferInt)
 
 	'-------------------------------------------------
 	' Get the site name from the database if it has
@@ -756,13 +707,23 @@ Sub CheckSelection
 	If sDatabase <> "" and sEnquiriesDir <> "" Then
 
 		'-------------------------------------------------
+		' Check a search ref has been entered
+		'-------------------------------------------------
+		Dim sRef As String
+		sRef = ReadControlValue(1)
+		If sRef = "" Then
+			Note "Error: No Search Reference entered!"
+			Exit Sub
+		End If
+	
+		'-------------------------------------------------
 		' Check if the Enquiries table is
 		' already/still open and close it if it is
 		'-------------------------------------------------
 		If TableIsOpen("Enquiries") Then
 			Close Table Enquiries
 		End If
-	
+
 		'-------------------------------------------------
 		' Ignore any error trying to open the table
 		'-------------------------------------------------
@@ -807,9 +768,9 @@ RegisterTable:
 		' Select the site name for the enquiry
 		'-------------------------------------------------
 		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 Then
-			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + sSearchRef + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
 		Else
-			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
 	
@@ -830,13 +791,15 @@ RegisterTable:
 			Fetch First from Enquiry
 	
 			'-------------------------------------------------
-			' Get the site name value
+			' Get the site name value and put it in the
+			' site name field
 			'-------------------------------------------------
 			sSiteName = Enquiry.Col1
+			Alter Control 2 Value sSiteName
 	
 		Else
 	
-			Note "Warning: Site name not found in database!"
+			Note "Warning: Search Reference not found in database!"
 	
 		End If
 	
@@ -846,6 +809,132 @@ RegisterTable:
 		Close Table Enquiries
 		
 	End If
+
+	Exit Sub
+
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Sub
+
+End Sub
+
+Sub CheckSelection
+'***************************************************************
+'* Check the user's selections and process according
+'***************************************************************
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
+
+	'-------------------------------------------------
+	' Store the dialog variables
+	'-------------------------------------------------
+	sSearchRef = ReadControlValue(1)
+	sSiteName = ReadControlValue(2)
+	sBufferSize = ReadControlValue(4)
+	iBufferInt = ReadControlValue(5)
+	bClearLog = ReadControlValue(6)
+	iAddSelectedTables = ReadControlValue(9)
+	iOverwriteLabels = ReadControlValue(10)
+	bCreateCombinedSitesTable = ReadControlValue(11)
+
+	'-------------------------------------------------
+	' Check if the user has entered a search reference
+	'-------------------------------------------------
+	If sSearchRef = "" Then
+		Note "Error: No search reference has been entered!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if the user has entered a site name, or
+	' if it has been (or can be) found in the database
+	'-------------------------------------------------
+	If sSiteName = "" Then
+		If sDatabase = "" Then
+			Note "Error: No site name has been entered!"
+		Else
+			Call GetSiteName
+			If sSiteName = "" Then
+				Note "Error: Site name not found for search reference!"
+			End If
+		End If
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if the user has selected at least one table
+	'-------------------------------------------------
+	iMapTable = ReadControlValue(3)
+	if iMapTable = 0 then
+		Note "Error: No tables have been selected!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Count the number of extracts to run
+	'-------------------------------------------------
+	iExtractTot = 0
+	iExtractCnt = 0
+	Do While iMapTable > 0
+		'-------------------------------------------------
+		' Increment the counter
+		'-------------------------------------------------
+		iExtractTot = iExtractTot + 1
+
+		'-------------------------------------------------
+		' Store the selected map details
+		'-------------------------------------------------
+		SelectedMaps(iExtractTot).Table = OpenMaps(iMapTable).Table
+		SelectedMaps(iExtractTot).Name = OpenMaps(iMapTable).Name
+		SelectedMaps(iExtractTot).Suffix = OpenMaps(iMapTable).Suffix
+		SelectedMaps(iExtractTot).Columns = OpenMaps(iMapTable).Columns
+		SelectedMaps(iExtractTot).SelectCriteria = OpenMaps(iMapTable).SelectCriteria
+		SelectedMaps(iExtractTot).ExportCriteria = OpenMaps(iMapTable).ExportCriteria
+		SelectedMaps(iExtractTot).KeyColumn = OpenMaps(iMapTable).KeyColumn
+		SelectedMaps(iExtractTot).Format = OpenMaps(iMapTable).Format
+		SelectedMaps(iExtractTot).Keep = OpenMaps(iMapTable).Keep
+		SelectedMaps(iExtractTot).Overwrite = OpenMaps(iMapTable).Overwrite
+		SelectedMaps(iExtractTot).LabelColumn = OpenMaps(iMapTable).LabelColumn
+		SelectedMaps(iExtractTot).LabelClause = OpenMaps(iMapTable).LabelClause
+		SelectedMaps(iExtractTot).SiteColumns = OpenMaps(iMapTable).SiteColumns
+		SelectedMaps(iExtractTot).SiteCriteria = OpenMaps(iMapTable).SiteCriteria
+
+		'-------------------------------------------------
+		' Read the next table selected in the list
+		'-------------------------------------------------
+		iMapTable = ReadControlValue(3)
+	Loop
+
+	Redim SelectedMaps(iExtractTot)
+
+	'-------------------------------------------------
+	' Check if the user has entered a buffer size
+	'-------------------------------------------------
+	If sBufferSize = "" Then
+		Note "Error: No buffer size has been entered!"
+		Exit Sub
+	End If
+	If isNumeric(ReadControlValue(4)) = False Then
+		Note "Error: The buffer size is not numeric!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Check if the user has selected a buffer unit
+	'-------------------------------------------------
+	If iBufferInt = 0 Then
+		Note "Error: No buffer unit has been selected!"
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' Store the buffer unit option
+	'-------------------------------------------------
+	sBufferUnit = aBufferAbbrevs(iBufferInt)
 
 	'-------------------------------------------------
     ' Remove all characters except numbers and internal spaces from Reference Number
@@ -1109,6 +1198,7 @@ FindNextPos:
 	Dim sLocalTable As String
 	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferSize + sBufferUnit
 
+	Dim sCmd As String
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
 	Run Command (sCmd)
 

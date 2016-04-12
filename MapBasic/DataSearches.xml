@@ -90,7 +90,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 
 	<!-- The maximum number of records what will be extracted in any one search extract -->
 	<RecMax>
-		<value>1000000</value>
+		<value>5000000</value>
 	</RecMax>
 
 	<!-- The name of the table to use as the search area -->
@@ -164,9 +164,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By SAC_Name Order By SAC_Name</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>SAC_Name</value>
 			</KeyColumn>
@@ -205,9 +205,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By SPA_Name Order By SPA_Name</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>SPA_Name</value>
 			</KeyColumn>
@@ -246,9 +246,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By Ramsar_Name Order By Ramsar_Name</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>Ramsar_Name</value>
 			</KeyColumn>
@@ -287,9 +287,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By SSSI_Name Order By SSSI_Name</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>SSSI_Name</value>
 			</KeyColumn>
@@ -328,9 +328,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By NNR_Name Order By NNR_Name</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>NNR_Name</value>
 			</KeyColumn>
@@ -369,9 +369,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
-				<value>Group By LNR_Name Order By LNR_Name</value>
-			</ExtractCriteria>
+			<ExportCriteria>
+				<value>Group By Sitename Order By Sitename</value>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>LNR_Name</value>
 			</KeyColumn>
@@ -410,9 +410,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Group By Site_number Order By Site_number</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>Site_number</value>
 			</KeyColumn>
@@ -451,9 +451,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value>And CONFIDENTIAL = ""</value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Order By SORTORDER, LATIN_NAME, DISTANCE</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>LATIN_NAME</value>
 			</KeyColumn>
@@ -492,9 +492,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
-			<ExtractCriteria>
+			<ExportCriteria>
 				<value>Order By SORTORDER, LATIN_NAME</value>
-			</ExtractCriteria>
+			</ExportCriteria>
 			<KeyColumn>
 				<value>LATIN_NAME</value>
 			</KeyColumn>

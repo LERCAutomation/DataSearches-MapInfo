@@ -95,6 +95,7 @@ Declare Sub Main
 Declare Sub GetDefaultValues
 Declare Sub OpenDialog
 Declare Sub DialogSetup
+Declare Sub GetSiteName
 Declare Sub CheckSelection
 Declare Sub SelectMaps
 	(SelectedMap As MapDetails)
