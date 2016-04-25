@@ -152,6 +152,9 @@ Declare Function KeepNumbersAndSpaces
 	repChar As String) As String
 Declare Function RemoveSpecialChars
 	(ByVal strInput As String) As String
+Declare Function ReplaceSpecialChars
+	(ByVal strInput As String,
+	ByVal strRepChar As String) As String
 Declare Function StringReplace
 	(ByVal sToBeSearched As String,
 	ByVal sSearchFor As String,

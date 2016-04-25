@@ -154,6 +154,10 @@ Dim i As Integer, c As String, strReturn as String
 	    End If
 	Next
 
+	If Left$(strReturn, 1) = repChar then
+		strReturn = Mid$(strReturn, 2, Len(strReturn) - 1)
+	End If
+
 	KeepNumbersAndSpaces = strReturn
 
 End Function
@@ -177,6 +181,32 @@ Function RemoveSpecialChars(ByVal strInput As String) As String
     strInput = StringReplace(strInput, "%", "")
 
     RemoveSpecialChars = strInput
+
+End Function
+
+Function ReplaceSpecialChars(ByVal strInput As String, ByVal strRepChar As String) As String
+'*************************************************
+'* Remove any special characters from a sting that can't be used in
+'* folder or file names.
+'*************************************************
+
+    strInput = StringReplace(strInput, "$", strRepChar)
+    strInput = StringReplace(strInput, ":", strRepChar)
+    strInput = StringReplace(strInput, "*", strRepChar)
+    strInput = StringReplace(strInput, "\", strRepChar)
+    strInput = StringReplace(strInput, "/", strRepChar)
+    strInput = StringReplace(strInput, "*", strRepChar)
+    strInput = StringReplace(strInput, "?", strRepChar)
+    strInput = StringReplace(strInput, "<", strRepChar)
+    strInput = StringReplace(strInput, ">", strRepChar)
+    strInput = StringReplace(strInput, "|", strRepChar)
+    strInput = StringReplace(strInput, "%", strRepChar)
+
+    strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
+    strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
+    strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
+
+    ReplaceSpecialChars = strInput
 
 End Function
 

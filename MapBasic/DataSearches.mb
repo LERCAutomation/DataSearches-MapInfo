@@ -29,7 +29,7 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - March 2016
+'* Last revised:	Andy Foy - April 2016
 '*
 '* *****************  Version 1.45  *****************
 '* Author: Andy Foy		Date: 11/04/2016
@@ -458,6 +458,7 @@ Sub GetDefaultValues
 					'-------------------------------------------------
 					Dim i As Integer
 					i = 0
+					Redim AllMaps(99)
 					Do while hXMLFilesNode
 						
 						i = i + 1
@@ -593,6 +594,9 @@ Sub DialogSetup
 	j = 0
 	Dim i As Integer
 	For i = 1 to UBound(AllMaps)
+
+	Redim OpenMaps(99)
+	Redim aOpenTables(99)
 
 		'-------------------------------------------------
 		' Concatenate all the Map tables into an array
@@ -879,6 +883,7 @@ Sub CheckSelection
 	'-------------------------------------------------
 	iExtractTot = 0
 	iExtractCnt = 0
+	Redim SelectedMaps(99)
 	Do While iMapTable > 0
 		'-------------------------------------------------
 		' Increment the counter
@@ -948,12 +953,12 @@ Sub CheckSelection
 FindNextPos:
 	iNextPos = Instr(iLastPos, sShortRefNo, sRepChar)
     If iNextPos > 0 Then
-    	iLastPos = iNextPos
+    	iLastPos = iNextPos + 1
     	goto FindNextPos
     End If
 
 	If iLastPos > 1 Then
-	    sSubRefNo = Mid$(sShortRefNo, iLastPos + 1, 99)
+	    sSubRefNo = Mid$(sShortRefNo, iLastPos, 99)
     Else
     	sSubRefNo = sShortRefNo
     End If
@@ -979,9 +984,9 @@ FindNextPos:
 	'-------------------------------------------------
     ' Remove any invalid characters from file/folder names
 	'-------------------------------------------------
-    sSaveFolder = LTrim$(RTrim$(RemoveSpecialChars(sSaveFolder)))
-    sGISFolder = LTrim$(RTrim$(RemoveSpecialChars(sGISFolder)))
-    sLogFileName = LTrim$(RTrim$(RemoveSpecialChars(sLogFileName)))
+    sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar)))
+    sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar)))
+    sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar)))
 	
 	'-------------------------------------------------
 	' Create the request folder if it doesn't
@@ -1050,6 +1055,7 @@ FindNextPos:
 	iNumWindows = NumWindows()
 	Dim iWindowNum As Integer, iNum As Integer
 	iNum = 0
+	Redim aWindowId(99)
 	For iWindowNum = 1 to iNumWindows
 		If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
 			iNum = iNum + 1
@@ -1389,7 +1395,7 @@ EditLayer:
 	' temporary table)
 	'-------------------------------------------------
 	Call MyPrint("Buffering the search reference ...")
-	sCmd = "Create Object As Buffer From " + sTempTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns + ",radius=" + Chr$(34) + sBufferSize + sBufferUnit + Chr$(34)
+	sCmd = "Create Object As Buffer From " + sTempTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
 	Run Command (sCmd)
 
 	'-------------------------------------------------
