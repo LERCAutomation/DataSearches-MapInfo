@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.45
+'* DataSearches v1.46
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -30,6 +30,10 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - April 2016
+'*
+'* *****************  Version 1.46  *****************
+'* Author: Andy Foy		Date: 05/05/2016
+'* A. Include column titles in CSV export files.
 '*
 '* *****************  Version 1.45  *****************
 '* Author: Andy Foy		Date: 11/04/2016
@@ -86,7 +90,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.45"
+	sVersion = "1.46"
 
 	'-------------------------------------------------
 	' Create a new menu
@@ -1052,17 +1056,42 @@ FindNextPos:
 	'-------------------------------------------------
 	' Find the window numbers of all map windows
 	'-------------------------------------------------
-	iNumWindows = NumWindows()
-	Dim iWindowNum As Integer, iNum As Integer
-	iNum = 0
+	Dim iWindowNum As Integer, iLayerNum As Integer
+	Dim bMapWindow As Logical
+	iNumWindows = 0
 	Redim aWindowId(99)
-	For iWindowNum = 1 to iNumWindows
+	
+	' Loop through all the windows
+	For iWindowNum = 1 to NumWindows()
+	
+		' Check if the window is a map window
 		If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
-			iNum = iNum + 1
-			aWindowId(iNum) = WindowId(iWindowNum)
+		
+			bMapWindow = False
+			
+			' Loop through all the layers in the map window
+			For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
+			
+				' Check if the layer is a normal layer
+				If LayerInfo(WindowId(iWindowNum),iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
+					bMapWindow = True
+					Exit For
+				End If
+			
+			Next
+
+			' If the window contains any normal map layers then
+			' add it to the array of map windows
+			If bMapWindow = True Then
+				iNumWindows = iNumWindows + 1
+				aWindowId(iNumWindows) = WindowId(iWindowNum)
+			End If
+
 		End If
+
 	Next
-	Redim aWindowId(iNum)
+	
+	Redim aWindowId(iNumWindows)
 
 	'-------------------------------------------------
 	' Call the subroutine to buffer the search area
@@ -1788,6 +1817,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			Into sLocalPath + "\" + sExportName + ".csv"
 			Type "CSV"
 			CharSet "WindowsLatin1"
+			Titles
 			Overwrite
 	End If
 
