@@ -1213,6 +1213,7 @@ FindNextPos:
 				Into sLocalPath + "\" + sExportSitesName + ".csv"
 				Type "CSV"
 				CharSet "WindowsLatin1"
+				Titles
 				Overwrite
 		End If
 		
