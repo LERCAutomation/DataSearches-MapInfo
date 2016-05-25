@@ -2195,8 +2195,14 @@ CleanUp:
 	Exit Sub
 
 ErrorTrap:
-	Note "Error: " + str$(Err()) + ": " + Error$()
-	Call MyPrint(str$(Err()) + ": " + Error$())
+	If Err() = 497 Then
+		Note "Error: Unable to select data for Combined Sites Table"
+		Call MyPrint("Error: Unable to select data for Combined Sites Table")
+	Else
+		Note "Error: " + str$(Err()) + ": " + Error$()
+		Call MyPrint(str$(Err()) + ": " + Error$())
+	End If
+
 	Goto CleanUp
 
 End Sub
@@ -2247,7 +2253,7 @@ Sub MyPrint(ByVal sMsg As String)
 	'-------------------------------------------------
 	' Write the message passed to the output file
 	'-------------------------------------------------
-	Print #1, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"H:mm:ss") + " : " + sMsg
+	Print #1, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
 
 	'-------------------------------------------------
 	' Close the output file
