@@ -56,8 +56,9 @@ Type PROCESS_INFORMATION
 End Type
 
 Type MapDetails
-	Table As String
+	Node As String
 	Name As String
+	Prefix As String
 	Suffix As String
 	Columns As String
 	SelectCriteria As String
@@ -105,7 +106,6 @@ Declare Sub MyPrint
 	(ByVal sMsg As String)
 Declare Sub PrintLogFile
 Declare Sub BufferSearch
-Declare Sub CreateCombinedSitesTable
 Declare Sub ProcessExtracts
 Declare Sub OverwriteMapLabels
 	(sTableName As String,
@@ -130,7 +130,13 @@ Declare Sub MIXmlAttributeListDestroy Lib MIXML_LIB_NAME Alias "MIXmlAttributeLi
 '-------------------------------------------------
 ' Declare the functions
 '-------------------------------------------------
+Declare Function CreateCombinedSitesTable
+	(sSitesTable As String) As Logical
+Declare Function OpenCombinedSitesTable
+	(sSitesTable As String) As Logical
 Declare Function TableIsOpen
+	(ByVal sTabName As String) As Logical
+Declare Function TabFileExists
 	(ByVal sTabName As String) As Logical
 Declare Function GetSingleNodeValue(
 	ByVal hRoot As MIXmlNode,
@@ -256,8 +262,9 @@ Global sOverwriteLabelOptions As String
 Global iDefaultOverwriteLabels As SmallInt
 Global iOverwriteLabels As SmallInt
 
-Global sDefaultCombinedSitesTable As String
-Global bCreateCombinedSitesTable As Logical
+Global sCombinedSitesOptions As String
+Global iDefaultCombinedSitesTable As SmallInt
+Global iCombinedSitesTable As SmallInt
 
 Global sCombinedSitesTable As String
 Global sCombinedSitesColumns As String

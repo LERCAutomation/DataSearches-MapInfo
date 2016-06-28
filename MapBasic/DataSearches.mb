@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.46
+'* DataSearches v1.4.8
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,23 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - April 2016
+'* Last revised:	Andy Foy - June 2016
+'*
+'* *****************  Version 1.4.8  ****************
+'* Author: Andy Foy		Date: 27/06/2016
+'* A. Enable search radius to be included in export
+'*    files.
+'* B. Enable search radius to be included in the
+'*    combined sites table.
+'* C. Enable combined sites table to be appended to
+'*    or over-written as required.
+'*
+'* *****************  Version 1.4.7  ****************
+'* Author: Andy Foy		Date: 30/05/2016
+'* A. Convert underscores to spaces when displaying
+'*    node names.
+'* B. Add XML attribute for saved GIS layer prefixes.
+'* C. Change version number to 3 parts.
 '*
 '* *****************  Version 1.46  *****************
 '* Author: Andy Foy		Date: 05/05/2016
@@ -90,7 +106,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.46"
+	sVersion = "1.4.8"
 
 	'-------------------------------------------------
 	' Create a new menu
@@ -144,7 +160,7 @@ Sub OpenDialog
 	Dialog
 		Title "Data Searches " + sVersion
 		Width 235
-		Height 250
+		Height 270
 		Position 50, 70
 		Calling DialogSetup
 
@@ -191,7 +207,7 @@ Sub OpenDialog
 		ID 3
 		Title ""
 		Position 10,80
-		Height 140
+		Height 150
 		Width 95
 
 	'-------------------------------------------------
@@ -225,7 +241,7 @@ Sub OpenDialog
 	Control CheckBox
 		ID 6
 		Title "Clear log file?"
-		Position 10,230
+		Position 10,250
 		Value FALSE
 		'Into bClearLog
 
@@ -259,23 +275,26 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add a checkbox for the combined sites table
 	'-------------------------------------------------
-	Control CheckBox
-		ID 11
-		Title "Create Combined Sites Table?"
+	Control StaticText Title "Create Combined Sites Table:"
+		ID 21
 		Position 120,205
-		Value FALSE
-		'Into bCreateCombinedSitesTable
+	Control PopupMenu
+		ID 11
+		Title sCombinedSitesOptions
+		Position 120,215
+		Width 100
+		'Into iAddSelectedTables
 
 	'-------------------------------------------------
 	' Add Ok and cancel buttons
 	'-------------------------------------------------
 	Control CancelButton
-		Position 140,230
+		Position 140,250
 		Width 40
 	Control Button
 		ID 99
 		Title "Ok"
-		Position 185,230
+		Position 185,250
 		Width 40
 		Calling CheckSelection
 
@@ -401,7 +420,7 @@ Sub GetDefaultValues
 						iDefaultAddSelectedTables = sDefaultAddSelectedTables
 					End If
 
-					' Options for for overwritting the map labels
+					' Options for overwritting the map labels
 					sOverwriteLabelOptions = GetSingleNodeValue(hXMLNode, "OverwriteLabelOptions")
 
 					' Whether any map label columns should be overwritten
@@ -413,8 +432,17 @@ Sub GetDefaultValues
 						iDefaultOverwriteLabels = sDefaultOverwriteLabels
 					End If
 
+					' Options for creating the combined sites table
+					sCombinedSitesOptions = GetSingleNodeValue(hXMLNode, "CombinedSitesOptions")
+
 					' Whether a combined sites table should be created
+					Dim sDefaultCombinedSitesTable As String
 					sDefaultCombinedSitesTable = GetSingleNodeValue(hXMLNode, "DefaultCombinedSitesTable")
+					If sDefaultCombinedSitesTable = "" Then
+						iDefaultCombinedSitesTable = 0
+					Else
+						iDefaultCombinedSitesTable = sDefaultCombinedSitesTable
+					End If
 
 					'-------------------------------------------------
 					' Get a handle on the Combined Sites table sub-node
@@ -467,13 +495,16 @@ Sub GetDefaultValues
 						
 						i = i + 1
 
-						' Name of the Map table
-						AllMaps(i).Table = GetNodeName(hXMLFilesNode)
+						' Name of the Map node
+						AllMaps(i).Node = GetNodeName(hXMLFilesNode)
 
 						' Local MapInfo name of the Map table
 						AllMaps(i).Name = GetSingleNodeValue(hXMLFilesNode, "TableName")
 
-						' Suffix applied to map table when saving
+						' Prefix applied to map table when saving
+						AllMaps(i).Prefix = GetSingleNodeValue(hXMLFilesNode, "Prefix")
+
+						' Suffix applied to export file when saving
 						AllMaps(i).Suffix = GetSingleNodeValue(hXMLFilesNode, "Suffix")
 
 						' SQL clause used to retrieve the required rows from the map table
@@ -608,8 +639,9 @@ Sub DialogSetup
 		If TableIsOpen(AllMaps(i).Name) Then
 			j = j + 1
 
-			OpenMaps(j).Table = AllMaps(i).Table
+			OpenMaps(j).Node = StringReplace(AllMaps(i).Node, "_", " ")
 			OpenMaps(j).Name = AllMaps(i).Name
+			OpenMaps(j).Prefix = AllMaps(i).Prefix
 			OpenMaps(j).Suffix = AllMaps(i).Suffix
 			OpenMaps(j).Columns = AllMaps(i).Columns
 			OpenMaps(j).SelectCriteria = AllMaps(i).SelectCriteria
@@ -623,7 +655,7 @@ Sub DialogSetup
 			OpenMaps(j).SiteColumns = AllMaps(i).SiteColumns
 			OpenMaps(j).SiteCriteria = AllMaps(i).SiteCriteria
 			
-			aOpenTables(j) = AllMaps(i).Table
+			aOpenTables(j) = StringReplace(AllMaps(i).Node, "_", " ")
 		Else
 			'-------------------------------------------------
 			' Store the name of the closed table
@@ -663,15 +695,17 @@ SetDefaults:
 	Else
 		Alter Control 9 Value 1
 	End If
+
 	If iDefaultOverwriteLabels > 0 Then
 		Alter Control 10 Value iDefaultOverwriteLabels
 	Else
 		Alter Control 10 Value 1
 	End If
-	If UCase$(sDefaultCombinedSitesTable) = "Y" OR UCase$(sDefaultCombinedSitesTable) = "YES" Then
-		Alter Control 11 Value TRUE
+
+	If iDefaultCombinedSitesTable > 0 Then
+		Alter Control 11 Value iDefaultCombinedSitesTable
 	Else
-		Alter Control 11 Value FALSE
+		Alter Control 11 Value 1
 	End If
 
 	'-------------------------------------------------
@@ -681,11 +715,14 @@ SetDefaults:
 		Alter Control 19 Hide
 		Alter Control 9 Hide
 	End If
+	
 	If iDefaultOverwriteLabels = 0 Then
 		Alter Control 20 Hide
 		Alter Control 10 Hide
 	End If
-	If sDefaultCombinedSitesTable = "" Then
+	
+	If iDefaultCombinedSitesTable = 0 Then
+		Alter Control 21 Hide
 		Alter Control 11 Hide
 	End If
 
@@ -847,7 +884,7 @@ Sub CheckSelection
 	bClearLog = ReadControlValue(6)
 	iAddSelectedTables = ReadControlValue(9)
 	iOverwriteLabels = ReadControlValue(10)
-	bCreateCombinedSitesTable = ReadControlValue(11)
+	iCombinedSitesTable = ReadControlValue(11)
 
 	'-------------------------------------------------
 	' Check if the user has entered a search reference
@@ -897,8 +934,9 @@ Sub CheckSelection
 		'-------------------------------------------------
 		' Store the selected map details
 		'-------------------------------------------------
-		SelectedMaps(iExtractTot).Table = OpenMaps(iMapTable).Table
+		SelectedMaps(iExtractTot).Node = OpenMaps(iMapTable).Node
 		SelectedMaps(iExtractTot).Name = OpenMaps(iMapTable).Name
+		SelectedMaps(iExtractTot).Prefix = OpenMaps(iMapTable).Prefix
 		SelectedMaps(iExtractTot).Suffix = OpenMaps(iMapTable).Suffix
 		SelectedMaps(iExtractTot).Columns = OpenMaps(iMapTable).Columns
 		SelectedMaps(iExtractTot).SelectCriteria = OpenMaps(iMapTable).SelectCriteria
@@ -1110,20 +1148,58 @@ FindNextPos:
 	End If
 
 	'-------------------------------------------------
-	' Call the subroutine to create the combined
-	' sites table.
+	' If a combined sites table is to be appended to
+	' or over-written.
 	'-------------------------------------------------
-	If bCreateCombinedSitesTable Then
-		Call CreateCombinedSitesTable
-		If sCombinedSitesTable = "" Then
-			Call MyPrint("Error creating combined sites table.")
-			Call MyPrint("")
-			Call MyPrint("----------------------------------------------------------------------")
-			Call MyPrint("Process stopped!")
-			Call MyPrint("----------------------------------------------------------------------")
-			lResponse = Ask("Processing stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
-			Goto Response
+	If iCombinedSitesTable > 1 Then
+
+		Dim sSitesTable As String
+		sSitesTable = sSubRefNo + sCombinedSitesSuffix
+	
+		'-------------------------------------------------
+		' If a combined sites table is to be appended to
+		' (and already exists) ...
+		'-------------------------------------------------
+		If iCombinedSitesTable = 2 And TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = True Then
+
+			'-------------------------------------------------
+			' Open the existing combined sites table.
+			'-------------------------------------------------
+			If OpenCombinedSitesTable(sSitesTable) = False Then
+			
+				Call MyPrint("Error opening combined sites table.")
+				Call MyPrint("")
+				Call MyPrint("----------------------------------------------------------------------")
+				Call MyPrint("Process stopped!")
+				Call MyPrint("----------------------------------------------------------------------")
+				lResponse = Ask("Processing stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+				Goto Response
+			
+			End If
 		End If
+
+		'-------------------------------------------------
+		' If a combined sites table is to be over-written
+		' (or doesn't exist) ...
+		'-------------------------------------------------
+		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
+		
+			'-------------------------------------------------
+			' Create a new combined sites table.
+			'-------------------------------------------------
+			If CreateCombinedSitesTable(sSitesTable) = False Then
+			
+				Call MyPrint("Error creating combined sites table.")
+				Call MyPrint("")
+				Call MyPrint("----------------------------------------------------------------------")
+				Call MyPrint("Process stopped!")
+				Call MyPrint("----------------------------------------------------------------------")
+				lResponse = Ask("Processing stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+				Goto Response
+			
+			End If
+		End If
+		
 	End If
 
 	'-------------------------------------------------
@@ -1166,7 +1242,7 @@ FindNextPos:
 	'-------------------------------------------------
 	' Export the combined sites table
 	'-------------------------------------------------
-	If bCreateCombinedSitesTable Then
+	If iCombinedSitesTable > 1 Then
 		
 		'-------------------------------------------------
 		' Count the number of rows in the combined
@@ -1175,60 +1251,27 @@ FindNextPos:
 		Dim iSitesTotal As Integer
 		iSitesTotal = TableInfo(sCombinedSitesTable, TAB_INFO_NROWS)
 	
-		Dim sExportSitesName As String
-		sExportSitesName = sSubRefNo + sCombinedSitesSuffix
-	
 		'-------------------------------------------------
-		' Export the combined sites table as a DBF file
+		' Save the combined sites table changes
 		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "DBF" Then
-			Call MyPrint("Exporting combined sites table as a DBF file ...")
-			Call MyPrint(iSitesTotal + " records found.")
-			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sExportSitesName + ".dbf"
-				Type "DBF"
-				CharSet "WindowsLatin1"
-				Overwrite
+		If iSitesTotal > 0 Then
+			Call MyPrint("Saving combined sites table ...")
+			Call MyPrint(iSitesTotal + " records saved.")
+			Commit Table sCombinedSitesTable
 		End If
-	
-		'-------------------------------------------------
-		' Export the combined sites table as a TXT file
-		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "TXT" Then
-			Call MyPrint("Exporting combined sites table as a TXT file ...")
-			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sExportSitesName + ".txt"
-				Type "ASCII"
-				Delimiter ","
-				CharSet "WindowsLatin1"
-				Overwrite
-		End If
-		
-		'-------------------------------------------------
-		' Export the combined sites table as a CSV file
-		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "CSV" Then
-			Call MyPrint("Exporting combined sites table as a CSV file ...")
-			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sExportSitesName + ".csv"
-				Type "CSV"
-				CharSet "WindowsLatin1"
-				Titles
-				Overwrite
-		End If
-		
+
 		'-------------------------------------------------
 		' Delete the combined sites table
 		'-------------------------------------------------
-		Call MyPrint("Dropping the combined sites table ...")
-		Drop Table sCombinedSitesTable
+		'Call MyPrint("Dropping the combined sites table ...")
+		'Drop Table sSitesTable
 
 	End If
 
 	'-------------------------------------------------
 	' Rename the local buffer table
 	'-------------------------------------------------
-	Call MyPrint("Renaming buffer table ...")
+	'Call MyPrint("Renaming buffer table ...")
 	Close Table sBufferTable
 
 	Dim sLocalTable As String
@@ -1381,7 +1424,7 @@ EditLayer:
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sLocalTable) Then
-		Call MyPrint("Closing buffer table ...")
+		Call MyPrint("Closing existing buffer table ...")
 		Close Table sLocalTable
 	End If
 
@@ -1488,45 +1531,200 @@ EditLayer:
 
 End Sub
 
-Sub CreateCombinedSitesTable
+Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	
 '*************************************************
 '* Routine to create a combined sites table.
 '*************************************************
 
-	Call MyPrint("Creating combined sites table ...")
+	CreateCombinedSitesTable = False
 
-	'-------------------------------------------------
-	' Setup the local table name
-	'-------------------------------------------------
-	sCombinedSitesTable = "Combined_Sites"
+	OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Check if an old combined sites table is
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sCombinedSitesTable) Then
-		Call MyPrint("Closing combined sites table ...")
+		Call MyPrint("Closing existing combined sites table ...")
 		Close Table sCombinedSitesTable
 	End If
+	
+	'-------------------------------------------------
+	' Create a temporary combined sites table.
+	'-------------------------------------------------
+	Dim sCmd As String
+	sCmd = "Create Table " + Chr$(34) + sCombinedSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sCombinedSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Export the combined sites table as a DBF file
+	'-------------------------------------------------
+	If UCase$(sCombinedSitesFormat) = "DBF" Then
+		Call MyPrint("Creating combined sites table as a DBF file ...")
+		Export sCombinedSitesTable
+			Into sLocalPath + "\" + sSitesTable + ".dbf"
+			Type "DBF"
+			CharSet "WindowsLatin1"
+			Overwrite
+	End If
+
+	'-------------------------------------------------
+	' Export the combined sites table as a TXT file
+	'-------------------------------------------------
+	If UCase$(sCombinedSitesFormat) = "TXT" Then
+		Call MyPrint("Creating combined sites table as a TXT file ...")
+		Export sCombinedSitesTable
+			Into sLocalPath + "\" + sSitesTable + ".txt"
+			Type "ASCII"
+			Delimiter ","
+			CharSet "WindowsLatin1"
+			Overwrite
+	End If
+	
+	'-------------------------------------------------
+	' Export the combined sites table as a CSV file
+	'-------------------------------------------------
+	If UCase$(sCombinedSitesFormat) = "CSV" Then
+		Call MyPrint("Creating combined sites table as a CSV file ...")
+		Export sCombinedSitesTable
+			Into sLocalPath + "\" + sSitesTable + ".csv"
+			Type "CSV"
+			CharSet "WindowsLatin1"
+			Titles
+			Overwrite
+	End If
+	
+	'-------------------------------------------------
+	' Close the temporary combined sites table
+	'-------------------------------------------------
+	Close Table sCombinedSitesTable
+
+	'-------------------------------------------------
+	' Register the combined sites table
+	'-------------------------------------------------
+	Dim sSitesTableName As String
+	sSitesTableName = sLocalPath + "\" + sCombinedSitesTable + ".tab"
+
+	If UCase$(sCombinedSitesFormat) = "DBF" Then
+		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".dbf" + Chr$(34) + " Type DBF Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+		Run Command (sCmd)
+	End If
+
+	If UCase$(sCombinedSitesFormat) = "TXT" Then
+		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+		Run Command (sCmd)
+	End If
+
+	If UCase$(sCombinedSitesFormat) = "CSV" Then
+		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+		Run Command (sCmd)
+	End If
+
+	'-------------------------------------------------
+	' Open the combined sites table
+	'-------------------------------------------------
+	sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
+	Run Command (sCmd)
+
+	Call MyPrint("Creation complete.")
+	Call MyPrint("")
+	
+	CreateCombinedSitesTable = True
+	Exit Function
+
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Function
+
+End Function
+
+Function OpenCombinedSitesTable(sSitesTable As String) As Logical
+	
+'*************************************************
+'* Routine to open a combined sites table.
+'*************************************************
+
+	OpenCombinedSitesTable = False
 
 	'-------------------------------------------------
 	' Check if the combined sites table is
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sCombinedSitesTable) Then
-		Call MyPrint("Closing combined sites table ...")
+		Call MyPrint("Closing existing combined sites table ...")
 		Close Table sCombinedSitesTable
+		Call MyPrint("Re-opening existing combined sites table ...")
+	Else
+		Call MyPrint("Opening existing combined sites table ...")
 	End If
 
+	'-------------------------------------------------
+	' Ignore any error trying to open the table
+	'-------------------------------------------------
+	OnError Goto RegisterTable
+
+	'-------------------------------------------------
+	' Try and open the combined sites table
+	'-------------------------------------------------
+	Dim sSitesTableName As String
+	sSitesTableName = sLocalPath + "\" + sCombinedSitesTable + ".tab"
+	
 	Dim sCmd As String
-	sCmd = "Create Table " + Chr$(34) + sCombinedSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sCombinedSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
 	Run Command (sCmd)
-
-	Call MyPrint("Creation complete.")
+	
+RegisterTable:
+	
+		'-------------------------------------------------
+		' Trap errors
+		'-------------------------------------------------
+		OnError Goto ErrorTrap
+	
+		'-------------------------------------------------
+		' If the 'Enquiries' table isn't open ...
+		'-------------------------------------------------
+		If TableIsOpen(sCombinedSitesTable) = False Then
+	
+			'-------------------------------------------------
+			' Register the combined sites table
+			'-------------------------------------------------
+			If UCase$(sCombinedSitesFormat) = "DBF" Then
+				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".dbf" + Chr$(34) + " Type DBF Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+				Run Command (sCmd)
+			End If
+		
+			If UCase$(sCombinedSitesFormat) = "TXT" Then
+				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+				Run Command (sCmd)
+			End If
+		
+			If UCase$(sCombinedSitesFormat) = "CSV" Then
+				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimeter 44 TitlesCharset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+				Run Command (sCmd)
+			End If
+		
+			'-------------------------------------------------
+			' Open the combined sites table
+			'-------------------------------------------------
+			sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
+			Run Command (sCmd)
+			
+		End If
+	
+	Call MyPrint("Open complete.")
 	Call MyPrint("")
+	
+	OpenCombinedSitesTable = True
+	Exit Function
 
-End Sub
+ErrorTrap:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Function
+
+End Function
 
 Sub ProcessExtracts
 '***************************************************************
@@ -1539,8 +1737,9 @@ Sub ProcessExtracts
 	OnError Goto NextSelection
 
 	Dim SelectedMap As MapDetails
-	SelectedMap.Table = SelectedMaps(iExtractCnt).Table
+	SelectedMap.Node = SelectedMaps(iExtractCnt).Node
 	SelectedMap.Name = SelectedMaps(iExtractCnt).Name
+	SelectedMap.Prefix = SelectedMaps(iExtractCnt).Prefix
 	SelectedMap.Suffix = SelectedMaps(iExtractCnt).Suffix
 	SelectedMap.Columns = SelectedMaps(iExtractCnt).Columns
 	SelectedMap.SelectCriteria = SelectedMaps(iExtractCnt).SelectCriteria
@@ -1554,7 +1753,7 @@ Sub ProcessExtracts
 	SelectedMap.SiteColumns = SelectedMaps(iExtractCnt).SiteColumns
 	SelectedMap.SiteCriteria = SelectedMaps(iExtractCnt).SiteCriteria
 
-	Call MyPrint("Processing table = '" + SelectedMap.Table + "' (" + iExtractCnt + " of " + iExtractTot + ") ...")
+	Call MyPrint("Processing table = '" + SelectedMap.Node + "' (" + iExtractCnt + " of " + iExtractTot + ") ...")
 
 	'-------------------------------------------------
 	' Call the subroutine to select the records from
@@ -1563,7 +1762,7 @@ Sub ProcessExtracts
 	
 	Call SelectMaps(SelectedMap)
 
-	Call MyPrint("Completed table = '" + SelectedMap.Table + "'.")
+	Call MyPrint("Completed table = '" + SelectedMap.Node + "'.")
 	Call MyPrint("")
 
 NextSelection:
@@ -1606,7 +1805,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Setup the local table name and temp name
 	'-------------------------------------------------
 	Dim sLocalName As String, sExportName As String, sExportTemp As String
-	sLocalName = SelectedMap.Table + "_" + sSubRefNo
+	sLocalName = SelectedMap.Prefix + "_" + sSubRefNo
 	sExportName = sSubRefNo + SelectedMap.Suffix
 	sExportTemp = "X" + SelectedMap.Suffix
 
@@ -1706,7 +1905,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' combined sites table, or the export file, or
 		' it is to be overwritten
 		'-------------------------------------------------
-		If (bCreateCombinedSitesTable And Instr(1, SelectedMap.SiteColumns, SelectedMap.LabelColumn) = 0)
+		If (iCombinedSitesTable > 1 And Instr(1, SelectedMap.SiteColumns, SelectedMap.LabelColumn) = 0)
 		Or (Instr(1, SelectedMap.Columns, SelectedMap.LabelColumn) = 0)
 		Or (iOverwriteLabels > 1) Then
 			
@@ -1748,7 +1947,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' there are columns from this table to add,
 	' then add the column details
 	'-------------------------------------------------
-	If bCreateCombinedSitesTable And SelectedMap.SiteColumns <> "" Then
+	If iCombinedSitesTable > 1 And SelectedMap.SiteColumns <> "" Then
 
 		'-------------------------------------------------
 		' Add the site details to the combined sites
@@ -1759,12 +1958,23 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' Check if the search radius is to be included
+	' in the export columns
+	'-------------------------------------------------
+	Dim sColumns As String
+	sColumns = SelectedMap.Columns
+	If Instr(1, sColumns, "%Radius%") > 0 Then
+		Call MyPrint("Including search radius in table output ...")
+		sColumns = StringReplace(sColumns, "%Radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
+	End If
+
+	'-------------------------------------------------
 	' Execute the SQL statement to select only the
 	' table columns required for the export into
 	' a temporary table
 	'-------------------------------------------------
 	Call MyPrint("Executing selection for export ...")
-	sCmd = "Select " + SelectedMap.Columns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
+	sCmd = "Select " + sColumns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2149,11 +2359,27 @@ Sub AddToCombinedSitesTable
 	Set ProgressBars Off
 
 	'-------------------------------------------------
+	' Check if the search radius is to be included
+	' in the combined sites table
+	'-------------------------------------------------
+	If Instr(1, sSitesColumns, "%Radius%") > 0 Then
+		sSitesColumns = StringReplace(sSitesColumns, "%Radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
+	End If
+
+	'-------------------------------------------------
 	' Select the site details to be added to the
 	' combined sites table
 	'-------------------------------------------------
 	sCmd = "Select " + sSitesColumns + " From " + sTableName + " " + sSitesCriteria + " Into TempSites NoSelect"
 	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Count the number of rows to be inserted
+	'-------------------------------------------------
+	Dim iRecTotal As Integer
+	iRecTotal = TableInfo("TempSites", TAB_INFO_NROWS)
+
+	Call MyPrint("Adding " + iRecTotal + " records to the combined sites table ...")
 
 	'-------------------------------------------------
 	' Insert the rows into the combined sites table

@@ -31,7 +31,7 @@
 '***************************************************************
 Include "DataSearches.def"
 
-Function TableIsOpen (ByVal sTabName As String) As Logical
+Function TableIsOpen(ByVal sTabName As String) As Logical
 '*************************************************
 '* Check if the table is open
 '*************************************************
@@ -60,6 +60,44 @@ Function TableIsOpen (ByVal sTabName As String) As Logical
 			Exit Function
 		End If
 	Next
+
+End Function
+
+
+Function TabFileExists(ByVal sTabFileName As String) As Logical
+'*************************************************
+'* Check if the tab file exists
+'*************************************************
+
+	'-------------------------------------------------
+	' Determine if the .tab file exists
+	'-------------------------------------------------
+	If FileExists(sTabFileName) = False THEN
+		Note "Tab File does not exist"
+		TabFileExists = False
+		Exit Function
+	End If
+
+	'OnError Goto ErrorTrap
+	
+	'-------------------------------------------------
+	' Try and open the .tab file as a temporary file
+	'-------------------------------------------------
+	'Dim sCmd As String
+	'sCmd = "Open Table " + Chr$(34) + sTabFileName + Chr$(34) + " As TempXYZ"
+	'Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Close the temporary file
+	'-------------------------------------------------
+	'sCmd = "Close Table TempXYZ"
+	'Run Command (sCmd)
+
+	TabFileExists = True
+	Exit Function
+
+ErrorTrap:
+	TabFileExists = False
 
 End Function
 

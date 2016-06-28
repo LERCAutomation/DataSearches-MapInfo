@@ -139,7 +139,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<value>Sites</value>
 		</TableName>
 		<Columns>
-			<value>Site_Type Char(10), Site_Name Char(50), Site_Area Float, Map_Label Char(50)</value>
+			<value>Site_Type Char(10), Site_Name Char(50), Site_Area Float, Map_Label Char(50), Search_Radius Char(20)</value>
 		</Columns>
 		<Suffix>
 			<value>_sites</value>
@@ -151,10 +151,13 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 
 	<!-- The names, local names, suffixes, SQL clauses and formats of the map tables -->
 	<MapTables>
-		<SACs>
+		<Sites_-_SACs>
 			<TableName>
 				<value>SAC</value>
 			</TableName>
+			<Prefix>
+				<value>SAC</value>
+			</Prefix>
 			<Suffix>
 				<value>_sacs</value>
 			</Suffix>
@@ -186,16 +189,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"SAC", SAC_Name, SAC_Area, Map_Label</value>
+				<value>"SAC", SAC_Name, SAC_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By SAC_Name, Map_Label Order By SAC_Name, Map_Label</value>
 			</CombinedSitesCriteria>
-		</SACs>
-		<SPAs>
+		</Sites_-_SACs>
+		<Sites_-_SPAs>
 			<TableName>
 				<value>SPA</value>
 			</TableName>
+			<Prefix>
+				<value>SPA</value>
+			</Prefix>
 			<Suffix>
 				<value>_spas</value>
 			</Suffix>
@@ -227,16 +233,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"SPA", SPA_Name, SPA_Area, Map_Label</value>
+				<value>"SPA", SPA_Name, SPA_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By SPA_Name, Map_Label Order By SPA_Name, Map_Label</value>
 			</CombinedSitesCriteria>
-		</SPAs>
-		<Ramsars>
+		</Sites_-_SPAs>
+		<Sites_-_Ramsars>
 			<TableName>
 				<value>RAMSAR</value>
 			</TableName>
+			<Prefix>
+				<value>RAMSAR</value>
+			</Prefix>
 			<Suffix>
 				<value>_ramsars</value>
 			</Suffix>
@@ -268,16 +277,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"Ramsar", Ramsar_Name, Ramsar_Area, Map_Label</value>
+				<value>"Ramsar", Ramsar_Name, Ramsar_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By Ramsar_Name, Map_Label Order By Ramsar_Name, Map_Label</value>
 			</CombinedSitesCriteria>
-		</Ramsars>
-		<SSSIs>
+		</Sites_-_Ramsars>
+		<Sites_-_SSSIs>
 			<TableName>
 				<value>SSSI</value>
 			</TableName>
+			<Prefix>
+				<value>SSSI</value>
+			</Prefix>
 			<Suffix>
 				<value>_sssis</value>
 			</Suffix>
@@ -309,16 +321,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"SSSI", SSSI_Name, SSSI_Area, Map_Label</value>
+				<value>"SSSI", SSSI_Name, SSSI_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By SSSI_Name, Map_Label Order By SSSI_Name, Map_Label</value>
 			</CombinedSitesCriteria>
-		</SSSIs>
-		<NNRs>
+		</Sites_-_SSSIs>
+		<Sites_-_NNRs>
 			<TableName>
 				<value>NNR</value>
 			</TableName>
+			<Prefix>
+				<value>NNR</value>
+			</Prefix>
 			<Suffix>
 				<value>_nnrs</value>
 			</Suffix>
@@ -350,16 +365,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With NNR_Name Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"NNR", NNR_Name, NNR_Area, " "</value>
+				<value>"NNR", NNR_Name, NNR_Area, " ", %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By NNR_Name Order By NNR_Name</value>
 			</CombinedSitesCriteria>
-		</NNRs>
-		<LNRs>
+		</Sites_-_NNRs>
+		<Sites_-_LNRs>
 			<TableName>
 				<value>LNR</value>
 			</TableName>
+			<Prefix>
+				<value>LNR</value>
+			</Prefix>
 			<Suffix>
 				<value>_lnrs</value>
 			</Suffix>
@@ -391,16 +409,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With LNR_Name Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"LNR", LNR_Name, LNR_Area, " "</value>
+				<value>"LNR", LNR_Name, LNR_Area, " ", %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By LNR_Name Order By LNR_Name</value>
 			</CombinedSitesCriteria>
-		</LNRs>
-		<LWS>
+		</Sites_-_LNRs>
+		<Sites_-_LWS>
 			<TableName>
 				<value>LWS</value>
 			</TableName>
+			<Prefix>
+				<value>LWS</value>
+			</Prefix>
 			<Suffix>
 				<value>_lws</value>
 			</Suffix>
@@ -432,21 +453,24 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
 			<CombinedSitesColumns>
-				<value>"LWS", Site_number, Site_Area, Map_Label</value>
+				<value>"LWS", Site_number, Site_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By Site_number, Map_Label Order By Site_number, Map_Label</value>
 			</CombinedSitesCriteria>
-		</LWS>
-		<SppProt>
+		</Sites_-_LWS>
+		<Species_-_Protected>
 			<TableName>
 				<value>P_N_Species</value>
 			</TableName>
+			<Prefix>
+				<value>P_N_Species</value>
+			</Prefix>
 			<Suffix>
 				<value>_sppprot</value>
 			</Suffix>
 			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS</value>
+				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS, %Radius%</value>
 			</Columns>
 			<SelectCriteria>
 				<value>And CONFIDENTIAL = ""</value>
@@ -478,16 +502,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<CombinedSitesCriteria>
 				<value></value>
 			</CombinedSitesCriteria>
-		</SppProt>
-		<SppINNS>
+		</Species_-_Protected>
+		<Species_-_INNS>
 			<TableName>
 				<value>INN_Species</value>
 			</TableName>
+			<Prefix>
+				<value>INN_Species</value>
+			</Prefix>
 			<Suffix>
 				<value>_sppinns</value>
 			</Suffix>
 			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF</value>
+				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF, %Radius%</value>
 			</Columns>
 			<SelectCriteria>
 				<value></value>
@@ -519,7 +546,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<CombinedSitesCriteria>
 				<value></value>
 			</CombinedSitesCriteria>
-		</SppINNS>
+		</Species_-_INNS>
 	</MapTables>
 
 </DataSearches>
