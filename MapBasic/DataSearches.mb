@@ -1261,6 +1261,44 @@ FindNextPos:
 		End If
 
 		'-------------------------------------------------
+		' Export the combined sites table as a DBF file
+		'-------------------------------------------------
+		If UCase$(sCombinedSitesFormat) = "DBF" Then
+			Call MyPrint("Creating combined sites table as a DBF file ...")
+			Export sCombinedSitesTable
+				Into sLocalPath + "\" + sSitesTable + ".dbf"
+				Type "DBF"
+				CharSet "WindowsLatin1"
+				Overwrite
+		End If
+	
+		'-------------------------------------------------
+		' Export the combined sites table as a TXT file
+		'-------------------------------------------------
+		If UCase$(sCombinedSitesFormat) = "TXT" Then
+			Call MyPrint("Creating combined sites table as a TXT file ...")
+			Export sCombinedSitesTable
+				Into sLocalPath + "\" + sSitesTable + ".txt"
+				Type "ASCII"
+				Delimiter ","
+				CharSet "WindowsLatin1"
+				Overwrite
+		End If
+		
+		'-------------------------------------------------
+		' Export the combined sites table as a CSV file
+		'-------------------------------------------------
+		If UCase$(sCombinedSitesFormat) = "CSV" Then
+			Call MyPrint("Creating combined sites table as a CSV file ...")
+			Export sCombinedSitesTable
+				Into sLocalPath + "\" + sSitesTable + ".csv"
+				Type "CSV"
+				CharSet "WindowsLatin1"
+				Titles
+				Overwrite
+		End If
+	
+		'-------------------------------------------------
 		' Delete the combined sites table
 		'-------------------------------------------------
 		'Call MyPrint("Dropping the combined sites table ...")
@@ -1557,76 +1595,6 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	sCmd = "Create Table " + Chr$(34) + sCombinedSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sCombinedSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
-	'-------------------------------------------------
-	' Export the combined sites table as a DBF file
-	'-------------------------------------------------
-	If UCase$(sCombinedSitesFormat) = "DBF" Then
-		Call MyPrint("Creating combined sites table as a DBF file ...")
-		Export sCombinedSitesTable
-			Into sLocalPath + "\" + sSitesTable + ".dbf"
-			Type "DBF"
-			CharSet "WindowsLatin1"
-			Overwrite
-	End If
-
-	'-------------------------------------------------
-	' Export the combined sites table as a TXT file
-	'-------------------------------------------------
-	If UCase$(sCombinedSitesFormat) = "TXT" Then
-		Call MyPrint("Creating combined sites table as a TXT file ...")
-		Export sCombinedSitesTable
-			Into sLocalPath + "\" + sSitesTable + ".txt"
-			Type "ASCII"
-			Delimiter ","
-			CharSet "WindowsLatin1"
-			Overwrite
-	End If
-	
-	'-------------------------------------------------
-	' Export the combined sites table as a CSV file
-	'-------------------------------------------------
-	If UCase$(sCombinedSitesFormat) = "CSV" Then
-		Call MyPrint("Creating combined sites table as a CSV file ...")
-		Export sCombinedSitesTable
-			Into sLocalPath + "\" + sSitesTable + ".csv"
-			Type "CSV"
-			CharSet "WindowsLatin1"
-			Titles
-			Overwrite
-	End If
-	
-	'-------------------------------------------------
-	' Close the temporary combined sites table
-	'-------------------------------------------------
-	Close Table sCombinedSitesTable
-
-	'-------------------------------------------------
-	' Register the combined sites table
-	'-------------------------------------------------
-	Dim sSitesTableName As String
-	sSitesTableName = sLocalPath + "\" + sCombinedSitesTable + ".tab"
-
-	If UCase$(sCombinedSitesFormat) = "DBF" Then
-		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".dbf" + Chr$(34) + " Type DBF Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-		Run Command (sCmd)
-	End If
-
-	If UCase$(sCombinedSitesFormat) = "TXT" Then
-		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-		Run Command (sCmd)
-	End If
-
-	If UCase$(sCombinedSitesFormat) = "CSV" Then
-		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-		Run Command (sCmd)
-	End If
-
-	'-------------------------------------------------
-	' Open the combined sites table
-	'-------------------------------------------------
-	sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
-	Run Command (sCmd)
-
 	Call MyPrint("Creation complete.")
 	Call MyPrint("")
 	
@@ -1661,9 +1629,9 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	End If
 
 	'-------------------------------------------------
-	' Ignore any error trying to open the table
+	' Catch any errors trying to open the table
 	'-------------------------------------------------
-	OnError Goto RegisterTable
+	OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Try and open the combined sites table
@@ -1674,44 +1642,6 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	Dim sCmd As String
 	sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
 	Run Command (sCmd)
-	
-RegisterTable:
-	
-		'-------------------------------------------------
-		' Trap errors
-		'-------------------------------------------------
-		OnError Goto ErrorTrap
-	
-		'-------------------------------------------------
-		' If the 'Enquiries' table isn't open ...
-		'-------------------------------------------------
-		If TableIsOpen(sCombinedSitesTable) = False Then
-	
-			'-------------------------------------------------
-			' Register the combined sites table
-			'-------------------------------------------------
-			If UCase$(sCombinedSitesFormat) = "DBF" Then
-				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".dbf" + Chr$(34) + " Type DBF Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-				Run Command (sCmd)
-			End If
-		
-			If UCase$(sCombinedSitesFormat) = "TXT" Then
-				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-				Run Command (sCmd)
-			End If
-		
-			If UCase$(sCombinedSitesFormat) = "CSV" Then
-				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimiter 44 TitlesCharset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
-				Run Command (sCmd)
-			End If
-		
-			'-------------------------------------------------
-			' Open the combined sites table
-			'-------------------------------------------------
-			sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
-			Run Command (sCmd)
-			
-		End If
 	
 	Call MyPrint("Open complete.")
 	Call MyPrint("")
@@ -2094,10 +2024,11 @@ Sub SelectMaps(SelectedMap As MapDetails)
 				'-------------------------------------------------
 				' Add the local table to the same map window
 				'-------------------------------------------------
-				Call MyPrint("Adding layer to map window ...")
+				If bTableAdded = False Then
+					Call MyPrint("Adding layer to map window(s) ...")
+				End If
+
 				Add Map Window aWindowId(iWindowNum) Layer sLocalName
-				
-				bTableAdded = True
 
 				'-------------------------------------------------
 				' If the layer is to be added with labels ...
@@ -2127,11 +2058,20 @@ Sub SelectMaps(SelectedMap As MapDetails)
 					'-------------------------------------------------
 					' Display the labels for the layer
 					'-------------------------------------------------
-					Call MyPrint("Settings labels for layer ...")
+					If bTableAdded = False Then
+						Call MyPrint("Setting labels for layer ...")
+					End If
+
 					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 					Run Command (sCmd)
 	
 				End If
+
+				'-------------------------------------------------
+				' Indicate that the table has now been added to
+				' at least one map window.
+				'-------------------------------------------------
+				bTableAdded = True
 
 			End If
 		
@@ -2188,7 +2128,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 					'-------------------------------------------------
 					' Display the labels for the layer
 					'-------------------------------------------------
-					Call MyPrint("Settings labels for layer ...")
+					Call MyPrint("Setting labels for layer ...")
 					sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 					Run Command (sCmd)
 	

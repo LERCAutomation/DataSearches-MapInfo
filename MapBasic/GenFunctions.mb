@@ -73,7 +73,6 @@ Function TabFileExists(ByVal sTabFileName As String) As Logical
 	' Determine if the .tab file exists
 	'-------------------------------------------------
 	If FileExists(sTabFileName) = False THEN
-		Note "Tab File does not exist"
 		TabFileExists = False
 		Exit Function
 	End If
