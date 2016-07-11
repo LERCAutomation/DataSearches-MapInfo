@@ -1612,12 +1612,12 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	End If
 
 	If UCase$(sCombinedSitesFormat) = "TXT" Then
-		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
 		Run Command (sCmd)
 	End If
 
 	If UCase$(sCombinedSitesFormat) = "CSV" Then
-		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+		sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
 		Run Command (sCmd)
 	End If
 
@@ -1696,12 +1696,12 @@ RegisterTable:
 			End If
 		
 			If UCase$(sCombinedSitesFormat) = "TXT" Then
-				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimeter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".txt" + Chr$(34) + " Type ASCII Delimiter 44 Titles Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
 				Run Command (sCmd)
 			End If
 		
 			If UCase$(sCombinedSitesFormat) = "CSV" Then
-				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimeter 44 TitlesCharset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
+				sCmd = "Register Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".csv" + Chr$(34) + " Type ASCII Delimiter 44 TitlesCharset " + Chr$(34) + "WindowsLatin1" + Chr$(34) + " Into " + Chr$(34) + sSitesTableName + Chr$(34)
 				Run Command (sCmd)
 			End If
 		

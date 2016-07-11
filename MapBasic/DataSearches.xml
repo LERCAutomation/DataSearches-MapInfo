@@ -128,9 +128,14 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>3</value>
 	</DefaultOverwriteLabels>
 
+	<!-- The options for creating a combined sites table -->
+	<CombinedSitesOptions>
+		<value>None;Append;Overwrite</value>
+	</CombinedSitesOptions>
+
 	<!-- Whether a combined sites table should be created -->
 	<DefaultCombinedSitesTable>
-		<value>Yes</value>
+		<value>2</value>
 	</DefaultCombinedSitesTable>
 
 	<!-- The column names of the combined sites table -->
@@ -145,7 +150,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<value>_sites</value>
 		</Suffix>
 		<Format>
-			<value>Dbf</value>
+			<value>csv</value>
 		</Format>
 	</CombinedSitesTable>
 
@@ -174,7 +179,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SAC_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -218,7 +223,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SPA_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -262,7 +267,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Ramsar_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -306,7 +311,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SSSI_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -350,7 +355,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>NNR_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -394,7 +399,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>LNR_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -438,7 +443,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Site_number</value>
 			</KeyColumn>
 			<Format>
-				<value>Txt</value>
+				<value>txt</value>
 			</Format>
 			<KeepLayer>
 				<value>Yes</value>
@@ -482,7 +487,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>LATIN_NAME</value>
 			</KeyColumn>
 			<Format>
-				<value>Dbf</value>
+				<value>csv</value>
 			</Format>
 			<KeepLayer>
 				<value>No</value>
@@ -526,7 +531,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>LATIN_NAME</value>
 			</KeyColumn>
 			<Format>
-				<value>Dbf</value>
+				<value>csv</value>
 			</Format>
 			<KeepLayer>
 				<value>No</value>
