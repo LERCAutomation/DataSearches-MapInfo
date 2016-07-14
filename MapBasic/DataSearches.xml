@@ -23,6 +23,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 <configuration>
 <DataSearches>
 
+	<!-- The title to use for the program in the Tool menu -->
+	<ToolTitle>
+		<value>Data Searches</value>
+	</ToolTitle>
+
 	<!-- The database where all the data search details are stored. -->
 	<Database>
 		<value>D:\Andy\TVERC\Data Searches\Access\TVERC Data Searches v3.52.mdb</value>

@@ -93,6 +93,7 @@ Define MIWEBSERVICES_LIB_NAME "GmlXlat.dll"
 ' Declare the subroutines
 '-------------------------------------------------
 Declare Sub Main
+Declare Sub GetToolTitle
 Declare Sub GetDefaultValues
 Declare Sub OpenDialog
 Declare Sub DialogSetup
@@ -230,6 +231,8 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 ' Declare the global variables
 '-------------------------------------------------
 Global sVersion As String
+Global sToolTitle As String
+
 Global sDatabase As String
 Global sEnquiriesDir As String
 Global sRefColumn As String

@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.8
+'* DataSearches v1.4.9
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,12 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - June 2016
+'* Last revised:	Andy Foy - July 2016
+'*
+'* *****************  Version 1.4.9  ***************
+'* Author: Andy Foy		Date: 14/07/2016
+'* A. Enable separate instances for tool to run under
+'*    different names in Tool menu.
 '*
 '* *****************  Version 1.4.8  ****************
 '* Author: Andy Foy		Date: 27/06/2016
@@ -106,205 +111,109 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.8"
+	sVersion = "1.4.9"
+
+	'-------------------------------------------------
+	' Get the title for the Tool menu
+	'-------------------------------------------------
+	Call GetToolTitle
 
 	'-------------------------------------------------
 	' Create a new menu
 	'-------------------------------------------------
-	Create Menu "&Data Searches" As
-	   "&Run Data Searches ..." Calling OpenDialog,
+	Create Menu "&" & sToolTitle As
+	   "&Run " & sToolTitle & " ..." Calling OpenDialog,
 	   "(-",
-	   "&About Data Searches ..." Calling AboutBox,
-	   "E&xit Data Searches" Calling egsit
+	   "&About " & sToolTitle & " ..." Calling AboutBox,
+	   "E&xit " & sToolTitle Calling egsit
 
 	'-------------------------------------------------
 	' Add the new menu item to the Tools menu
 	'-------------------------------------------------
 	Alter Menu "Tools" Add
-		"Data Searches" As "Data Searches"
-
-'	'-------------------------------------------------
-'	' Create a new buttonpad
-'	'-------------------------------------------------
-'	Create ButtonPad "DataTools" As
-'		PushButton
-'			HelpMsg "Open Data Searches Tool"
-'			Calling OpenDialog
-'			Icon MI_ICON_SEARCH_BDY
-'		Title "Data Tools"
-'		Width 3
-'		Fixed
+		sToolTitle As sToolTitle
 
 	Exit Sub
 
 End Sub
 
-Sub OpenDialog
+Sub GetToolTitle
 '***************************************************************
-'* Create the user dialog window
+'* Retrieve the tool title to use from the config file
+'* which is a XML document
 '***************************************************************
 
-	'-------------------------------------------------
-	' Trap errors
-	'-------------------------------------------------
-    OnError Goto ErrorTrap
+	Dim bParseError As SmallInt
+	Dim hXMLDoc As MIXmlDocument
+	Dim hXMLRoot As MIXmlNode
+	Dim hXMLNode As MIXmlNode
+
+	OnError Goto GetTitleError
+
+	' Set the default Tool menu title
+	sToolTitle = "Data Searches"
 
 	'-------------------------------------------------
-	' Retrieve the default values from the config file
+	' Create a document handle
 	'-------------------------------------------------
-	Call GetDefaultValues
+	hXMLDoc = MIXmlDocumentCreate()
+	If hXMLDoc Then
 
-	'-------------------------------------------------
-	' Build a new dialog window
-	'-------------------------------------------------
-	Dialog
-		Title "Data Searches " + sVersion
-		Width 235
-		Height 270
-		Position 50, 70
-		Calling DialogSetup
+		'-------------------------------------------------
+		' Load the document into the document handle
+		'-------------------------------------------------
+		Dim iXMLLoad As SmallInt
+		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + "DataSearches.xml", bParseError, FALSE, FALSE)
+		if iXMLLoad > 0 Then
 
-	'-------------------------------------------------
-	' Add an edit text box for the search reference
-	'-------------------------------------------------
-	Control StaticText Title "Search Ref:"
-		Position 10,10
-	Control EditText
-		ID 1
-		Position 10,20
-		Width 65
-		'Into sSearchRef
+			'-------------------------------------------------
+			' Get a handle on the XML root node of the document
+			'-------------------------------------------------
+			hXMLRoot = MIXmlDocumentGetRootNode(hXMLDoc)
+			If hXMLRoot Then
 
-	'-------------------------------------------------
-	' Add a Find button for the search reference
-	'-------------------------------------------------
-	Control Button
-		ID 91
-		Title "Find"
-		Position 90,20
-		Width 40
-		Hide
-		Calling GetSiteName
-
-	'-------------------------------------------------
-	' Add an edit text box for the site name
-	'-------------------------------------------------
-	Control StaticText Title "Site Name:"
-		Position 10,40
-	Control EditText
-		ID 2
-		Position 10,50
-		Width 210
-		Disable
-		'Into sSiteName
-
-	'-------------------------------------------------
-	' Add a MapInfo table listbox
-	'-------------------------------------------------
-	Control StaticText Title "MapInfo Tables:"
-		Position 10,70
-	Control MultiListBox
-		ID 3
-		Title ""
-		Position 10,80
-		Height 150
-		Width 95
-
-	'-------------------------------------------------
-	' Add an edit text box for the buffer size
-	'-------------------------------------------------
-	Control StaticText Title "Buffer Size:"
-		Position 120,70
-	Control EditText
-		ID 4
-		Value sDefaultBufferSize
-		Position 120,80
-		Width 60
-		'Into sBufferSize
-
-	'-------------------------------------------------
-	' Add a radio group for the buffer units
-	'-------------------------------------------------
-	Control StaticText Title "Buffer Units:"
-		Position 120,100
-	Control PopupMenu
-		ID 5
-		Value iDefaultBufferUnit
-		Title From Variable aBufferUnits
-		Position 120,110
-		Width 60
-		'Into iBufferInt
-
-	'-------------------------------------------------
-	' Add a checkbox for clearing the log file
-	'-------------------------------------------------
-	Control CheckBox
-		ID 6
-		Title "Clear log file?"
-		Position 10,250
-		Value FALSE
-		'Into bClearLog
-
-	'-------------------------------------------------
-	' Add a radio group for adding the selected tables
-	' to the map window
-	'-------------------------------------------------
-	Control StaticText Title "Add Selected Tables to Map:"
-		ID 19
-		Position 120,135
-	Control PopupMenu
-		ID 9
-		Title sAddSelectedTablesOptions
-		Position 120,145
-		Width 100
-		'Into iAddSelectedTables
-
-	'-------------------------------------------------
-	' Add a radio group for overwritting map labels
-	'-------------------------------------------------
-	Control StaticText Title "Overwrite Map Labels:"
-		ID 20
-		Position 120,170
-	Control PopupMenu
-		ID 10
-		Title sOverwriteLabelOptions
-		Position 120,180
-		Width 100
-		'Into iOverwriteLabels
-
-	'-------------------------------------------------
-	' Add a checkbox for the combined sites table
-	'-------------------------------------------------
-	Control StaticText Title "Create Combined Sites Table:"
-		ID 21
-		Position 120,205
-	Control PopupMenu
-		ID 11
-		Title sCombinedSitesOptions
-		Position 120,215
-		Width 100
-		'Into iAddSelectedTables
-
-	'-------------------------------------------------
-	' Add Ok and cancel buttons
-	'-------------------------------------------------
-	Control CancelButton
-		Position 140,250
-		Width 40
-	Control Button
-		ID 99
-		Title "Ok"
-		Position 185,250
-		Width 40
-		Calling CheckSelection
-
-Done:
-	Exit Sub
+				'-------------------------------------------------
+				' Get a handle on the DataSearches node
+				'-------------------------------------------------
+				hXMLNode = MIXmlSelectSingleNode(hXMLRoot, "DataSearches")
+	          	If hXMLNode Then
 	
-ErrorTrap:
-	Note "Error: " + str$(Err()) + ": " + Error$()
-	Call MyPrint(str$(Err()) + ": " + Error$())
-	Resume Done
+					'-------------------------------------------------
+					' Load the default values from the child nodes
+					' under the DataSearches node
+					'-------------------------------------------------
+					' Title for adding the program to the Tool menu
+					Dim sTitle As String
+					sTitle = GetSingleNodeValue(hXMLNode, "ToolTitle")
+					If sTitle <> "" Then
+						sToolTitle = sTitle
+					End If
+
+				End If
+
+			End If
+
+		Else
+
+			Goto GetTitleError
+
+		End If
+
+	End If
+
+CleanUp:
+	'-------------------------------------------------
+	' Destroy the handles
+	'-------------------------------------------------
+	If hXMLNode Then Call MIXmlNodeDestroy(hXMLNode) End If
+	If hXMLRoot Then Call MIXmlNodeDestroy(hXMLRoot) End If
+	If hXMLDoc Then Call MIXmlDocumentDestroy(hXMLDoc) End If
+
+	Exit Sub
+
+GetTitleError:
+	Note "Unable to get tool title from XML config file.  Using default title 'Data Searches'."
+	Exit Sub
 
 End Sub
 
@@ -554,7 +463,7 @@ Sub GetDefaultValues
 
 		Else
 
-			Note "Error: " + MIGetErrorMessage()
+			Note "Error opening XML config file 'DataSearches.xml'."
 			Goto CleanUp
 
 		End If
@@ -599,6 +508,175 @@ GetDefaultsError:
 
 GetVariablesError:
 	Resume Next
+
+End Sub
+
+Sub OpenDialog
+'***************************************************************
+'* Create the user dialog window
+'***************************************************************
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+    OnError Goto ErrorTrap
+
+	'-------------------------------------------------
+	' Retrieve the default values from the config file
+	'-------------------------------------------------
+	Call GetDefaultValues
+
+	'-------------------------------------------------
+	' Build a new dialog window
+	'-------------------------------------------------
+	Dialog
+		Title "Data Searches " + sVersion
+		Width 235
+		Height 270
+		Position 50, 70
+		Calling DialogSetup
+
+	'-------------------------------------------------
+	' Add an edit text box for the search reference
+	'-------------------------------------------------
+	Control StaticText Title "Search Ref:"
+		Position 10,10
+	Control EditText
+		ID 1
+		Position 10,20
+		Width 65
+		'Into sSearchRef
+
+	'-------------------------------------------------
+	' Add a Find button for the search reference
+	'-------------------------------------------------
+	Control Button
+		ID 91
+		Title "Find"
+		Position 90,20
+		Width 40
+		Hide
+		Calling GetSiteName
+
+	'-------------------------------------------------
+	' Add an edit text box for the site name
+	'-------------------------------------------------
+	Control StaticText Title "Site Name:"
+		Position 10,40
+	Control EditText
+		ID 2
+		Position 10,50
+		Width 210
+		Disable
+		'Into sSiteName
+
+	'-------------------------------------------------
+	' Add a MapInfo table listbox
+	'-------------------------------------------------
+	Control StaticText Title "MapInfo Tables:"
+		Position 10,70
+	Control MultiListBox
+		ID 3
+		Title ""
+		Position 10,80
+		Height 150
+		Width 95
+
+	'-------------------------------------------------
+	' Add an edit text box for the buffer size
+	'-------------------------------------------------
+	Control StaticText Title "Buffer Size:"
+		Position 120,70
+	Control EditText
+		ID 4
+		Value sDefaultBufferSize
+		Position 120,80
+		Width 60
+		'Into sBufferSize
+
+	'-------------------------------------------------
+	' Add a radio group for the buffer units
+	'-------------------------------------------------
+	Control StaticText Title "Buffer Units:"
+		Position 120,100
+	Control PopupMenu
+		ID 5
+		Value iDefaultBufferUnit
+		Title From Variable aBufferUnits
+		Position 120,110
+		Width 60
+		'Into iBufferInt
+
+	'-------------------------------------------------
+	' Add a checkbox for clearing the log file
+	'-------------------------------------------------
+	Control CheckBox
+		ID 6
+		Title "Clear log file?"
+		Position 10,250
+		Value FALSE
+		'Into bClearLog
+
+	'-------------------------------------------------
+	' Add a radio group for adding the selected tables
+	' to the map window
+	'-------------------------------------------------
+	Control StaticText Title "Add Selected Tables to Map:"
+		ID 19
+		Position 120,135
+	Control PopupMenu
+		ID 9
+		Title sAddSelectedTablesOptions
+		Position 120,145
+		Width 100
+		'Into iAddSelectedTables
+
+	'-------------------------------------------------
+	' Add a radio group for overwritting map labels
+	'-------------------------------------------------
+	Control StaticText Title "Overwrite Map Labels:"
+		ID 20
+		Position 120,170
+	Control PopupMenu
+		ID 10
+		Title sOverwriteLabelOptions
+		Position 120,180
+		Width 100
+		'Into iOverwriteLabels
+
+	'-------------------------------------------------
+	' Add a checkbox for the combined sites table
+	'-------------------------------------------------
+	Control StaticText Title "Create Combined Sites Table:"
+		ID 21
+		Position 120,205
+	Control PopupMenu
+		ID 11
+		Title sCombinedSitesOptions
+		Position 120,215
+		Width 100
+		'Into iAddSelectedTables
+
+	'-------------------------------------------------
+	' Add Ok and cancel buttons
+	'-------------------------------------------------
+	Control CancelButton
+		Position 140,250
+		Width 40
+	Control Button
+		ID 99
+		Title "Ok"
+		Position 185,250
+		Width 40
+		Calling CheckSelection
+
+Done:
+	Exit Sub
+	
+ErrorTrap:
+	Note str$(Err()) + ": " + Error$()
+	Call MyPrint("Error: " + str$(Err()) + " - " + Error$())
+	Resume Done
 
 End Sub
 
