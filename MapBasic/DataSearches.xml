@@ -78,15 +78,15 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>1</value>
 	</DefaultBufferSize>
 
-	<!-- The default option (position in the list) to use for the buffer units -->
-	<DefaultBufferUnit>
-		<value>3</value>
-	</DefaultBufferUnit>
-
 	<!-- The options for the buffer units -->
 	<BufferUnitOptions>
 		<value>Centimetres;cm$Metres;m$Kilometres;km$Feet;ft$Yards;yd$Miles;mi$</value>
 	</BufferUnitOptions>
+
+	<!-- The default option (position in the list) to use for the buffer units -->
+	<DefaultBufferUnit>
+		<value>3</value>
+	</DefaultBufferUnit>
 
 	<!-- The symbology for the buffer features -->
 	<BufferSymbology>
@@ -135,7 +135,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 
 	<!-- The options for creating a combined sites table -->
 	<CombinedSitesOptions>
-		<value>None;Append;Overwrite</value>
+		<value>None;Append to existing table;Overwrite existing table</value>
 	</CombinedSitesOptions>
 
 	<!-- Whether a combined sites table should be created -->

@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.9
+'* DataSearches v1.4.10
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - July 2016
+'* Last revised:	Andy Foy - August 2016
+'*
+'* *****************  Version 1.4.10  **************
+'* Author: Andy Foy		Date: 14/08/2016
+'* A. Check the search sites table is open.
 '*
 '* *****************  Version 1.4.9  ***************
 '* Author: Andy Foy		Date: 14/07/2016
@@ -111,7 +115,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.9"
+	sVersion = "1.4.10"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -525,6 +529,14 @@ Sub OpenDialog
 	' Retrieve the default values from the config file
 	'-------------------------------------------------
 	Call GetDefaultValues
+
+	'-------------------------------------------------
+	' Check the search area table is open
+	'-------------------------------------------------
+	If TableIsOpen(sSearchTable) = False Then
+		Note "Error: The search sites table '" + sSearchTable + "' is not open!"
+		Goto Done
+	End If
 
 	'-------------------------------------------------
 	' Build a new dialog window
