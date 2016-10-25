@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 TVERC, GiGL
+'* Copyright © 2015 - 2016 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -66,9 +66,12 @@ Type MapDetails
 	KeyColumn As String
 	Format As String
 	Keep As String
+	Warning As String
+	Preselect As String
 	Overwrite As String
 	LabelColumn As String
 	LabelClause As String
+	LabelReset As String
 	SiteColumns As String
 	SiteCriteria As String
 End Type
@@ -297,5 +300,11 @@ Global sBufferSize As String
 Global sBufferUnit As String
 Global sBufferTable As String
 
+Global sSearchAreaSymbology As String
+Global sSearchAreaTable As String
+
 Global iNumWindows As Integer
 Global aWindowId(99) As Integer
+Global aWindowGroup(99) As String
+Global aWindowGroupLayers(99) As Integer
+Global sGroupLayer As String

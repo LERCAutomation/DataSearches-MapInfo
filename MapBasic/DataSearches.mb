@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.10
+'* DataSearches v1.4.13
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,31 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - August 2016
+'* Last revised:	Andy Foy - October 2016
+'*
+'* *****************  Version 1.4.13  **************
+'* Author: Andy Foy		Date: 24/10/2016
+'* A. Pre-select layers if specified on layer in XML.
+'* B. Reset label numbers to 1 if specified on layer
+'*    in XML.
+'* C. Hide search layer before searching.
+'* D. Enable option to supress warning for layers
+'*    missing on tool load.
+'*
+'* *****************  Version 1.4.12  **************
+'* Author: Andy Foy		Date: 20/10/2016
+'* A. Fix bug when buffer size contains decimals.
+'*
+'* *****************  Version 1.4.11  **************
+'* Author: Andy Foy		Date: 16/08/2016
+'* A. Remove need for 'Where' in select criteria.
+'* B. Group layers when adding to map windows.
+'* C. Enable overlap area to be included in export
+'*    files.
+'* D. Enable overlap area to be included in the
+'*    combined sites table.
+'* E. Save search feature(s) as local layer and apply
+'*    symbology.
 '*
 '* *****************  Version 1.4.10  **************
 '* Author: Andy Foy		Date: 14/08/2016
@@ -115,7 +139,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.10"
+	sVersion = "1.4.13"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -309,10 +333,13 @@ Sub GetDefaultValues
 					' Symbology for the buffer features
 					sBufferSymbology = GetSingleNodeValue(hXMLNode, "BufferSymbology")
 
+					' Symbology for the search area features
+					sSearchAreaSymbology = GetSingleNodeValue(hXMLNode, "SearchAreaSymbology")
+
 					' Maximum number of records to be downloaded at one time
 					iRecMax = GetSingleNodeValue(hXMLNode, "RecMax")
 
-					' Name of the table to use as the search area
+					' Name of the table containing the search sites
 					sSearchTable = GetSingleNodeValue(hXMLNode, "SearchTable")
 
 					' Name of the column in the search table used to store the search reference
@@ -438,6 +465,12 @@ Sub GetDefaultValues
 						' Whether the layer can be retained after exporting
 						AllMaps(i).Keep = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
 
+						' Whether a warning should appear if the layer is not already loaded
+						AllMaps(i).Warning = GetSingleNodeValue(hXMLFilesNode, "LoadWarning")
+
+						' Whether the layer should be pre-selected
+						AllMaps(i).Preselect = GetSingleNodeValue(hXMLFilesNode, "PreselectLayer")
+
 						' Whether the label column can be overwritten
 						AllMaps(i).Overwrite = GetSingleNodeValue(hXMLFilesNode, "OverwriteLabels")
 
@@ -446,6 +479,9 @@ Sub GetDefaultValues
 
 						' Clause for setting the map labels
 						AllMaps(i).LabelClause = GetSingleNodeValue(hXMLFilesNode, "LabelClause")
+
+						' Whether the label number should be reset at this layer
+						AllMaps(i).LabelReset = GetSingleNodeValue(hXMLFilesNode, "LabelReset")
 
 						' Column name(s) to include in the combined sites table
 						AllMaps(i).SiteColumns = GetSingleNodeValue(hXMLFilesNode, "CombinedSitesColumns")
@@ -551,7 +587,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add an edit text box for the search reference
 	'-------------------------------------------------
-	Control StaticText Title "Search Ref:"
+	Control StaticText Title "Search Ref:  "
 		Position 10,10
 	Control EditText
 		ID 1
@@ -573,7 +609,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add an edit text box for the site name
 	'-------------------------------------------------
-	Control StaticText Title "Site Name:"
+	Control StaticText Title "Site Name:  "
 		Position 10,40
 	Control EditText
 		ID 2
@@ -585,7 +621,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add a MapInfo table listbox
 	'-------------------------------------------------
-	Control StaticText Title "MapInfo Tables:"
+	Control StaticText Title "MapInfo Tables:  "
 		Position 10,70
 	Control MultiListBox
 		ID 3
@@ -597,7 +633,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add an edit text box for the buffer size
 	'-------------------------------------------------
-	Control StaticText Title "Buffer Size:"
+	Control StaticText Title "Buffer Size:  "
 		Position 120,70
 	Control EditText
 		ID 4
@@ -609,7 +645,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add a radio group for the buffer units
 	'-------------------------------------------------
-	Control StaticText Title "Buffer Units:"
+	Control StaticText Title "Buffer Units:  "
 		Position 120,100
 	Control PopupMenu
 		ID 5
@@ -624,7 +660,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	Control CheckBox
 		ID 6
-		Title "Clear log file?"
+		Title "Clear log file?  "
 		Position 10,250
 		Value FALSE
 		'Into bClearLog
@@ -633,7 +669,7 @@ Sub OpenDialog
 	' Add a radio group for adding the selected tables
 	' to the map window
 	'-------------------------------------------------
-	Control StaticText Title "Add Selected Tables to Map:"
+	Control StaticText Title "Add Selected Tables to Map:  "
 		ID 19
 		Position 120,135
 	Control PopupMenu
@@ -646,7 +682,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add a radio group for overwritting map labels
 	'-------------------------------------------------
-	Control StaticText Title "Overwrite Map Labels:"
+	Control StaticText Title "Overwrite Map Labels:  "
 		ID 20
 		Position 120,170
 	Control PopupMenu
@@ -659,7 +695,7 @@ Sub OpenDialog
 	'-------------------------------------------------
 	' Add a checkbox for the combined sites table
 	'-------------------------------------------------
-	Control StaticText Title "Create Combined Sites Table:"
+	Control StaticText Title "Create Combined Sites Table:  "
 		ID 21
 		Position 120,205
 	Control PopupMenu
@@ -739,19 +775,24 @@ Sub DialogSetup
 			OpenMaps(j).KeyColumn = AllMaps(i).KeyColumn
 			OpenMaps(j).Format = AllMaps(i).Format
 			OpenMaps(j).Keep = AllMaps(i).Keep
+			OpenMaps(j).Preselect = AllMaps(i).Preselect
 			OpenMaps(j).Overwrite = AllMaps(i).Overwrite
 			OpenMaps(j).LabelColumn = AllMaps(i).LabelColumn
 			OpenMaps(j).LabelClause = AllMaps(i).LabelClause
+			OpenMaps(j).LabelReset = AllMaps(i).LabelReset
 			OpenMaps(j).SiteColumns = AllMaps(i).SiteColumns
 			OpenMaps(j).SiteCriteria = AllMaps(i).SiteCriteria
 			
 			aOpenTables(j) = StringReplace(AllMaps(i).Node, "_", " ")
 		Else
 			'-------------------------------------------------
-			' Store the name of the closed table
+			' Store the name of the closed table if the
+			' warning is not to be suppressed.
 			'-------------------------------------------------
-			sClosedTables = sClosedTables + Chr$(13) + AllMaps(i).Name
-			iClosedCount = iClosedCount + 1
+			If UCase$(AllMaps(i).Warning) <> "NO" Then
+				sClosedTables = sClosedTables + Chr$(13) + AllMaps(i).Name
+				iClosedCount = iClosedCount + 1
+			End If
 		End If
 
 	Next
@@ -774,6 +815,22 @@ Sub DialogSetup
 	' Update the Map Table list to show the list of tables
 	'-------------------------------------------------
 	Alter Control 3 Title From Variable aOpenTables
+
+	'-------------------------------------------------
+	' Loop through all the open MapInfo tables and
+	' pre-select them if this is required.
+	'-------------------------------------------------
+	For i = 1 to UBound(OpenMaps)
+
+		'-------------------------------------------------
+		' Set the control value if this table is to
+		' be pre-selected.
+		'-------------------------------------------------
+		If UCase$(OpenMaps(i).Preselect) = "YES" Then
+			Alter Control 3 Value i
+		End If
+
+	Next
 
 SetDefaults:
 
@@ -1037,6 +1094,7 @@ Sub CheckSelection
 		SelectedMaps(iExtractTot).Overwrite = OpenMaps(iMapTable).Overwrite
 		SelectedMaps(iExtractTot).LabelColumn = OpenMaps(iMapTable).LabelColumn
 		SelectedMaps(iExtractTot).LabelClause = OpenMaps(iMapTable).LabelClause
+		SelectedMaps(iExtractTot).LabelReset = OpenMaps(iMapTable).LabelReset
 		SelectedMaps(iExtractTot).SiteColumns = OpenMaps(iMapTable).SiteColumns
 		SelectedMaps(iExtractTot).SiteCriteria = OpenMaps(iMapTable).SiteCriteria
 
@@ -1119,6 +1177,14 @@ FindNextPos:
     sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar)))
     sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar)))
     sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar)))
+
+	'-------------------------------------------------
+    ' Set the group layer name to use
+	'-------------------------------------------------
+    Dim sSpaceChar As String
+    sSpaceChar = "_"
+    sGroupLayer = StringReplace(sSearchRef, "/", sSpaceChar)
+    sGroupLayer = LTrim$(RTrim$(KeepNumbersAndSpaces(sGroupLayer, sSpaceChar)))
 	
 	'-------------------------------------------------
 	' Create the request folder if it doesn't
@@ -1185,10 +1251,12 @@ FindNextPos:
 	' Find the window numbers of all map windows
 	'-------------------------------------------------
 	Dim iWindowNum As Integer, iLayerNum As Integer
-	Dim bMapWindow As Logical
+	Dim bMapWindow As Logical, bGroupFound as logical
 	iNumWindows = 0
 	Redim aWindowId(99)
 	
+	bGroupFound = False
+
 	' Loop through all the windows
 	For iWindowNum = 1 to NumWindows()
 	
@@ -1196,8 +1264,9 @@ FindNextPos:
 		If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
 		
 			bMapWindow = False
+			aWindowGroup(iWindowNum) = ""
 			
-			' Loop through all the layers in the map window
+			' Loop through all the map layers in the map window
 			For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
 			
 				' Check if the layer is a normal layer
@@ -1213,6 +1282,27 @@ FindNextPos:
 			If bMapWindow = True Then
 				iNumWindows = iNumWindows + 1
 				aWindowId(iNumWindows) = WindowId(iWindowNum)
+
+				' Loop through all the group layers in the map window
+				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_GROUPLAYERS)
+				
+					' Check if the layer is the group layer
+					If GroupLayerInfo(WindowId(iWindowNum),iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
+	
+						' If the window contains the group layer then store
+						' the group layer name in the array of map windows
+						aWindowGroup(iWindowNum) = sGroupLayer
+	
+						If bGroupFound = False Then
+							Call MyPrint("Group layer '" + sGroupLayer + "' found.")
+							bGroupFound = True
+							Exit For
+						End If
+	
+					End If
+				
+				Next
+
 			End If
 
 		End If
@@ -1389,10 +1479,10 @@ FindNextPos:
 		End If
 	
 		'-------------------------------------------------
-		' Delete the combined sites table
+		' Close the combined sites table
 		'-------------------------------------------------
-		'Call MyPrint("Dropping the combined sites table ...")
-		'Drop Table sSitesTable
+		Call MyPrint("Closing combined sites table ...")
+		Close Table sCombinedSitesTable
 
 	End If
 
@@ -1402,30 +1492,75 @@ FindNextPos:
 	'Call MyPrint("Renaming buffer table ...")
 	Close Table sBufferTable
 
+	Dim sBufferString As String
+	sBufferString = LTrim$(RTrim$(StringReplace(sBufferSize, ".", "_")))
+
 	Dim sLocalTable As String
-	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferSize + sBufferUnit
+	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferString + sBufferUnit
 
 	Dim sCmd As String
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Add the local buffer table to all map windows and
-	' zoom to the extent of the new buffered table
+	' Add the search area and buffer tables to all
+	' map windows and zoom to the extent of the buffer
+	' table
 	'-------------------------------------------------
+	Dim bTableAdded As Logical
+	bTableAdded = False
 	For iWindowNum = 1 to iNumWindows
 
 		'-------------------------------------------------
-		' Add the local buffer table to the map window
+		' Add a group layer if one doesn't already exist
 		'-------------------------------------------------
-		Add Map Window aWindowId(iWindowNum) Layer sLocalTable
+		If aWindowGroup(iWindowNum) = "" Then
+			If bTableAdded = False Then
+				Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window(s) ...")
+				bTableAdded = True
+			End If
+
+			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
+			Run Command (sCmd)
+			aWindowGroup(iWindowNum) = sGroupLayer
+			aWindowGroupLayers(iWindowNum) = 0
+		End If
 
 		'-------------------------------------------------
-		' Get the layer number of the buffer table (just added)
+		' Add the search area table to the map window
+		'-------------------------------------------------
+		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+		Run Command (sCmd)
+
+		'-------------------------------------------------
+		' Get the layer number of the search area table
+		' (just added)
 		'-------------------------------------------------
 		Dim iNumTables As Integer
 		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 		Dim	iNumBufferTable as Integer
+		For iNumBufferTable = 1 to iNumTables
+			If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sSearchAreaTable Then
+				Exit For
+			End If
+		Next
+
+		'-------------------------------------------------
+		' Set the symbology for the search area table
+		'-------------------------------------------------
+		sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sSearchAreaSymbology
+		Run Command (sCmd)
+
+		'-------------------------------------------------
+		' Add the buffer table to the map window
+		'-------------------------------------------------
+		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+		Run Command (sCmd)
+
+		'-------------------------------------------------
+		' Get the layer number of the buffer table (just added)
+		'-------------------------------------------------
+		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 		For iNumBufferTable = 1 to iNumTables
 			If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sLocalTable Then
 				Exit For
@@ -1495,13 +1630,19 @@ Sub BufferSearch
 	Call MyPrint("Buffering search reference for " + sBufferSize + sBufferUnit + " ...")
 
 	'-------------------------------------------------
+	' Setup the search site output table name
+	'-------------------------------------------------
+	sSearchAreaTable = "Search_Area_" + sSubRefNo
+
+	'-------------------------------------------------
 	' Setup the temporary and buffer table names
 	'-------------------------------------------------
-	Dim sTempTable As String
-	sTempTable = "Search_Area"
-	
+	Dim sBufferString As String
+	sBufferString = LTrim$(RTrim$(StringReplace(sBufferSize, ".", "_")))
+
 	Dim sLocalTable As String
-	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferSize + sBufferUnit
+	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferString + sBufferUnit
+
 	sBufferTable = "Buffer_Area"
 
 	'-------------------------------------------------
@@ -1525,14 +1666,14 @@ Sub BufferSearch
 
 EditLayer:
 	'-------------------------------------------------
-	' Make the layer visible if it is not already
+	' Make the search area table visible if it is not already
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
 	End If
 	
 	'-------------------------------------------------
-	' Make the layer editable if it is not already
+	' Make the search area table editable if it is not already
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_EDITABLE) = False Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
@@ -1548,6 +1689,15 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
+	' Check if the old search area table is
+	' already/still open and close it if it is
+	'-------------------------------------------------
+	If TableIsOpen(sSearchAreaTable) Then
+		Call MyPrint("Closing existing search area table ...")
+		Close Table sSearchAreaTable
+	End If
+
+	'-------------------------------------------------
 	' Check if the old buffer table is
 	' already/still open and close it if it is
 	'-------------------------------------------------
@@ -1557,29 +1707,20 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
-	' Check if the temporary table is
-	' already/still open and close it if it is
-	'-------------------------------------------------
-	If TableIsOpen(sTempTable) Then
-		Call MyPrint("Closing temporary table ...")
-		Close Table sTempTable
-	End If
-
-	'-------------------------------------------------
 	' Select the required reference in the search table
-	' and put it into the temporary table
+	' and put it into the search area table
 	'-------------------------------------------------
 	Call MyPrint("Selecting reference feature(s) ...")
 	Dim sCmd as String
-	sCmd = "Select * from " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable
+	sCmd = "Select * from " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
 	Run Command (sCmd)
 
 	'-------------------------------------------------
 	' Count the number of objects that have
-	' been selected in the temporary table
+	' been selected in the search area table
 	'-------------------------------------------------
 	Dim iRecTotal As Integer
-	iRecTotal = TableInfo(sTempTable, TAB_INFO_NROWS)
+	iRecTotal = TableInfo(sSearchAreaTable, TAB_INFO_NROWS)
 
 	'-------------------------------------------------
 	' Check if any records were selected
@@ -1592,18 +1733,19 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
-	' Buffer the selected search reference (in the
-	' temporary table)
+	' Save the search area table
 	'-------------------------------------------------
-	Call MyPrint("Buffering the search reference ...")
-	sCmd = "Create Object As Buffer From " + sTempTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
+	Call MyPrint("Saving search area table ...")
+	sCmd = "Commit Table " + sSearchAreaTable + " As " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Close the temporary table
+	' Buffer the selected search area (in the
+	' search area table)
 	'-------------------------------------------------
-	Call MyPrint("Closing temporary table ...")
-	Close Table sTempTable
+	Call MyPrint("Buffering the search reference ...")
+	sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
+	Run Command (sCmd)
 
 	'-------------------------------------------------
 	' Check if the buffer table is
@@ -1650,9 +1792,16 @@ EditLayer:
 	Rollback Table sSearchTable
 
 	'-------------------------------------------------
-	' Make the layer non-editable
+	' Make the search area table non-editable
 	'-------------------------------------------------
 	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
+
+	'-------------------------------------------------
+	' Turn off the search area table if it is visible
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
+	End If
 
 	Call MyPrint("Buffering complete.")
 	Call MyPrint("")
@@ -1770,6 +1919,7 @@ Sub ProcessExtracts
 	SelectedMap.Overwrite = SelectedMaps(iExtractCnt).Overwrite
 	SelectedMap.LabelColumn = SelectedMaps(iExtractCnt).LabelColumn
 	SelectedMap.LabelClause = SelectedMaps(iExtractCnt).LabelClause
+	SelectedMap.LabelReset = SelectedMaps(iExtractCnt).LabelReset
 	SelectedMap.SiteColumns = SelectedMaps(iExtractCnt).SiteColumns
 	SelectedMap.SiteCriteria = SelectedMaps(iExtractCnt).SiteCriteria
 
@@ -1852,6 +2002,25 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' Set the additional selection criteria
+	'-------------------------------------------------
+	Dim sSelectCriteria As String
+	If SelectedMap.SelectCriteria = "" Then
+		sSelectCriteria = ""
+	Else
+		sSelectCriteria = " And (" + SelectedMap.SelectCriteria + ")"
+	End if
+	
+	'-------------------------------------------------
+	' Reset the map label counter if required before
+	' processing this table
+	'-------------------------------------------------
+	If iOverwriteLabels = 3 And UCase$(SelectedMap.LabelReset) = "YES" Then
+		Call MyPrint("Reseting label counter ...")
+		iMapLabelCounter = 1
+	End If
+
+	'-------------------------------------------------
 	' Execute the SQL statement to select the table
 	' records intersecting with the required
 	' partner boundary
@@ -1859,9 +2028,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	Call MyPrint("Executing spatial selection ...")
 	Dim sCmd as String
 	If SelectedMap.KeyColumn = "" Then
-		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + SelectedMap.SelectCriteria + " Into " + sSelectName
+		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Into " + sSelectName
 	Else
-		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + SelectedMap.SelectCriteria + " Order By " + SelectedMap.KeyColumn + " Into " + sSelectName
+		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Order By " + SelectedMap.KeyColumn + " Into " + sSelectName
 	End If
 	Run Command (sCmd)
 
@@ -1989,6 +2158,20 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' Check if the overlap area is to be included
+	' in the export columns
+	'-------------------------------------------------
+	If Instr(1, sColumns, "%Overlap%") > 0 Then
+		Call MyPrint("Including overlap area in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+		Else
+			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+		End If
+	End If
+
+	'-------------------------------------------------
 	' Execute the SQL statement to select only the
 	' table columns required for the export into
 	' a temporary table
@@ -2112,13 +2295,28 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			If bMapFound = True Then
 
 				'-------------------------------------------------
+				' Add a group layer if one doesn't already exist
+				'-------------------------------------------------
+				If aWindowGroup(iWindowNum) = "" Then
+					If bTableAdded = False Then
+						Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window(s) ...")
+					End If
+
+					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
+					Run Command (sCmd)
+					aWindowGroup(iWindowNum) = sGroupLayer
+					aWindowGroupLayers(iWindowNum) = 0
+				End If
+
+				'-------------------------------------------------
 				' Add the local table to the same map window
 				'-------------------------------------------------
 				If bTableAdded = False Then
 					Call MyPrint("Adding layer to map window(s) ...")
 				End If
 
-				Add Map Window aWindowId(iWindowNum) Layer sLocalName
+				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34) + " Position 999"
+				Run Command (sCmd)
 
 				'-------------------------------------------------
 				' If the layer is to be added with labels ...
@@ -2394,6 +2592,14 @@ Sub AddToCombinedSitesTable
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%Radius%") > 0 Then
 		sSitesColumns = StringReplace(sSitesColumns, "%Radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
+	End If
+
+	'-------------------------------------------------
+	' Check if the overlap area is to be included
+	' in the combined sites table
+	'-------------------------------------------------
+	If Instr(1, sSitesColumns, "%Overlap%") > 0 Then
+		sSitesColumns = StringReplace(sSitesColumns, "%Overlap%", "Overlap")
 	End If
 
 	'-------------------------------------------------

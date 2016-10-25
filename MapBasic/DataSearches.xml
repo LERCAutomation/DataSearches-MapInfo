@@ -189,6 +189,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>Yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>Yes</value>
 			</OverwriteLabels>
@@ -233,6 +239,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>Yes</value>
 			</OverwriteLabels>
@@ -277,6 +289,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>Yes</value>
 			</OverwriteLabels>
@@ -321,6 +339,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>Yes</value>
 			</OverwriteLabels>
@@ -365,6 +389,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
@@ -409,6 +439,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
@@ -453,6 +489,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>Yes</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>Yes</value>
 			</OverwriteLabels>
@@ -462,6 +504,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value>Yes</value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"LWS", Site_number, Site_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
@@ -497,6 +542,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
@@ -541,6 +592,12 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
+			<LoadWarning>
+				<value>yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>No</value>
+			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
