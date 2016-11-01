@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.13
+'* DataSearches v1.4.14
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,12 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - October 2016
+'* Last revised:	Andy Foy - November 2016
+'*
+'* *****************  Version 1.4.14  **************
+'* Author: Andy Foy		Date: 01/11/2016
+'* A. Use cosmetic layer to create search area buffer
+'*    instead of search layer.
 '*
 '* *****************  Version 1.4.13  **************
 '* Author: Andy Foy		Date: 24/10/2016
@@ -139,7 +144,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.13"
+	sVersion = "1.4.14"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -332,6 +337,9 @@ Sub GetDefaultValues
 
 					' Symbology for the buffer features
 					sBufferSymbology = GetSingleNodeValue(hXMLNode, "BufferSymbology")
+
+					' Coordinate system to be used for mapping
+					sCoordSys = GetSingleNodeValue(hXMLNode, "CoordinateSystem")
 
 					' Symbology for the search area features
 					sSearchAreaSymbology = GetSingleNodeValue(hXMLNode, "SearchAreaSymbology")
@@ -1646,6 +1654,13 @@ Sub BufferSearch
 	sBufferTable = "Buffer_Area"
 
 	'-------------------------------------------------
+	' Get the name of the cosmetic layer in the first
+	' map window
+	'-------------------------------------------------
+	Dim sCosmeticLayer As String
+	sCosmeticLayer = WindowInfo(aWindowId(1), WIN_INFO_TABLE)
+
+	'-------------------------------------------------
 	' Find the layer number of the search table by
 	' looking through all the windows until it is
 	' found
@@ -1666,22 +1681,8 @@ Sub BufferSearch
 
 EditLayer:
 	'-------------------------------------------------
-	' Make the search area table visible if it is not already
-	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
-		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
-	End If
-	
-	'-------------------------------------------------
-	' Make the search area table editable if it is not already
-	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_EDITABLE) = False Then
-		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
-	End If
-
-	'-------------------------------------------------
-	' Save the search area table (in case it has
-	' unsaved edits
+	' Save the search table (in case it has
+	' unsaved edits)
 	'-------------------------------------------------
 	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
 		Call MyPrint("Saving table " + sSearchTable + " ...")
@@ -1740,11 +1741,16 @@ EditLayer:
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Buffer the selected search area (in the
+	' Make the cosmetic layer editable
+	'-------------------------------------------------
+	Set Map Window aWindowId(1) Layer 0 Editable On
+
+	'-------------------------------------------------
+	' Buffer the selected search area (from the
 	' search area table)
 	'-------------------------------------------------
 	Call MyPrint("Buffering the search reference ...")
-	sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
+	sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sCosmeticLayer
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -1757,11 +1763,28 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
+	' Create the buffer table
+	'-------------------------------------------------
+	Call MyPrint("Creating the buffer table ...")
+	sCmd = "Create Table " + Chr$(34) + sBufferTable + Chr$(34) + " (ID Integer) File " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Make buffer table mappable
+	'-------------------------------------------------
+	sCmd = "Create Map For " + sBufferTable + " CoordSys " + sCoordSys
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Insert the buffer area into the buffer table
+	'-------------------------------------------------
+	sCmd = "Insert Into " + sBufferTable + "(obj) Select obj From " + sCosmeticLayer
+	Run Command (sCmd)
+
+	'-------------------------------------------------
 	' Save the buffer table
 	'-------------------------------------------------
-	Call MyPrint("Saving buffer table ...")
-	sCmd = "Commit Table Selection As " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
-	Run Command (sCmd)
+	Commit Table sBufferTable
 
 	'-------------------------------------------------
 	' Close the selection table
@@ -1773,31 +1796,25 @@ EditLayer:
 	'-------------------------------------------------
 	Dim t As SmallInt
 	For t = NumTables() to 1 Step -1
-		If TableInfo(t, TAB_INFO_TEMP) Then
+		If TableInfo(t, TAB_INFO_TEMP) = True And TableInfo(t, TAB_INFO_MAPPABLE) = False Then
 			Close Table TableInfo(t, TAB_INFO_NAME)
 			Exit For
 		End If
 	Next
 
 	'-------------------------------------------------
-	' Open the new buffered table
+	' Undo the updates to the cosmetic layer to remove
+	' the temporary buffered object
 	'-------------------------------------------------
-	Call MyPrint("Opening buffer table ...")
-	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sBufferTable
-	Run Command (sCmd)
+	Rollback Table sCosmeticLayer
 
 	'-------------------------------------------------
-	' Undo the updates to the search table to remove the temporary buffered object
+	' Make the cosmetic layer non-editable
 	'-------------------------------------------------
-	Rollback Table sSearchTable
+	Set Map Window aWindowId(1) Layer 0 Editable Off
 
 	'-------------------------------------------------
-	' Make the search area table non-editable
-	'-------------------------------------------------
-	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
-
-	'-------------------------------------------------
-	' Turn off the search area table if it is visible
+	' Turn off the search table (if it is visible)
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off

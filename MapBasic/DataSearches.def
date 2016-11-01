@@ -255,6 +255,7 @@ Global aBufferUnits(99) As String
 Global aBufferAbbrevs(99) As String
 Global iBufferInt As SmallInt
 Global sBufferSymbology As String
+Global sCoordSys As String
 
 Global sSearchTable As String
 Global sSearchColumn As String
