@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.14
+'* DataSearches v1.4.15
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -30,6 +30,10 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - November 2016
+'*
+'* *****************  Version 1.4.15  **************
+'* Author: Andy Foy		Date: 02/11/2016
+'* A. Fix bug when group layer not added to window.
 '*
 '* *****************  Version 1.4.14  **************
 '* Author: Andy Foy		Date: 01/11/2016
@@ -144,7 +148,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.14"
+	sVersion = "1.4.15"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -1515,30 +1519,33 @@ FindNextPos:
 	' map windows and zoom to the extent of the buffer
 	' table
 	'-------------------------------------------------
-	Dim bTableAdded As Logical
-	bTableAdded = False
 	For iWindowNum = 1 to iNumWindows
 
 		'-------------------------------------------------
 		' Add a group layer if one doesn't already exist
 		'-------------------------------------------------
 		If aWindowGroup(iWindowNum) = "" Then
-			If bTableAdded = False Then
-				Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window(s) ...")
-				bTableAdded = True
-			End If
+			Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
 
 			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
 			Run Command (sCmd)
+			
+			' Store the group layer name for this window
 			aWindowGroup(iWindowNum) = sGroupLayer
-			aWindowGroupLayers(iWindowNum) = 0
 		End If
 
 		'-------------------------------------------------
 		' Add the search area table to the map window
 		'-------------------------------------------------
-		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
-		Run Command (sCmd)
+		Call MyPrint("Adding search area layer '" + sSearchAreaTable + "' to map window " + iWindowNum + " ...")
+
+		If aWindowGroup(iWindowNum) = sGroupLayer Then
+			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+			Run Command (sCmd)
+		Else
+			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable
+			Run Command (sCmd)
+		End If
 
 		'-------------------------------------------------
 		' Get the layer number of the search area table
@@ -1562,8 +1569,15 @@ FindNextPos:
 		'-------------------------------------------------
 		' Add the buffer table to the map window
 		'-------------------------------------------------
-		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
-		Run Command (sCmd)
+		Call MyPrint("Adding buffer area layer '" + sLocalTable + "' to map window " + iWindowNum + " ...")
+
+		If aWindowGroup(iWindowNum) = sGroupLayer Then
+			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+			Run Command (sCmd)
+		Else
+			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable
+			Run Command (sCmd)
+		End If
 
 		'-------------------------------------------------
 		' Get the layer number of the buffer table (just added)
@@ -2315,25 +2329,27 @@ Sub SelectMaps(SelectedMap As MapDetails)
 				' Add a group layer if one doesn't already exist
 				'-------------------------------------------------
 				If aWindowGroup(iWindowNum) = "" Then
-					If bTableAdded = False Then
-						Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window(s) ...")
-					End If
+					Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
 
 					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
 					Run Command (sCmd)
+					
+					' Store the name of the group layer for the window
 					aWindowGroup(iWindowNum) = sGroupLayer
-					aWindowGroupLayers(iWindowNum) = 0
 				End If
 
 				'-------------------------------------------------
 				' Add the local table to the same map window
 				'-------------------------------------------------
-				If bTableAdded = False Then
-					Call MyPrint("Adding layer to map window(s) ...")
-				End If
+				Call MyPrint("Adding layer to map window " + iWindowNum + " ...")
 
-				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34) + " Position 999"
-				Run Command (sCmd)
+				If aWindowGroup(iWindowNum) = sGroupLayer Then
+					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34) + " Position 999"
+					Run Command (sCmd)
+				Else
+					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName
+					Run Command (sCmd)
+				End If
 
 				'-------------------------------------------------
 				' If the layer is to be added with labels ...
@@ -2363,10 +2379,6 @@ Sub SelectMaps(SelectedMap As MapDetails)
 					'-------------------------------------------------
 					' Display the labels for the layer
 					'-------------------------------------------------
-					If bTableAdded = False Then
-						Call MyPrint("Setting labels for layer ...")
-					End If
-
 					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 					Run Command (sCmd)
 	
@@ -2446,6 +2458,10 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	Exit Sub
+
+GroupError:
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Resume Next
 
 ErrorTrap:
 	Note "Error: " + str$(Err()) + ": " + Error$()
