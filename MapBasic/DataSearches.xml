@@ -93,6 +93,16 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)</value>
 	</BufferSymbology>
 
+  <!-- The coordinate system for mapping tables -->
+  <CoordinateSystem>
+	<value>Earth Projection 8, 79, "m", -2, 49, 0.9996012717, 400000, -100000</value>
+  </CoordinateSystem>
+  
+  <!-- The symbology for the search area features -->
+  <SearchAreaSymbology>
+	<value>Global Pen (2,2,0)   Global Brush (15,32896)   Global Line (2,2,16711935)   Global Symbol (35,16711935,12)</value>
+  </SearchAreaSymbology>
+
 	<!-- The maximum number of records what will be extracted in any one search extract -->
 	<RecMax>
 		<value>5000000</value>
@@ -204,6 +214,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"SAC", SAC_Name, SAC_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
@@ -254,6 +267,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"SPA", SPA_Name, SPA_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
@@ -304,6 +320,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"Ramsar", Ramsar_Name, Ramsar_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
@@ -354,6 +373,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"SSSI", SSSI_Name, SSSI_Area, Map_Label, %Radius%</value>
 			</CombinedSitesColumns>
@@ -404,6 +426,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With NNR_Name Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"NNR", NNR_Name, NNR_Area, " ", %Radius%</value>
 			</CombinedSitesColumns>
@@ -454,6 +479,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With LNR_Name Auto On</value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value>"LNR", LNR_Name, LNR_Area, " ", %Radius%</value>
 			</CombinedSitesColumns>
@@ -557,6 +585,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value></value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value></value>
 			</CombinedSitesColumns>
@@ -607,6 +638,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value></value>
 			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
 			<CombinedSitesColumns>
 				<value></value>
 			</CombinedSitesColumns>

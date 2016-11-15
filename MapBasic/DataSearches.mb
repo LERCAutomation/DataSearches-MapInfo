@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.15
+'* DataSearches v1.4.16
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -30,6 +30,10 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - November 2016
+'*
+'* *****************  Version 1.4.16  **************
+'* Author: Andy Foy		Date: 15/11/2016
+'* A. Fix subscript out of range bug with group layer.
 '*
 '* *****************  Version 1.4.15  **************
 '* Author: Andy Foy		Date: 02/11/2016
@@ -148,7 +152,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.15"
+	sVersion = "1.4.16"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -1266,9 +1270,8 @@ FindNextPos:
 	Dim bMapWindow As Logical, bGroupFound as logical
 	iNumWindows = 0
 	Redim aWindowId(99)
+	Redim aWindowGroup(99)
 	
-	bGroupFound = False
-
 	' Loop through all the windows
 	For iWindowNum = 1 to NumWindows()
 	
@@ -1276,7 +1279,6 @@ FindNextPos:
 		If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
 		
 			bMapWindow = False
-			aWindowGroup(iWindowNum) = ""
 			
 			' Loop through all the map layers in the map window
 			For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
@@ -1292,29 +1294,35 @@ FindNextPos:
 			' If the window contains any normal map layers then
 			' add it to the array of map windows
 			If bMapWindow = True Then
+
+				' Increment the windows number				
 				iNumWindows = iNumWindows + 1
+				
+				' Store the window ID
 				aWindowId(iNumWindows) = WindowId(iWindowNum)
+
+				bGroupFound = False
 
 				' Loop through all the group layers in the map window
 				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_GROUPLAYERS)
 				
 					' Check if the layer is the group layer
 					If GroupLayerInfo(WindowId(iWindowNum),iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
-	
-						' If the window contains the group layer then store
-						' the group layer name in the array of map windows
-						aWindowGroup(iWindowNum) = sGroupLayer
-	
-						If bGroupFound = False Then
-							Call MyPrint("Group layer '" + sGroupLayer + "' found.")
-							bGroupFound = True
-							Exit For
-						End If
-	
+						bGroupFound = True
+						Exit For
 					End If
 				
 				Next
 
+				' If the window contains the group layer then store
+				' the group layer name in the array of map windows
+				If bGroupFound = True Then
+					Call MyPrint("Group layer '" + sGroupLayer + "' found in map window " + iNumWindows + ".")
+					aWindowGroup(iNumWindows) = sGroupLayer
+				Else
+					aWindowGroup(iNumWindows) = ""
+				End If
+			
 			End If
 
 		End If
@@ -1322,6 +1330,7 @@ FindNextPos:
 	Next
 	
 	Redim aWindowId(iNumWindows)
+	Redim aWindowGroup(iNumWindows)
 
 	'-------------------------------------------------
 	' Call the subroutine to buffer the search area
@@ -1522,9 +1531,9 @@ FindNextPos:
 	For iWindowNum = 1 to iNumWindows
 
 		'-------------------------------------------------
-		' Add a group layer if one doesn't already exist
+		' Add a group layer if it doesn't already exist
 		'-------------------------------------------------
-		If aWindowGroup(iWindowNum) = "" Then
+		If aWindowGroup(iWindowNum) <> sGroupLayer Then
 			Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
 
 			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
