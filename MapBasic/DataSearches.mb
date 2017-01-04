@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2016 TVERC, GiGL
+'* Copyright © 2015 - 2017 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.16
+'* DataSearches v1.4.17
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - November 2016
+'* Last revised:	Andy Foy - January 2017
+'*
+'* *****************  Version 1.4.17  **************
+'* Author: Andy Foy		Date: 03/01/2017
+'* A. Update site name and organisation in search layer.
 '*
 '* *****************  Version 1.4.16  **************
 '* Author: Andy Foy		Date: 15/11/2016
@@ -152,7 +156,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.16"
+	sVersion = "1.4.17"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -313,11 +317,17 @@ Sub GetDefaultValues
 					' The file location where the enquiries table will be stored
 					sEnquiriesDir = GetSingleNodeValue(hXMLNode, "EnquiriesDir")
 
+					' The name of the table or query where the enquiries are stored
+					sEnquiriesTable = GetSingleNodeValue(hXMLNode, "EnquiriesTable")
+
 					' The field name of the search reference unique value
 					sRefColumn = GetSingleNodeValue(hXMLNode, "RefColumn")
 
 					' The field name of the search reference site name
 					sSiteColumn = GetSingleNodeValue(hXMLNode, "SiteColumn")
+
+					' The field name of the search reference organisation
+					sOrgColumn = GetSingleNodeValue(hXMLNode, "OrgColumn")
 
 					' The character(s) used to replace any special characters in folder names
 					sRepChar = GetSingleNodeValue(hXMLNode, "RepChar")
@@ -893,7 +903,7 @@ SetDefaults:
 	' If there is no database enable the site name
 	' field, otherwise show the 'Show' button
 	'-------------------------------------------------
-	If sDatabase = "" or sEnquiriesDir = "" Then
+	If sDatabase = "" or sEnquiriesDir = "" or sEnquiriesTable = "" Then
 		Alter Control 2 Enable
 	Else
 		Alter Control 91 Show
@@ -912,7 +922,7 @@ Sub GetSiteName
 	' Get the site name from the database if it has
 	' a path/name
 	'-------------------------------------------------
-	If sDatabase <> "" and sEnquiriesDir <> "" Then
+	If sDatabase <> "" and sEnquiriesDir <> "" and sEnquiriesTable <> "" Then
 
 		'-------------------------------------------------
 		' Check a search ref has been entered
@@ -940,10 +950,10 @@ Sub GetSiteName
 		'-------------------------------------------------
 		' Try and open the 'Enquiries' table
 		'-------------------------------------------------
-		Dim sEnquiriesTable As String
-		sEnquiriesTable = sEnquiriesDir + "\Enquiries.tab"
+		Dim sEnquiries As String
+		sEnquiries = sEnquiriesDir + "\Enquiries.tab"
 		Dim sCmd As String
-		sCmd = "Open Table " + Chr$(34) + sEnquiriesTable + Chr$(34) + " As Enquiries"
+		sCmd = "Open Table " + Chr$(34) + sEnquiries + Chr$(34) + " As Enquiries"
 		Run Command (sCmd)
 	
 RegisterTable:
@@ -952,57 +962,61 @@ RegisterTable:
 		' Trap errors
 		'-------------------------------------------------
 		OnError Goto ErrorTrap
-	
+		
 		'-------------------------------------------------
 		' If the 'Enquiries' table isn't open ...
 		'-------------------------------------------------
 		If TableIsOpen("Enquiries") = False Then
-	
+		
 			'-------------------------------------------------
 			' Register the 'Enquiries' table from the database
 			'-------------------------------------------------
-			sCmd = "Register Table " + Chr$(34) + sDatabase + Chr$(34) + " Type ACCESS Table " + Chr$(34) + "Enquiries" + Chr$(34) + " Into " + Chr$(34) + sEnquiriesTable + Chr$(34)
+			sCmd = "Register Table " + Chr$(34) + sDatabase + Chr$(34) + " Type ACCESS Table " + Chr$(34) + sEnquiriesTable + Chr$(34) + " Into " + Chr$(34) + sEnquiries + Chr$(34)
 			Run Command (sCmd)
-		
+			
 			'-------------------------------------------------
 			' Open the 'Enquiries' table
 			'-------------------------------------------------
-			sCmd = "Open Table " + Chr$(34) + sEnquiriesTable + Chr$(34) + " As Enquiries"
+			sCmd = "Open Table " + Chr$(34) + sEnquiries + Chr$(34) + " As Enquiries"
 			Run Command (sCmd)
 			
 		End If
-	
+		
 		'-------------------------------------------------
-		' Select the site name for the enquiry
+		' Select the site name and organisation for the enquiry
 		'-------------------------------------------------
 		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 Then
-			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteColumn + ", " + sOrgColumn + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
 		Else
-			sCmd = "Select " + sSiteColumn + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteColumn + ", " + sOrgColumn + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
-	
+		
 		'-------------------------------------------------
 		' Count the number of rows selected
 		'-------------------------------------------------
 		Dim iRows As Integer
 		iRows = TableInfo("Enquiry", TAB_INFO_NROWS)
-	
+		
 		'-------------------------------------------------
 		' If any rows were selected then set the object
 		'-------------------------------------------------
 		If iRows > 0 Then
-	
+		
 			'-------------------------------------------------
 			' Fetch the first of the selected rows
 			'-------------------------------------------------
 			Fetch First from Enquiry
 	
 			'-------------------------------------------------
-			' Get the site name value and put it in the
-			' site name field
+			' Get the site name and organisation values
 			'-------------------------------------------------
 			sSiteName = Enquiry.Col1
+			sOrganisation = Enquiry.Col2
+
+			'-------------------------------------------------
+			' Put the site name in the site name field
+			'-------------------------------------------------
 			Alter Control 2 Value sSiteName
 	
 		Else
@@ -1349,6 +1363,117 @@ FindNextPos:
 	End If
 
 	'-------------------------------------------------
+	' Find the layer number of the search table by
+	' looking through all the windows until it is
+	' found
+	'-------------------------------------------------
+	For iWindowNum = 1 to iNumWindows
+		Dim iNumTables As Integer
+		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+		For iNumSearchTable = 1 to iNumTables
+			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+				Goto EditLayer
+			End If
+		Next
+	Next
+
+EditLayer:
+	'-------------------------------------------------
+	' Ignore any error trying to edit the table
+	'-------------------------------------------------
+	OnError Goto EditError
+	
+	'-------------------------------------------------
+	' Make the search table editable
+	'-------------------------------------------------
+	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
+
+	'-------------------------------------------------
+	' Update the site name and organisation in the
+	' search table
+	'-------------------------------------------------
+	Dim sCmd As String
+	Dim sTempTable As String
+	sTempTable = "SearchTemp"
+
+	sCmd = "Select * From " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable + " NoSelect"
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Turn on FastEdit to speed up the updates
+	'-------------------------------------------------
+	Set Table sTempTable FastEdit On
+
+	sCmd = "Update " + sTempTable + " Set SiteName = " + Chr$(34) + sSiteName + Chr$(34) + ", Organisation = " + Chr$(34) + sOrganisation + Chr$(34)
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Save the search table changes
+	'-------------------------------------------------
+	Set ProgressBars Off
+
+	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
+		Call MyPrint("Saving table " + sSearchTable + " ...")
+		Commit Table sSearchTable
+	End If
+
+	Set ProgressBars On
+
+	'-------------------------------------------------
+	' Turn off FastEdit after updates
+	'-------------------------------------------------
+	Set Table sTempTable FastEdit Off
+
+	Goto HideLayer
+
+EditError:
+
+	'-------------------------------------------------
+	' Inform user of error editing layer
+	'-------------------------------------------------
+	If Err() = 448 or Err() = 683 Then
+		Note "Unable to update " + sSearchTable + ". Someone else is currently editing the table."
+		Call MyPrint("Unable to save updates to " + sSearchTable + ".")
+	Else
+		Note "Error: " + str$(Err()) + ": " + Error$()
+		Call MyPrint(str$(Err()) + ": " + Error$())
+	End If
+
+	'-------------------------------------------------
+	' Rollback any search table changes
+	'-------------------------------------------------
+	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
+		sCmd = "Rollback Table " + sSearchTable
+	End If
+	Run Command (sCmd)
+
+HideLayer:
+
+	'-------------------------------------------------
+	' Close the temporary edit table
+	'-------------------------------------------------
+	If TableIsOpen(sTempTable) Then
+		Close Table sTempTable
+	End If
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
+		
+	'-------------------------------------------------
+	' Make the search table non-editable
+	'-------------------------------------------------
+	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
+
+	'-------------------------------------------------
+	' Turn off the search table (if it is visible)
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
+	End If
+
+	'-------------------------------------------------
 	' If a combined sites table is to be appended to
 	' or over-written.
 	'-------------------------------------------------
@@ -1519,7 +1644,6 @@ FindNextPos:
 	Dim sLocalTable As String
 	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferString + sBufferUnit
 
-	Dim sCmd As String
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
 	Run Command (sCmd)
 
@@ -1560,7 +1684,6 @@ FindNextPos:
 		' Get the layer number of the search area table
 		' (just added)
 		'-------------------------------------------------
-		Dim iNumTables As Integer
 		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 		Dim	iNumBufferTable as Integer
 		For iNumBufferTable = 1 to iNumTables
@@ -1683,26 +1806,6 @@ Sub BufferSearch
 	Dim sCosmeticLayer As String
 	sCosmeticLayer = WindowInfo(aWindowId(1), WIN_INFO_TABLE)
 
-	'-------------------------------------------------
-	' Find the layer number of the search table by
-	' looking through all the windows until it is
-	' found
-	'-------------------------------------------------
-	Dim iNumWindows As Integer
-	iNumWindows = UBound(aWindowId)
-	Dim iWindowNum As Integer
-	For iWindowNum = 1 to iNumWindows
-		Dim iNumTables As Integer
-		Dim iNumSearchTable as Integer
-		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
-		For iNumSearchTable = 1 to iNumTables
-			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
-				Goto EditLayer
-			End If
-		Next
-	Next
-
-EditLayer:
 	'-------------------------------------------------
 	' Save the search table (in case it has
 	' unsaved edits)
@@ -1835,13 +1938,6 @@ EditLayer:
 	' Make the cosmetic layer non-editable
 	'-------------------------------------------------
 	Set Map Window aWindowId(1) Layer 0 Editable Off
-
-	'-------------------------------------------------
-	' Turn off the search table (if it is visible)
-	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
-		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
-	End If
 
 	Call MyPrint("Buffering complete.")
 	Call MyPrint("")
@@ -2056,7 +2152,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' processing this table
 	'-------------------------------------------------
 	If iOverwriteLabels = 3 And UCase$(SelectedMap.LabelReset) = "YES" Then
-		Call MyPrint("Reseting label counter ...")
+		Call MyPrint("Resetting label counter ...")
 		iMapLabelCounter = 1
 	End If
 

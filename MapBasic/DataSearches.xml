@@ -38,6 +38,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>D:\Andy\TVERC\Data Searches\Access</value>
 	</EnquiriesDir>
 
+	<!-- The name of the table where the enquiries are stored. -->
+	<EnquiriesTable>
+		<value>Enquiries</value>
+	</EnquiriesTable>
+
 	<!-- The field name of the search reference unique value. -->
 	<RefColumn>
 		<value>EnquiryRef</value>
@@ -47,6 +52,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 	<SiteColumn>
 		<value>SiteName</value>
 	</SiteColumn>
+
+	<!-- The field name of the search reference organisation. -->
+	<OrgColumn>
+		<value>_Organisation</value>
+	</OrgColumn>
 
 	<!-- The character(s) used to replace any special characters in folder names. -->
 	<RepChar>

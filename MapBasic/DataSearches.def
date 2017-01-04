@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2016 TVERC, GiGL
+'* Copyright © 2015 - 2017 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -238,8 +238,10 @@ Global sToolTitle As String
 
 Global sDatabase As String
 Global sEnquiriesDir As String
+Global sEnquiriesTable As String
 Global sRefColumn As String
 Global sSiteColumn As String
+Global sOrgColumn As String
 Global sRepChar As String
 Global sSaveRootDir As String
 Global sSaveFolder As String
@@ -281,6 +283,7 @@ Global sCombinedSitesFormat As String
 Global sSearchValues As String
 Global sSearchRef As String
 Global sSiteName As String
+Global sOrganisation As String
 Global sShortRefNo As String
 Global sSubRefNo As String
 
@@ -309,3 +312,5 @@ Global aWindowId(99) As Integer
 Global aWindowGroup(99) As String
 Global aWindowGroupLayers(99) As Integer
 Global sGroupLayer As String
+
+Global iNumSearchTable as Integer
