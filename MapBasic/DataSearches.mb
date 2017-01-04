@@ -1402,7 +1402,7 @@ EditLayer:
 	'-------------------------------------------------
 	' Turn on FastEdit to speed up the updates
 	'-------------------------------------------------
-	Set Table sTempTable FastEdit On
+	Set Table sSearchTable FastEdit On
 
 	sCmd = "Update " + sTempTable + " Set SiteName = " + Chr$(34) + sSiteName + Chr$(34) + ", Organisation = " + Chr$(34) + sOrganisation + Chr$(34)
 	Run Command (sCmd)
@@ -1422,7 +1422,7 @@ EditLayer:
 	'-------------------------------------------------
 	' Turn off FastEdit after updates
 	'-------------------------------------------------
-	Set Table sTempTable FastEdit Off
+	Set Table sSearchTable FastEdit Off
 
 	Goto HideLayer
 
@@ -1431,12 +1431,14 @@ EditError:
 	'-------------------------------------------------
 	' Inform user of error editing layer
 	'-------------------------------------------------
-	If Err() = 448 or Err() = 683 Then
+	If Err() = 448 Then
 		Note "Unable to update " + sSearchTable + ". Someone else is currently editing the table."
-		Call MyPrint("Unable to save updates to " + sSearchTable + ".")
+		Call MyPrint("Error: Unable to save updates to " + sSearchTable + ".")
+		Call MyPrint("")
 	Else
 		Note "Error: " + str$(Err()) + ": " + Error$()
 		Call MyPrint(str$(Err()) + ": " + Error$())
+		Call MyPrint("")
 	End If
 
 	'-------------------------------------------------
@@ -1966,6 +1968,9 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	'-------------------------------------------------
 	' Create a temporary combined sites table.
 	'-------------------------------------------------
+	Call MyPrint("Creating combined sites table ...")
+	Call MyPrint("")
+	
 	Dim sCmd As String
 	sCmd = "Create Table " + Chr$(34) + sCombinedSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sCombinedSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
