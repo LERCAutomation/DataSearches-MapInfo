@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.17
+'* DataSearches v1.4.18
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - January 2017
+'* Last revised:	Andy Foy - March 2017
+'*
+'* *****************  Version 1.4.18  **************
+'* Author: Andy Foy		Date: 15/03/2017
+'* A. Ignore errors when selecting objects for export.
 '*
 '* *****************  Version 1.4.17  **************
 '* Author: Andy Foy		Date: 03/01/2017
@@ -156,7 +160,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.17"
+	sVersion = "1.4.18"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -212,6 +216,16 @@ Sub GetToolTitle
 		if iXMLLoad > 0 Then
 
 			'-------------------------------------------------
+			' Check the document loaded successfully
+			'-------------------------------------------------
+			'If bParseError = false then
+			'	
+			'	Note "Error loading XML config file 'DataSearches.xml'."
+			'	Goto CleanUp
+			'
+			'End If
+
+			'-------------------------------------------------
 			' Get a handle on the XML root node of the document
 			'-------------------------------------------------
 			hXMLRoot = MIXmlDocumentGetRootNode(hXMLDoc)
@@ -243,6 +257,10 @@ Sub GetToolTitle
 			Goto GetTitleError
 
 		End If
+
+	Else
+
+		Goto GetTitleError
 
 	End If
 
@@ -293,7 +311,17 @@ Sub GetDefaultValues
 		'-------------------------------------------------
 		Dim iXMLLoad As SmallInt
 		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + "DataSearches.xml", bParseError, FALSE, FALSE)
-		if iXMLLoad > 0 Then
+		If iXMLLoad > 0 Then
+
+			'-------------------------------------------------
+			' Check the document loaded successfully
+			'-------------------------------------------------
+			'If bParseError = false then
+			'	
+			'	Note "Error loading XML config file 'DataSearches.xml'."
+			'	Goto CleanUp
+			'
+			'End If
 
 			'-------------------------------------------------
 			' Get a handle on the XML root node of the document
@@ -529,10 +557,15 @@ Sub GetDefaultValues
 
 		Else
 
-			Note "Error opening XML config file 'DataSearches.xml'."
+			Note "Error opening XML config file 'DataSearches.xml'." + Chr$(13) + MIGetErrorMessage()
 			Goto CleanUp
 
 		End If
+		
+	Else
+
+		Note "Unable to create XML document handle." + Chr$(13) + MIGetErrorMessage()
+		Goto CleanUp
 
 	End If
 
@@ -2574,9 +2607,13 @@ GroupError:
 	Resume Next
 
 ErrorTrap:
-	Note "Error: " + str$(Err()) + ": " + Error$()
-	Call MyPrint(str$(Err()) + ": " + Error$())
-	Exit Sub
+	If Err() = 1448 Then
+		Resume Next
+	Else
+		Note "Error: " + str$(Err()) + ": " + Error$()
+		Call MyPrint(str$(Err()) + ": " + Error$())
+		Exit Sub
+	End If
 
 End Sub
 
