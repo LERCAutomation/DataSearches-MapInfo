@@ -103,15 +103,15 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)</value>
 	</BufferSymbology>
 
-  <!-- The coordinate system for mapping tables -->
-  <CoordinateSystem>
-	<value>Earth Projection 8, 79, "m", -2, 49, 0.9996012717, 400000, -100000</value>
-  </CoordinateSystem>
+	<!-- The coordinate system for mapping tables -->
+	<CoordinateSystem>
+		<value>Earth Projection 8, 79, "m", -2, 49, 0.9996012717, 400000, -100000</value>
+	</CoordinateSystem>
   
-  <!-- The symbology for the search area features -->
-  <SearchAreaSymbology>
-	<value>Global Pen (2,2,0)   Global Brush (15,32896)   Global Line (2,2,16711935)   Global Symbol (35,16711935,12)</value>
-  </SearchAreaSymbology>
+	<!-- The symbology for the search area features -->
+	<SearchAreaSymbology>
+		<value>Global Pen (2,2,0)   Global Brush (15,32896)   Global Line (2,2,16711935)   Global Symbol (35,16711935,12)</value>
+	</SearchAreaSymbology>
 
 	<!-- The maximum number of records what will be extracted in any one search extract -->
 	<RecMax>
@@ -148,7 +148,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>No;Yes - Reset Counter;Yes - Increment Counter</value>
 	</OverwriteLabelOptions>
 
-	<!-- Whether any map label columns should be overwritten -->
+	<!-- Whether any map label columns should be overwritten. Leave blank to hide option in dialog. -->
 	<DefaultOverwriteLabels>
 		<value>3</value>
 	</DefaultOverwriteLabels>
@@ -158,7 +158,7 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>None;Append to existing table;Overwrite existing table</value>
 	</CombinedSitesOptions>
 
-	<!-- Whether a combined sites table should be created -->
+	<!-- Whether a combined sites table should be created. Leave blank to hide option in dialog. -->
 	<DefaultCombinedSitesTable>
 		<value>2</value>
 	</DefaultCombinedSitesTable>
