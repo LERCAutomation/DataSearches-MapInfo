@@ -65,6 +65,7 @@ Type MapDetails
 	ExportCriteria As String
 	KeyColumn As String
 	Format As String
+	Macro As String
 	Keep As String
 	Warning As String
 	Preselect As String
@@ -242,6 +243,7 @@ Global sEnquiriesTable As String
 Global sRefColumn As String
 Global sSiteColumn As String
 Global sOrgColumn As String
+Global sRequireSiteName As String
 Global sRepChar As String
 Global sSaveRootDir As String
 Global sSaveFolder As String
@@ -260,8 +262,10 @@ Global sBufferSymbology As String
 Global sCoordSys As String
 
 Global sSearchTable As String
-Global sSearchColumn As String
 Global sAggregateColumns As String
+Global sUpdateTable As String
+Global sKeepBufferArea As String
+Global sKeepSearchArea As String
 
 Global sAddSelectedTablesOptions As String
 Global iDefaultAddSelectedTables As SmallInt
@@ -299,6 +303,9 @@ Global iMapTable As Integer
 Global iRecMax As Integer
 Global bClearLog As Logical
 Global iMapLabelCounter As Integer
+Global bKeepBufferArea As Logical
+Global bKeepSearchArea As Logical
+Global bRequireSiteName As Logical
 
 Global sBufferSize As String
 Global sBufferUnit As String

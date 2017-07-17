@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.18
+'* DataSearches v1.4.20
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,23 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - March 2017
+'* Last revised:	Andy Foy - June 2017
+'*
+'* *****************  Version 1.4.20  **************
+'* Author: Andy Foy		Date: 15/06/2017
+'* A. Enable variables to be used within file name
+'*    suffixes and prefixes in the XML file.
+'* B. Enable site name to be required or optional.
+'*
+'* *****************  Version 1.4.19  **************
+'* Author: Andy Foy		Date: 17/05/2017
+'* A. Only update site name and/or organisation in
+'*    search layer if required.
+'* B. Remove hard-coded site name and organisation
+'*    column names.
+'* C. Add option to keep buffer and search areas.
+'* D. Add option to trigger macro/script to format
+'*    outputs.
 '*
 '* *****************  Version 1.4.18  **************
 '* Author: Andy Foy		Date: 15/03/2017
@@ -58,7 +74,7 @@
 '* B. Reset label numbers to 1 if specified on layer
 '*    in XML.
 '* C. Hide search layer before searching.
-'* D. Enable option to supress warning for layers
+'* D. Enable option to suppress warning for layers
 '*    missing on tool load.
 '*
 '* *****************  Version 1.4.12  **************
@@ -160,7 +176,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.18"
+	sVersion = "1.4.20"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -357,6 +373,15 @@ Sub GetDefaultValues
 					' The field name of the search reference organisation
 					sOrgColumn = GetSingleNodeValue(hXMLNode, "OrgColumn")
 
+					' Whether a site name must be entered (or retrieved from the database)
+					sRequireSiteName = GetSingleNodeValue(hXMLNode, "RequireSiteName")
+					If UCase$(sRequireSiteName) = "N"
+					OR UCase$(sRequireSiteName) = "NO" Then
+						bRequireSiteName = False
+					Else
+						bRequireSiteName = True
+					End If
+
 					' The character(s) used to replace any special characters in folder names
 					sRepChar = GetSingleNodeValue(hXMLNode, "RepChar")
 
@@ -396,11 +421,29 @@ Sub GetDefaultValues
 					' Name of the table containing the search sites
 					sSearchTable = GetSingleNodeValue(hXMLNode, "SearchTable")
 
-					' Name of the column in the search table used to store the search reference
-					sSearchColumn = GetSingleNodeValue(hXMLNode, "SearchColumn")
-
 					' Column values used when buffering the search area in the search table
 					sAggregateColumns = GetSingleNodeValue(hXMLNode, "AggregateColumns")
+
+					' Whether the search table should be updated
+					sUpdateTable = GetSingleNodeValue(hXMLNode, "UpdateTable")
+					
+					' Whether the buffer area should be kept (and added to the map)
+					sKeepBufferArea = GetSingleNodeValue(hXMLNode, "KeepBufferArea")
+					If UCase$(sKeepBufferArea) = "N"
+					OR UCase$(sKeepBufferArea) = "NO" Then
+						bKeepBufferArea = False
+					Else
+						bKeepBufferArea = True
+					End If
+
+					' Whether the search area should be kept (and added to the map)
+					sKeepSearchArea = GetSingleNodeValue(hXMLNode, "KeepSearchArea")
+					If UCase$(sKeepSearchArea) = "N"
+					OR UCase$(sKeepSearchArea) = "NO" Then
+						bKeepSearchArea = False
+					Else
+						bKeepSearchArea = True
+					End If
 
 					' Options for adding the selected tables to the map window
 					sAddSelectedTablesOptions = GetSingleNodeValue(hXMLNode, "AddSelectedTablesOptions")
@@ -515,6 +558,9 @@ Sub GetDefaultValues
 
 						' Format required for the extract of the map table
 						AllMaps(i).Format = GetSingleNodeValue(hXMLFilesNode, "Format")
+
+						' Macro/Script to call to format the extract of the map table
+						AllMaps(i).Macro = GetSingleNodeValue(hXMLFilesNode, "Macro")
 
 						' Whether the layer can be retained after exporting
 						AllMaps(i).Keep = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
@@ -833,6 +879,7 @@ Sub DialogSetup
 			OpenMaps(j).ExportCriteria = AllMaps(i).ExportCriteria
 			OpenMaps(j).KeyColumn = AllMaps(i).KeyColumn
 			OpenMaps(j).Format = AllMaps(i).Format
+			OpenMaps(j).Macro = AllMaps(i).Macro
 			OpenMaps(j).Keep = AllMaps(i).Keep
 			OpenMaps(j).Preselect = AllMaps(i).Preselect
 			OpenMaps(j).Overwrite = AllMaps(i).Overwrite
@@ -955,7 +1002,10 @@ Sub GetSiteName
 	' Get the site name from the database if it has
 	' a path/name
 	'-------------------------------------------------
-	If sDatabase <> "" and sEnquiriesDir <> "" and sEnquiriesTable <> "" Then
+	If sDatabase <> "" 
+	And sEnquiriesDir <> ""
+	And sEnquiriesTable <> ""
+	And bRequireSiteName = True Then
 
 		'-------------------------------------------------
 		' Check a search ref has been entered
@@ -1018,10 +1068,22 @@ RegisterTable:
 		'-------------------------------------------------
 		' Select the site name and organisation for the enquiry
 		'-------------------------------------------------
-		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 Then
-			sCmd = "Select " + sSiteColumn + ", " + sOrgColumn + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
+		Dim sSiteCol As String, sOrgCol As String
+		If sSiteColumn = "" Then
+			sSiteCol = Chr$(34) + Chr$(34) + " " + Chr$(34) + "SiteName" + Chr$(34)
 		Else
-			sCmd = "Select " + sSiteColumn + ", " + sOrgColumn + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
+			sSiteCol = sSiteColumn
+		End If
+		If sOrgColumn = "" Then
+			sOrgCol = Chr$(34) + Chr$(34) + " " + Chr$(34) + "Organisation" + Chr$(34)
+		Else
+			sOrgCol = sOrgColumn
+		End If
+
+		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 Then
+			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
+		Else
+			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
 		
@@ -1108,7 +1170,7 @@ Sub CheckSelection
 	' Check if the user has entered a site name, or
 	' if it has been (or can be) found in the database
 	'-------------------------------------------------
-	If sSiteName = "" Then
+	If sSiteName = "" And bRequireSiteName = True Then
 		If sDatabase = "" Then
 			Note "Error: No site name has been entered!"
 		Else
@@ -1153,6 +1215,7 @@ Sub CheckSelection
 		SelectedMaps(iExtractTot).ExportCriteria = OpenMaps(iMapTable).ExportCriteria
 		SelectedMaps(iExtractTot).KeyColumn = OpenMaps(iMapTable).KeyColumn
 		SelectedMaps(iExtractTot).Format = OpenMaps(iMapTable).Format
+		SelectedMaps(iExtractTot).Macro = OpenMaps(iMapTable).Macro
 		SelectedMaps(iExtractTot).Keep = OpenMaps(iMapTable).Keep
 		SelectedMaps(iExtractTot).Overwrite = OpenMaps(iMapTable).Overwrite
 		SelectedMaps(iExtractTot).LabelColumn = OpenMaps(iMapTable).LabelColumn
@@ -1195,7 +1258,8 @@ Sub CheckSelection
 	sBufferUnit = aBufferAbbrevs(iBufferInt)
 
 	'-------------------------------------------------
-    ' Remove all characters except numbers and internal spaces from Reference Number
+    ' Remove all characters except numbers, internal spaces
+    ' and the replacement character from Reference Number
 	'-------------------------------------------------
     sShortRefNo = StringReplace(sSearchRef, "/", sRepChar)
     sShortRefNo = LTrim$(RTrim$(KeepNumbersAndSpaces(sShortRefNo, sRepChar)))
@@ -1203,13 +1267,21 @@ Sub CheckSelection
 	Dim iLastPos As Integer, iNextPos As Integer
 	iLastPos = 1
 
+	'-------------------------------------------------
+	' Skip looking for the replacement character if it empty
+	'-------------------------------------------------
+	If sRepChar = "" Then
+		Goto SetSubRef
+	End If
+
 FindNextPos:
 	iNextPos = Instr(iLastPos, sShortRefNo, sRepChar)
     If iNextPos > 0 Then
     	iLastPos = iNextPos + 1
-    	goto FindNextPos
+    	Goto FindNextPos
     End If
 
+SetSubRef:
 	If iLastPos > 1 Then
 	    sSubRefNo = Mid$(sShortRefNo, iLastPos, 99)
     Else
@@ -1411,6 +1483,11 @@ FindNextPos:
 	Next
 
 EditLayer:
+	If UCase$(sUpdateTable) = "N"
+	OR UCase$(sUpdateTable) = "NO" Then
+		Goto HideLayer
+	End If
+
 	'-------------------------------------------------
 	' Ignore any error trying to edit the table
 	'-------------------------------------------------
@@ -1429,7 +1506,7 @@ EditLayer:
 	Dim sTempTable As String
 	sTempTable = "SearchTemp"
 
-	sCmd = "Select * From " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable + " NoSelect"
+	sCmd = "Select * From " + sSearchTable + " Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable + " NoSelect"
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -1437,8 +1514,14 @@ EditLayer:
 	'-------------------------------------------------
 	Set Table sSearchTable FastEdit On
 
-	sCmd = "Update " + sTempTable + " Set SiteName = " + Chr$(34) + sSiteName + Chr$(34) + ", Organisation = " + Chr$(34) + sOrganisation + Chr$(34)
-	Run Command (sCmd)
+	If sSiteColumn <> "" Then
+		sCmd = "Update " + sTempTable + " Set " + sSiteColumn + " = " + Chr$(34) + sSiteName + Chr$(34)
+		Run Command (sCmd)
+	End If
+	If sOrgColumn <> "" Then
+		sCmd = "Update " + sTempTable + " Set " + sOrgColumn + " = " + Chr$(34) + sOrganisation + Chr$(34)
+		Run Command (sCmd)
+	End If
 
 	'-------------------------------------------------
 	' Save the search table changes
@@ -1515,7 +1598,15 @@ HideLayer:
 	If iCombinedSitesTable > 1 Then
 
 		Dim sSitesTable As String
-		sSitesTable = sSubRefNo + sCombinedSitesSuffix
+		sSitesTable = sCombinedSitesSuffix
+	    sSitesTable = StringReplace(sSitesTable, "%ref%", sSearchRef)
+	    sSitesTable = StringReplace(sSitesTable, "%shortref%", sShortRefNo)
+	    sSitesTable = StringReplace(sSitesTable, "%subref%", sSubRefNo)
+	    sSitesTable = StringReplace(sSitesTable, "%sitename%", sSiteName)
+	    sSitesTable = LTrim$(RTrim$(ReplaceSpecialChars(sSitesTable, sRepChar)))
+	    If sSitesTable = sCombinedSitesSuffix Then
+	    	sSitesTable = sSubRefNo + sCombinedSitesSuffix
+	    End If
 	
 		'-------------------------------------------------
 		' If a combined sites table is to be appended to
@@ -1668,19 +1759,37 @@ HideLayer:
 	End If
 
 	'-------------------------------------------------
-	' Rename the local buffer table
+	' Keep/Remove the local buffer table
 	'-------------------------------------------------
-	'Call MyPrint("Renaming buffer table ...")
-	Close Table sBufferTable
+	If bKeepBufferArea = False Then
+		Call MyPrint("Deleting buffer table ...")
+		Drop Table sBufferTable
+	Else
+		Call MyPrint("Renaming buffer table ...")
+		Close Table sBufferTable
+	
+		Dim sBufferString As String
+		sBufferString = LTrim$(RTrim$(StringReplace(sBufferSize, ".", "_")))
+	
+		Dim sLocalTable As String
+		sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferString + sBufferUnit
+	
+		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
+		Run Command (sCmd)
+	End If
 
-	Dim sBufferString As String
-	sBufferString = LTrim$(RTrim$(StringReplace(sBufferSize, ".", "_")))
+	'-------------------------------------------------
+	' Keep/Remove the search area table
+	'-------------------------------------------------
+	If bKeepSearchArea = False Then
+		Call MyPrint("Deleting search area table ...")
+		Drop Table sSearchAreaTable
+	End If
 
-	Dim sLocalTable As String
-	sLocalTable = "Buffer_" + sSubRefNo + "_" + sBufferString + sBufferUnit
-
-	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalTable + ".tab" + Chr$(34) + " As " + sLocalTable
-	Run Command (sCmd)
+	If bKeepBufferArea = False
+	And bKeepSearchArea = False Then
+		Goto ProcessComplete
+	End If
 
 	'-------------------------------------------------
 	' Add the search area and buffer tables to all
@@ -1702,73 +1811,82 @@ HideLayer:
 			aWindowGroup(iWindowNum) = sGroupLayer
 		End If
 
-		'-------------------------------------------------
-		' Add the search area table to the map window
-		'-------------------------------------------------
-		Call MyPrint("Adding search area layer '" + sSearchAreaTable + "' to map window " + iWindowNum + " ...")
-
-		If aWindowGroup(iWindowNum) = sGroupLayer Then
-			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
-			Run Command (sCmd)
-		Else
-			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable
-			Run Command (sCmd)
-		End If
-
-		'-------------------------------------------------
-		' Get the layer number of the search area table
-		' (just added)
-		'-------------------------------------------------
-		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
-		Dim	iNumBufferTable as Integer
-		For iNumBufferTable = 1 to iNumTables
-			If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sSearchAreaTable Then
-				Exit For
+		If bKeepSearchArea = True Then
+		
+			'-------------------------------------------------
+			' Add the search area table to the map window
+			'-------------------------------------------------
+			Call MyPrint("Adding search area layer '" + sSearchAreaTable + "' to map window " + iWindowNum + " ...")
+	
+			If aWindowGroup(iWindowNum) = sGroupLayer Then
+				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+				Run Command (sCmd)
+			Else
+				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable
+				Run Command (sCmd)
 			End If
-		Next
-
-		'-------------------------------------------------
-		' Set the symbology for the search area table
-		'-------------------------------------------------
-		sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sSearchAreaSymbology
-		Run Command (sCmd)
-
-		'-------------------------------------------------
-		' Add the buffer table to the map window
-		'-------------------------------------------------
-		Call MyPrint("Adding buffer area layer '" + sLocalTable + "' to map window " + iWindowNum + " ...")
-
-		If aWindowGroup(iWindowNum) = sGroupLayer Then
-			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+	
+			'-------------------------------------------------
+			' Get the layer number of the search area table
+			' (just added)
+			'-------------------------------------------------
+			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+			Dim	iNumBufferTable as Integer
+			For iNumBufferTable = 1 to iNumTables
+				If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sSearchAreaTable Then
+					Exit For
+				End If
+			Next
+	
+			'-------------------------------------------------
+			' Set the symbology for the search area table
+			'-------------------------------------------------
+			sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sSearchAreaSymbology
 			Run Command (sCmd)
-		Else
-			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable
-			Run Command (sCmd)
+
 		End If
-
-		'-------------------------------------------------
-		' Get the layer number of the buffer table (just added)
-		'-------------------------------------------------
-		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
-		For iNumBufferTable = 1 to iNumTables
-			If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sLocalTable Then
-				Exit For
+	
+		If bKeepBufferArea = True Then
+			
+			'-------------------------------------------------
+			' Add the buffer table to the map window
+			'-------------------------------------------------
+			Call MyPrint("Adding buffer area layer '" + sLocalTable + "' to map window " + iWindowNum + " ...")
+	
+			If aWindowGroup(iWindowNum) = sGroupLayer Then
+				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+				Run Command (sCmd)
+			Else
+				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalTable
+				Run Command (sCmd)
 			End If
-		Next
-
-		'-------------------------------------------------
-		' Set the symbology for the local buffer table
-		'-------------------------------------------------
-		sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sBufferSymbology
-		Run Command (sCmd)
-
-		'-------------------------------------------------
-		' Zoom to the local buffer table
-		'-------------------------------------------------
-		Set Map Window aWindowId(iWindowNum) Zoom Entire Layer iNumBufferTable
+	
+			'-------------------------------------------------
+			' Get the layer number of the buffer table (just added)
+			'-------------------------------------------------
+			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+			For iNumBufferTable = 1 to iNumTables
+				If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sLocalTable Then
+					Exit For
+				End If
+			Next
+	
+			'-------------------------------------------------
+			' Set the symbology for the local buffer table
+			'-------------------------------------------------
+			sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sBufferSymbology
+			Run Command (sCmd)
+	
+			'-------------------------------------------------
+			' Zoom to the local buffer table
+			'-------------------------------------------------
+			Set Map Window aWindowId(iWindowNum) Zoom Entire Layer iNumBufferTable
+		
+		End If
 
 	Next
 
+ProcessComplete:
 	'-------------------------------------------------
 	' Don't trap any errors
 	'-------------------------------------------------
@@ -1874,7 +1992,7 @@ Sub BufferSearch
 	'-------------------------------------------------
 	Call MyPrint("Selecting reference feature(s) ...")
 	Dim sCmd as String
-	sCmd = "Select * from " + sSearchTable + " Where " + sSearchColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
+	sCmd = "Select * from " + sSearchTable + " Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -1900,6 +2018,16 @@ Sub BufferSearch
 	Call MyPrint("Saving search area table ...")
 	sCmd = "Commit Table " + sSearchAreaTable + " As " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Close and re-open the search area table (so that
+	' if can be deleted later is required)
+	'-------------------------------------------------
+	If TableIsOpen(sSearchAreaTable) Then
+		Close Table sSearchAreaTable
+		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " As " + sSearchAreaTable
+		Run Command (sCmd)
+	End If
 
 	'-------------------------------------------------
 	' Make the cosmetic layer editable
@@ -2089,6 +2217,7 @@ Sub ProcessExtracts
 	SelectedMap.ExportCriteria = SelectedMaps(iExtractCnt).ExportCriteria
 	SelectedMap.KeyColumn = SelectedMaps(iExtractCnt).KeyColumn
 	SelectedMap.Format = SelectedMaps(iExtractCnt).Format
+	SelectedMap.Macro = SelectedMaps(iExtractCnt).Macro
 	SelectedMap.Keep = SelectedMaps(iExtractCnt).Keep
 	SelectedMap.Overwrite = SelectedMaps(iExtractCnt).Overwrite
 	SelectedMap.LabelColumn = SelectedMaps(iExtractCnt).LabelColumn
@@ -2149,9 +2278,27 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Setup the local table name and temp name
 	'-------------------------------------------------
 	Dim sLocalName As String, sExportName As String, sExportTemp As String
-	sLocalName = SelectedMap.Prefix + "_" + sSubRefNo
-	sExportName = sSubRefNo + SelectedMap.Suffix
-	sExportTemp = "X" + SelectedMap.Suffix
+	sLocalName = SelectedMap.Prefix
+    sLocalName = StringReplace(sLocalName, "%ref%", sSearchRef)
+    sLocalName = StringReplace(sLocalName, "%shortref%", sShortRefNo)
+    sLocalName = StringReplace(sLocalName, "%subref%", sSubRefNo)
+    sLocalName = StringReplace(sLocalName, "%sitename%", sSiteName)
+    sLocalName = LTrim$(RTrim$(ReplaceSpecialChars(sLocalName, sRepChar)))
+    If sLocalName = SelectedMap.Prefix Then
+    	sLocalName = SelectedMap.Prefix + "_" + sSubRefNo
+    End If
+
+	sExportName = SelectedMap.Suffix
+    sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
+    sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
+    sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
+    sExportName = StringReplace(sExportName, "%sitename%", sSiteName)
+    sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar)))
+    If sExportName = SelectedMap.Suffix Then
+    	sExportName = sSubRefNo + SelectedMap.Suffix
+    End If
+
+	sExportTemp = "X" + sExportName
 
 	Dim sSelectName As String
 	sSelectName = "Select_Table"
@@ -2410,6 +2557,16 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' Format the export file (if required)
+	'-------------------------------------------------
+	If SelectedMap.Macro <> "" Then
+		Call MyPrint("Formatting the export file ...")
+		sCmd = "Run Program " + Chr$(34) + "cscript.exe " +  + Chr$(34) + Chr$(34) + SelectedMap.Macro + Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sLocalPath
+			+ Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sExportName + "." + SelectedMap.Format + Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sExportName + ".xlsx" + Chr$(34) + Chr$(34) + Chr$(34)
+		Run Command (sCmd)
+	End If
+
+	'-------------------------------------------------
 	' Close the temporary table
 	'-------------------------------------------------
 	If TableIsOpen(sExportTemp) Then
@@ -2425,7 +2582,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	Else
 		Close Table sSelectName
 	End If
-		
+	
 	'-------------------------------------------------
 	' Add the local table to the map if required
 	'-------------------------------------------------
