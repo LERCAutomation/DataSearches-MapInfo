@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2017 TVERC, GiGL
+'* Copyright © 2015 - 2018 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -57,9 +57,9 @@ End Type
 
 Type MapDetails
 	Node As String
-	Name As String
-	Prefix As String
-	Suffix As String
+	TableName As String
+	GISOutputName As String
+	TableOutputName As String
 	Columns As String
 	SelectCriteria As String
 	ExportCriteria As String
@@ -281,7 +281,7 @@ Global iCombinedSitesTable As SmallInt
 
 Global sCombinedSitesTable As String
 Global sCombinedSitesColumns As String
-Global sCombinedSitesSuffix As String
+Global sCombinedSitesOutputName As String
 Global sCombinedSitesFormat As String
 
 Global sSearchValues As String

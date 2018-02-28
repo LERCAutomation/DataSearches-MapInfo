@@ -3,7 +3,7 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2017 TVERC, GiGL
+'* Copyright © 2015 - 2018 TVERC, GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.20
+'* DataSearches v1.4.22
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,16 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - June 2017
+'* Last revised:	Andy Foy - February 2018
+'*
+'* *****************  Version 1.4.22  **************
+'* Author: Andy Foy		Date: 20/02/2018
+'* A. Fix bug then local file names too long.
+'*
+'* *****************  Version 1.4.21  **************
+'* Author: Andy Foy		Date: 24/01/2018
+'* A. Update XML node names to make them clearer and
+'*    match ArcGIS version.
 '*
 '* *****************  Version 1.4.20  **************
 '* Author: Andy Foy		Date: 15/06/2017
@@ -176,7 +185,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.20"
+	sVersion = "1.4.22"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -493,8 +502,8 @@ Sub GetDefaultValues
 						' Columns of the combined sites table
 						sCombinedSitesColumns = GetSingleNodeValue(hXMLSubNode, "Columns")
 						
-						' Suffix of the combined sites table
-						sCombinedSitesSuffix = GetSingleNodeValue(hXMLSubNode, "Suffix")
+						' Table output name of the combined sites table
+						sCombinedSitesOutputName = GetSingleNodeValue(hXMLSubNode, "TableOutputName")
 						
 						' Format of the combined sites table
 						sCombinedSitesFormat = GetSingleNodeValue(hXMLSubNode, "Format")
@@ -536,13 +545,13 @@ Sub GetDefaultValues
 						AllMaps(i).Node = GetNodeName(hXMLFilesNode)
 
 						' Local MapInfo name of the Map table
-						AllMaps(i).Name = GetSingleNodeValue(hXMLFilesNode, "TableName")
+						AllMaps(i).TableName = GetSingleNodeValue(hXMLFilesNode, "TableName")
 
-						' Prefix applied to map table when saving
-						AllMaps(i).Prefix = GetSingleNodeValue(hXMLFilesNode, "Prefix")
+						' GIS output name applied to map table when saving
+						AllMaps(i).GISOutputName = GetSingleNodeValue(hXMLFilesNode, "GISOutputName")
 
-						' Suffix applied to export file when saving
-						AllMaps(i).Suffix = GetSingleNodeValue(hXMLFilesNode, "Suffix")
+						' Table output name applied to export file when saving
+						AllMaps(i).TableOutputName = GetSingleNodeValue(hXMLFilesNode, "TableOutputName")
 
 						' SQL clause used to retrieve the required rows from the map table
 						AllMaps(i).Columns = GetSingleNodeValue(hXMLFilesNode, "Columns")
@@ -867,13 +876,13 @@ Sub DialogSetup
 		'-------------------------------------------------
 		' Concatenate all the Map tables into an array
 		'-------------------------------------------------
-		If TableIsOpen(AllMaps(i).Name) Then
+		If TableIsOpen(AllMaps(i).TableName) Then
 			j = j + 1
 
 			OpenMaps(j).Node = StringReplace(AllMaps(i).Node, "_", " ")
-			OpenMaps(j).Name = AllMaps(i).Name
-			OpenMaps(j).Prefix = AllMaps(i).Prefix
-			OpenMaps(j).Suffix = AllMaps(i).Suffix
+			OpenMaps(j).TableName = AllMaps(i).TableName
+			OpenMaps(j).GISOutputName = AllMaps(i).GISOutputName
+			OpenMaps(j).TableOutputName = AllMaps(i).TableOutputName
 			OpenMaps(j).Columns = AllMaps(i).Columns
 			OpenMaps(j).SelectCriteria = AllMaps(i).SelectCriteria
 			OpenMaps(j).ExportCriteria = AllMaps(i).ExportCriteria
@@ -896,7 +905,7 @@ Sub DialogSetup
 			' warning is not to be suppressed.
 			'-------------------------------------------------
 			If UCase$(AllMaps(i).Warning) <> "NO" Then
-				sClosedTables = sClosedTables + Chr$(13) + AllMaps(i).Name
+				sClosedTables = sClosedTables + Chr$(13) + AllMaps(i).TableName
 				iClosedCount = iClosedCount + 1
 			End If
 		End If
@@ -1207,9 +1216,9 @@ Sub CheckSelection
 		' Store the selected map details
 		'-------------------------------------------------
 		SelectedMaps(iExtractTot).Node = OpenMaps(iMapTable).Node
-		SelectedMaps(iExtractTot).Name = OpenMaps(iMapTable).Name
-		SelectedMaps(iExtractTot).Prefix = OpenMaps(iMapTable).Prefix
-		SelectedMaps(iExtractTot).Suffix = OpenMaps(iMapTable).Suffix
+		SelectedMaps(iExtractTot).TableName = OpenMaps(iMapTable).TableName
+		SelectedMaps(iExtractTot).GISOutputName = OpenMaps(iMapTable).GISOutputName
+		SelectedMaps(iExtractTot).TableOutputName = OpenMaps(iMapTable).TableOutputName
 		SelectedMaps(iExtractTot).Columns = OpenMaps(iMapTable).Columns
 		SelectedMaps(iExtractTot).SelectCriteria = OpenMaps(iMapTable).SelectCriteria
 		SelectedMaps(iExtractTot).ExportCriteria = OpenMaps(iMapTable).ExportCriteria
@@ -1488,6 +1497,8 @@ EditLayer:
 		Goto HideLayer
 	End If
 
+	Call MyPrint("Updating table " + sSearchTable + " ...")
+
 	'-------------------------------------------------
 	' Ignore any error trying to edit the table
 	'-------------------------------------------------
@@ -1598,15 +1609,16 @@ HideLayer:
 	If iCombinedSitesTable > 1 Then
 
 		Dim sSitesTable As String
-		sSitesTable = sCombinedSitesSuffix
+		sSitesTable = sCombinedSitesOutputName
 	    sSitesTable = StringReplace(sSitesTable, "%ref%", sSearchRef)
 	    sSitesTable = StringReplace(sSitesTable, "%shortref%", sShortRefNo)
 	    sSitesTable = StringReplace(sSitesTable, "%subref%", sSubRefNo)
 	    sSitesTable = StringReplace(sSitesTable, "%sitename%", sSiteName)
 	    sSitesTable = LTrim$(RTrim$(ReplaceSpecialChars(sSitesTable, sRepChar)))
-	    If sSitesTable = sCombinedSitesSuffix Then
-	    	sSitesTable = sSubRefNo + sCombinedSitesSuffix
-	    End If
+	    
+	    'If sSitesTable = sCombinedSitesOutputName Then
+	    '	sSitesTable = sSubRefNo + sCombinedSitesOutputName
+	    'End If
 	
 		'-------------------------------------------------
 		' If a combined sites table is to be appended to
@@ -2209,9 +2221,9 @@ Sub ProcessExtracts
 
 	Dim SelectedMap As MapDetails
 	SelectedMap.Node = SelectedMaps(iExtractCnt).Node
-	SelectedMap.Name = SelectedMaps(iExtractCnt).Name
-	SelectedMap.Prefix = SelectedMaps(iExtractCnt).Prefix
-	SelectedMap.Suffix = SelectedMaps(iExtractCnt).Suffix
+	SelectedMap.TableName = SelectedMaps(iExtractCnt).TableName
+	SelectedMap.GISOutputName = SelectedMaps(iExtractCnt).GISOutputName
+	SelectedMap.TableOutputName = SelectedMaps(iExtractCnt).TableOutputName
 	SelectedMap.Columns = SelectedMaps(iExtractCnt).Columns
 	SelectedMap.SelectCriteria = SelectedMaps(iExtractCnt).SelectCriteria
 	SelectedMap.ExportCriteria = SelectedMaps(iExtractCnt).ExportCriteria
@@ -2277,26 +2289,30 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	'-------------------------------------------------
 	' Setup the local table name and temp name
 	'-------------------------------------------------
-	Dim sLocalName As String, sExportName As String, sExportTemp As String
-	sLocalName = SelectedMap.Prefix
-    sLocalName = StringReplace(sLocalName, "%ref%", sSearchRef)
-    sLocalName = StringReplace(sLocalName, "%shortref%", sShortRefNo)
-    sLocalName = StringReplace(sLocalName, "%subref%", sSubRefNo)
-    sLocalName = StringReplace(sLocalName, "%sitename%", sSiteName)
-    sLocalName = LTrim$(RTrim$(ReplaceSpecialChars(sLocalName, sRepChar)))
-    If sLocalName = SelectedMap.Prefix Then
-    	sLocalName = SelectedMap.Prefix + "_" + sSubRefNo
+	Dim sLocalName As String, sOutputName as String, sExportName As String, sExportTemp As String
+	sOutputName = SelectedMap.GISOutputName
+    sOutputName = StringReplace(sOutputName, "%ref%", sSearchRef)
+    sOutputName = StringReplace(sOutputName, "%shortref%", sShortRefNo)
+    sOutputName = StringReplace(sOutputName, "%subref%", sSubRefNo)
+    sOutputName = StringReplace(sOutputName, "%sitename%", sSiteName)
+    sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar)))
+    
+    If Len(SelectedMap.TableName + "_" + sSubRefNo) > 30 Then
+	    sLocalName = Left$(SelectedMap.TableName, 29 - Len(sSubRefNo)) + "_" + sSubRefNo
+    Else
+    	sLocalName = SelectedMap.TableName + "_" + sSubRefNo
     End If
 
-	sExportName = SelectedMap.Suffix
+	sExportName = SelectedMap.TableOutputName
     sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
     sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
     sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
     sExportName = StringReplace(sExportName, "%sitename%", sSiteName)
     sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar)))
-    If sExportName = SelectedMap.Suffix Then
-    	sExportName = sSubRefNo + SelectedMap.Suffix
-    End If
+    
+    'If sExportName = SelectedMap.TableOutputName Then
+    '	sExportName = sSubRefNo + SelectedMap.TableOutputName
+    'End If
 
 	sExportTemp = "X" + sExportName
 
@@ -2317,9 +2333,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Close Table sSelectName
 	End If
 
-	If TableIsOpen(sExportName) Then
+	If TableIsOpen(sExportTemp) Then
 		Call MyPrint("Closing export table ...")
-		Close Table sExportName
+		Close Table sExportTemp
 	End If
 
 	'-------------------------------------------------
@@ -2349,9 +2365,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	Call MyPrint("Executing spatial selection ...")
 	Dim sCmd as String
 	If SelectedMap.KeyColumn = "" Then
-		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Into " + sSelectName
+		sCmd = "Select * From " + SelectedMap.TableName + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Into " + sSelectName
 	Else
-		sCmd = "Select * From " + SelectedMap.Name + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Order By " + SelectedMap.KeyColumn + " Into " + sSelectName
+		sCmd = "Select * From " + SelectedMap.TableName + " Where obj Intersects Any (Select Obj From " + sBufferTable + ")" + sSelectCriteria + " Order By " + SelectedMap.KeyColumn + " Into " + sSelectName
 	End If
 	Run Command (sCmd)
 
@@ -2387,7 +2403,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Save the local table
 	'-------------------------------------------------
 	Call MyPrint("Saving local table ...")
-	sCmd = "Commit Table " + sSelectName + " As " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	sCmd = "Commit Table " + sSelectName + " As " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2400,7 +2416,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' to get locked somehow and won't drop)
 	'-------------------------------------------------
 	Close Table sSelectName
-	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " As " + sSelectName
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sSelectName
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2592,7 +2608,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Re-open the selection table with the correct
 		' name
 		'-------------------------------------------------
-		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sLocalName + ".tab" + Chr$(34) + " As " + sLocalName
+		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sLocalName
 		Run Command (sCmd)
 	
 		'-------------------------------------------------
@@ -2613,7 +2629,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			Dim	iNumTable As Integer, bMapFound As Logical
 			bMapFound = False
 			For iNumTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.Name Then
+				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.TableName Then
 					bMapFound = True
 					Exit For
 				End If

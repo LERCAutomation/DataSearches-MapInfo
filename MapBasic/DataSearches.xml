@@ -23,19 +23,19 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 <configuration>
 <DataSearches>
 
-	<!-- The title to use for the program in the Tool menu -->
+	<!-- The title to use for the program in the Tool menu. -->
 	<ToolTitle>
 		<value>Data Searches</value>
 	</ToolTitle>
 
 	<!-- The database where all the data search details are stored. -->
 	<Database>
-		<value>D:\Andy\TVERC\Data Searches\Access\TVERC Data Searches v3.52.mdb</value>
+		<value>I:\Delivery\Customers\DataSearches\Access\GiGL Data Searches.mdb</value>
 	</Database>
 
 	<!-- The file location where the enquiries table will be stored. -->
 	<EnquiriesDir>
-		<value>D:\Andy\TVERC\Data Searches\Access</value>
+		<value>I:\Delivery\Customers\DataSearches\Access</value>
 	</EnquiriesDir>
 
 	<!-- The name of the table where the enquiries are stored. -->
@@ -45,152 +45,252 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 
 	<!-- The field name of the search reference unique value. -->
 	<RefColumn>
-		<value>EnquiryRef</value>
+		<value>EnquiryID</value>
 	</RefColumn>
 
-	<!-- The field name of the search reference site name. -->
+	<!-- The field name of the search reference site name. Leave blank to ignore column. -->
 	<SiteColumn>
-		<value>SiteName</value>
+		<value>Site_Name</value>
 	</SiteColumn>
 
-	<!-- The field name of the search reference organisation. -->
+	<!-- The field name of the search reference organisation. Leave blank to ignore column. -->
 	<OrgColumn>
-		<value>_Organisation</value>
+		<value></value>
 	</OrgColumn>
+
+	<!-- Whether a site name must be entered (or retrieved from the database). -->
+	<RequireSiteName>
+		<value>No</value>
+	</RequireSiteName>
 
 	<!-- The character(s) used to replace any special characters in folder names. -->
 	<RepChar>
-		<value>.</value>
+		<value> </value>
 	</RepChar>
 
 	<!-- The file location where all data search folders are stored. -->
 	<SaveRootDir>
-		<value>D:\Andy\TVERC\Data Searches\Reports</value>
+		<value>I:\Delivery\Customers\DataSearches\Reports</value>
 	</SaveRootDir>
 
 	<!-- The folder where the report will be saved. -->
 	<SaveFolder>
-		<value>%shortref% %sitename%</value>
+		<value>%subref%</value>
 	</SaveFolder>
 
-	<!-- The sub-folder where all data search extracts will be created -->
+	<!-- The sub-folder where all data search extracts will be created. -->
 	<GISFolder>
 		<value>GIS</value>
 	</GISFolder>
-
-	<!-- The log file name created by the tool to output messages -->
+	
+	<!-- The log file name created by the tool to output messages. -->
 	<LogFileName>
-		<value>DataSearch_%subref%.log</value>
+		<value>Data_Search_%subref%.log</value>
 	</LogFileName>
-
-	<!-- The default size to use for the buffer -->
+	
+	<!-- The default size to use for the buffer. -->
 	<DefaultBufferSize>
 		<value>1</value>
 	</DefaultBufferSize>
 
-	<!-- The options for the buffer units -->
+	<!-- The options for the buffer units. -->
 	<BufferUnitOptions>
 		<value>Centimetres;cm$Metres;m$Kilometres;km$Feet;ft$Yards;yd$Miles;mi$</value>
 	</BufferUnitOptions>
 
-	<!-- The default option (position in the list) to use for the buffer units -->
+	<!-- The default option (position in the list) to use for the buffer units. -->
 	<DefaultBufferUnit>
 		<value>3</value>
 	</DefaultBufferUnit>
 
-	<!-- The symbology for the buffer features -->
+	<!-- The symbology for the buffer features. -->
 	<BufferSymbology>
 		<value>Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)</value>
 	</BufferSymbology>
 
-	<!-- The coordinate system for mapping tables -->
+	<!-- The coordinate system for mapping tables. -->
 	<CoordinateSystem>
 		<value>Earth Projection 8, 79, "m", -2, 49, 0.9996012717, 400000, -100000</value>
 	</CoordinateSystem>
-  
-	<!-- The symbology for the search area features -->
+
+	<!-- The symbology for the search area features. -->
 	<SearchAreaSymbology>
 		<value>Global Pen (2,2,0)   Global Brush (15,32896)   Global Line (2,2,16711935)   Global Symbol (35,16711935,12)</value>
 	</SearchAreaSymbology>
 
-	<!-- The maximum number of records what will be extracted in any one search extract -->
+	<!-- The maximum number of records what will be extracted in any one search extract. -->
 	<RecMax>
 		<value>5000000</value>
 	</RecMax>
 
-	<!-- The name of the table to use as the search area -->
+	<!-- The name of the table to use as the search area. -->
 	<SearchTable>
-		<value>SearchSites</value>
+		<value>SiteSearchSites</value>
 	</SearchTable>
 
-	<!-- The column name in the search area table used to store the search reference -->
-	<SearchColumn>
-		<value>ref</value>
-	</SearchColumn>
-
-	<!-- The buffer aggregate column values -->
+	<!-- The buffer aggregate column values. -->
 	<AggregateColumns>
-		<value>ref=ref,organisation=organisation,sitename=sitename</value>
+		<value>ref=ref,organisation=organisation,site=site,radius=radius</value>
 	</AggregateColumns>
 
-	<!-- The options for showing the selected tables -->
+	<!-- Whether the search table should be updated. -->
+	<UpdateTable>
+		<value>Yes</value>
+	</UpdateTable>
+
+	<!-- Whether the buffer area table should be kept and added to the map windows. -->
+	<KeepBufferArea>
+		<value>Yes</value>
+	</KeepBufferArea>
+
+	<!-- Whether the search area table should be kept and added to the map windows. -->
+	<KeepSearchArea>
+		<value>Yes</value>
+	</KeepSearchArea>
+
+	<!-- The options for showing the selected tables. -->
 	<AddSelectedTablesOptions>
 		<value>No;Yes - Without labels;Yes - With labels</value>
 	</AddSelectedTablesOptions>
 
-	<!-- The default option (position in the list) for whether selected map tables should be added to the map window -->
+	<!-- The default option (position in the list) for whether selected map tables should be added to the map window. Leave blank to hide option in dialog. -->
 	<DefaultAddSelectedTables>
-		<value>3</value>
+		<value>1</value>
 	</DefaultAddSelectedTables>
 
-	<!-- The options for overwritting the map labels -->
+	<!-- The options for overwritting the map labels. -->
 	<OverwriteLabelOptions>
 		<value>No;Yes - Reset Counter;Yes - Increment Counter</value>
 	</OverwriteLabelOptions>
 
 	<!-- Whether any map label columns should be overwritten. Leave blank to hide option in dialog. -->
 	<DefaultOverwriteLabels>
-		<value>3</value>
+		<value></value>
 	</DefaultOverwriteLabels>
 
-	<!-- The options for creating a combined sites table -->
+	<!-- The options for creating a combined sites table. -->
 	<CombinedSitesOptions>
 		<value>None;Append to existing table;Overwrite existing table</value>
 	</CombinedSitesOptions>
 
 	<!-- Whether a combined sites table should be created. Leave blank to hide option in dialog. -->
 	<DefaultCombinedSitesTable>
-		<value>2</value>
+		<value></value>
 	</DefaultCombinedSitesTable>
 
-	<!-- The column names of the combined sites table -->
+	<!-- The column names of the combined sites table. -->
 	<CombinedSitesTable>
 		<TableName>
 			<value>Sites</value>
 		</TableName>
 		<Columns>
-			<value>Site_Type Char(10), Site_Name Char(50), Site_Area Float, Map_Label Char(50), Search_Radius Char(20)</value>
+			<value>Site_Type Char(10), Site_Name Char(50), Site_Area Float, Map_Label Char(50)</value>
 		</Columns>
-		<Suffix>
-			<value>_sites</value>
-		</Suffix>
+		<TableOutputName>
+			<value>%subref%_sites</value>
+		</TableOutputName>
 		<Format>
 			<value>csv</value>
 		</Format>
 	</CombinedSitesTable>
 
-	<!-- The names, local names, suffixes, SQL clauses and formats of the map tables -->
+	<!-- The names, local names, suffixes, SQL clauses and formats of the map tables. -->
 	<MapTables>
+		<Sites_-_AoDs>
+			<TableName>
+				<value>AOD</value>
+			</TableName>
+			<GISOutputName>
+				<value>%ref% Areas of Deprevation within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_aods</value>
+			</TableOutputName>
+			<Columns>
+				<value>Ward</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Group By Ward Order By Ward</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value>Ward</value>
+			</KeyColumn>
+			<Format>
+				<value>Txt</value>
+			</Format>
+			<KeepLayer>
+				<value>No</value>
+			</KeepLayer>
+			<LoadWarning>
+				<value>Yes</value>
+			</LoadWarning>
+			<PreselectLayer>
+				<value>Yes</value>
+			</PreselectLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
+			<LabelColumn>
+				<value>Ward</value>
+			</LabelColumn>
+			<LabelClause>
+				<value></value>
+			</LabelClause>
+			<LabelReset>
+				<value></value>
+			</LabelReset>
+			<CombinedSitesColumns>
+				<value></value>
+			</CombinedSitesColumns>
+			<CombinedSitesCriteria>
+				<value></value>
+			</CombinedSitesCriteria>
+		</Sites_-_AoDs>
+		<Sites_-_Boroughs>
+			<TableName>
+				<value>LBPolygonsMeridian</value>
+			</TableName>
+			<GISOutputName>
+				<value>%ref% Boroughs within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_boroughs</value>
+			</TableOutputName>
+			<Columns>
+				<value>BoroughCode, BoroughName</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Group By BoroughCode, BoroughName Order By BoroughCode</value>
+			</ExportCriteria>
+			<Format>
+				<value>Txt</value>
+			</Format>
+			<KeepLayer>
+				<value>No</value>
+			</KeepLayer>
+			<OverwriteLabels>
+				<value>No</value>
+			</OverwriteLabels>
+			<LabelColumn>
+				<value>BoroughName</value>
+			</LabelColumn>
+		</Sites_-_Boroughs>
 		<Sites_-_SACs>
 			<TableName>
-				<value>SAC</value>
+				<value>SACLondon</value>
 			</TableName>
-			<Prefix>
-				<value>SAC</value>
-			</Prefix>
-			<Suffix>
-				<value>_sacs</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Special Areas of Conservation within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sacs</value>
+			</TableOutputName>
 			<Columns>
 				<value>SAC_Name</value>
 			</Columns>
@@ -204,46 +304,37 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SAC_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>Yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
-				<value>Yes</value>
+				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>SAC_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With SAC_Name Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"SAC", SAC_Name, SAC_Area, Map_Label, %Radius%</value>
+				<value>"SAC", SAC_Name, SAC_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By SAC_Name, Map_Label Order By SAC_Name, Map_Label</value>
+				<value>Group By SAC_Name Order By SAC_Name</value>
 			</CombinedSitesCriteria>
 		</Sites_-_SACs>
 		<Sites_-_SPAs>
 			<TableName>
-				<value>SPA</value>
+				<value>SPALondon</value>
 			</TableName>
-			<Prefix>
-				<value>SPA</value>
-			</Prefix>
-			<Suffix>
-				<value>_spas</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Special Protection Areas within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_spas</value>
+			</TableOutputName>
 			<Columns>
 				<value>SPA_Name</value>
 			</Columns>
@@ -257,46 +348,37 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SPA_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
-				<value>Yes</value>
+				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>SPA_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With SPA_Name Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"SPA", SPA_Name, SPA_Area, Map_Label, %Radius%</value>
+				<value>"SPA", SPA_Name, SPA_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By SPA_Name, Map_Label Order By SPA_Name, Map_Label</value>
+				<value>Group By SPA_Name Order By SPA_Name</value>
 			</CombinedSitesCriteria>
 		</Sites_-_SPAs>
 		<Sites_-_Ramsars>
 			<TableName>
-				<value>RAMSAR</value>
+				<value>RAMSARLondon</value>
 			</TableName>
-			<Prefix>
-				<value>RAMSAR</value>
-			</Prefix>
-			<Suffix>
-				<value>_ramsars</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% RAMSARs within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_ramsars</value>
+			</TableOutputName>
 			<Columns>
 				<value>Ramsar_Name</value>
 			</Columns>
@@ -310,46 +392,37 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Ramsar_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
-				<value>Yes</value>
+				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>Ramsar_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With Ramsar_Name Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"Ramsar", Ramsar_Name, Ramsar_Area, Map_Label, %Radius%</value>
+				<value>"Ramsar", Ramsar_Name, Ramsar_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By Ramsar_Name, Map_Label Order By Ramsar_Name, Map_Label</value>
+				<value>Group By Ramsar_Name, Map_Label Order By Ramsar_Name</value>
 			</CombinedSitesCriteria>
 		</Sites_-_Ramsars>
 		<Sites_-_SSSIs>
 			<TableName>
-				<value>SSSI</value>
+				<value>SSSILondon</value>
 			</TableName>
-			<Prefix>
-				<value>SSSI</value>
-			</Prefix>
-			<Suffix>
-				<value>_sssis</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Sites of Special Scientific Interest within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sssis</value>
+			</TableOutputName>
 			<Columns>
 				<value>SSSI_Name</value>
 			</Columns>
@@ -363,46 +436,37 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>SSSI_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
-				<value>Yes</value>
+				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value>Map_Label</value>
+				<value>SSSI_Name</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With SSSI_Name Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"SSSI", SSSI_Name, SSSI_Area, Map_Label, %Radius%</value>
+				<value>"SSSI", SSSI_Name, SSSI_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By SSSI_Name, Map_Label Order By SSSI_Name, Map_Label</value>
+				<value>Group By SSSI_Name Order By SSSI_Name</value>
 			</CombinedSitesCriteria>
 		</Sites_-_SSSIs>
 		<Sites_-_NNRs>
 			<TableName>
-				<value>NNR</value>
+				<value>NNRLondon</value>
 			</TableName>
-			<Prefix>
-				<value>NNR</value>
-			</Prefix>
-			<Suffix>
-				<value>_nnrs</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% National Nature Reserves within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_nnrs</value>
+			</TableOutputName>
 			<Columns>
 				<value>NNR_Name</value>
 			</Columns>
@@ -416,17 +480,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>NNR_Name</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
@@ -436,11 +494,8 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value>Font ("Arial",256,10,16711680,16777215) With NNR_Name Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"NNR", NNR_Name, NNR_Area, " ", %Radius%</value>
+				<value>"NNR", NNR_Name, NNR_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
 				<value>Group By NNR_Name Order By NNR_Name</value>
@@ -448,16 +503,16 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		</Sites_-_NNRs>
 		<Sites_-_LNRs>
 			<TableName>
-				<value>LNR</value>
+				<value>LocalNatureReserves_LNR_</value>
 			</TableName>
-			<Prefix>
-				<value>LNR</value>
-			</Prefix>
-			<Suffix>
-				<value>_lnrs</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Locan Nature Reserves within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_lnrs</value>
+			</TableOutputName>
 			<Columns>
-				<value>LNR_Name</value>
+				<value>Sitename</value>
 			</Columns>
 			<SelectCriteria>
 				<value></value>
@@ -466,198 +521,508 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 				<value>Group By Sitename Order By Sitename</value>
 			</ExportCriteria>
 			<KeyColumn>
-				<value>LNR_Name</value>
+				<value>Sitename</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
 				<value>No</value>
-			</PreselectLayer>
+			</KeepLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value>LNR_Name</value>
+				<value>Sitename</value>
 			</LabelColumn>
 			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With LNR_Name Auto On</value>
+				<value>Font ("Arial",256,10,16711680,16777215) With Sitename Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value>"LNR", LNR_Name, LNR_Area, " ", %Radius%</value>
+				<value>"LNR", Sitename, LNR_Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value>Group By LNR_Name Order By LNR_Name</value>
+				<value>Group By Sitename Order By Sitename</value>
 			</CombinedSitesCriteria>
 		</Sites_-_LNRs>
-		<Sites_-_LWS>
+		<Sites_-_SINCs>
 			<TableName>
-				<value>LWS</value>
+				<value>GiGL_SINCs</value>
 			</TableName>
-			<Prefix>
-				<value>LWS</value>
-			</Prefix>
-			<Suffix>
-				<value>_lws</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Sites of Interest for Nature Conservation within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sincs</value>
+			</TableOutputName>
 			<Columns>
-				<value>Site_number</value>
+				<value>SiteRef</value>
 			</Columns>
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
 			<ExportCriteria>
-				<value>Group By Site_number Order By Site_number</value>
+				<value>Group By SiteRef Order By SiteRef</value>
 			</ExportCriteria>
 			<KeyColumn>
-				<value>Site_number</value>
+				<value>SiteRef</value>
 			</KeyColumn>
 			<Format>
-				<value>txt</value>
-			</Format>
-			<KeepLayer>
-				<value>Yes</value>
-			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
-				<value>No</value>
-			</PreselectLayer>
-			<OverwriteLabels>
-				<value>Yes</value>
-			</OverwriteLabels>
-			<LabelColumn>
-				<value>Map_Label</value>
-			</LabelColumn>
-			<LabelClause>
-				<value>Font ("Arial",256,10,16711680,16777215) With Map_Label Auto On</value>
-			</LabelClause>
-			<LabelReset>
-				<value>Yes</value>
-			</LabelReset>
-			<CombinedSitesColumns>
-				<value>"LWS", Site_number, Site_Area, Map_Label, %Radius%</value>
-			</CombinedSitesColumns>
-			<CombinedSitesCriteria>
-				<value>Group By Site_number, Map_Label Order By Site_number, Map_Label</value>
-			</CombinedSitesCriteria>
-		</Sites_-_LWS>
-		<Species_-_Protected>
-			<TableName>
-				<value>P_N_Species</value>
-			</TableName>
-			<Prefix>
-				<value>P_N_Species</value>
-			</Prefix>
-			<Suffix>
-				<value>_sppprot</value>
-			</Suffix>
-			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_PLANNING, STATUS_OTHER, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", DATE_START, DATE_END, DATE_RANGE, BREEDING_STATUS, %Radius%</value>
-			</Columns>
-			<SelectCriteria>
-				<value>And CONFIDENTIAL = ""</value>
-			</SelectCriteria>
-			<ExportCriteria>
-				<value>Order By SORTORDER, LATIN_NAME, DISTANCE</value>
-			</ExportCriteria>
-			<KeyColumn>
-				<value>LATIN_NAME</value>
-			</KeyColumn>
-			<Format>
-				<value>csv</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
-				<value>No</value>
-			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value></value>
+				<value>SiteRef</value>
 			</LabelColumn>
 			<LabelClause>
-				<value></value>
+				<value>Font ("Arial",256,10,16711680,16777215) With SiteRef Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value></value>
+				<value>"SINC", SiteName, Area</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value></value>
+				<value>Group By SiteName Order By SiteName</value>
 			</CombinedSitesCriteria>
-		</Species_-_Protected>
-		<Species_-_INNS>
+		</Sites_-_SINCs>
+		<Sites_-_RIGS>
 			<TableName>
-				<value>INN_Species</value>
+				<value>RIGSandLIGS</value>
 			</TableName>
-			<Prefix>
-				<value>INN_Species</value>
-			</Prefix>
-			<Suffix>
-				<value>_sppinns</value>
-			</Suffix>
+			<GISOutputName>
+				<value>%ref% Regionally and Locally Important Geological Sites within search area</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_rigs</value>
+			</TableOutputName>
 			<Columns>
-				<value>LATIN_NAME, SPP_NAME, STATUS_LISI, QUALIFIER, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"DISTANCE", DATE_START, DATE_END, DATE_RANGE, GRIDREF, %Radius%</value>
+				<value>GLA_ID</value>
 			</Columns>
 			<SelectCriteria>
 				<value></value>
 			</SelectCriteria>
 			<ExportCriteria>
-				<value>Order By SORTORDER, LATIN_NAME</value>
+				<value>Group By GLA_ID Order By GLA_ID</value>
 			</ExportCriteria>
 			<KeyColumn>
-				<value>LATIN_NAME</value>
+				<value>GLA_ID</value>
 			</KeyColumn>
 			<Format>
-				<value>csv</value>
+				<value>Txt</value>
 			</Format>
 			<KeepLayer>
 				<value>No</value>
 			</KeepLayer>
-			<LoadWarning>
-				<value>yes</value>
-			</LoadWarning>
-			<PreselectLayer>
-				<value>No</value>
-			</PreselectLayer>
 			<OverwriteLabels>
 				<value>No</value>
 			</OverwriteLabels>
 			<LabelColumn>
-				<value></value>
+				<value>GLA_ID</value>
 			</LabelColumn>
 			<LabelClause>
-				<value></value>
+				<value>Font ("Arial",256,10,16711680,16777215) With GLA_ID Auto On</value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
 			<CombinedSitesColumns>
-				<value></value>
+				<value>"RIGS", GLA_ID, Area_ha</value>
 			</CombinedSitesColumns>
 			<CombinedSitesCriteria>
-				<value></value>
+				<value>Group By GLA_ID Order By GLA_ID</value>
 			</CombinedSitesCriteria>
-		</Species_-_INNS>
+		</Sites_-_RIGS>
+		<Species_-_Birds>
+			<TableName>
+				<value>GiGL_Birds_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppBirdPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppbirds</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And GRPrec &lt; 2000 And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Birds>
+		<Species_-_Plants>
+			<TableName>
+				<value>GiGL_Plants_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppPlantPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppplants</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And GRPrec &lt; 2000 And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Plants>
+		<Species_-_Other>
+			<TableName>
+				<value>GiGL_OtherTaxa_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppOtherPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppother</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And GRPrec &lt; 2000 And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Other>
+		<Species_-_Historic>
+			<TableName>
+				<value>GiGL_HistoricSpp_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppHistoricPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_spphist</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And GRPrec &lt; 2000 And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Historic>
+		<Species_-_AllTaxa_Polygon>
+			<TableName>
+				<value>GiGL_AllTaxa_Polygon</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppAllPolygon</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppalltaxapoly</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat, GRPrec</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_AllTaxa_Polygon>
+		<Species_-_Designated>
+			<TableName>
+				<value>GiGL_DesignatedSpp_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppDesigPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppdesg</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Designated>
+		<Species_-_Designated_Polygon>
+			<TableName>
+				<value>GiGL_AllTaxa_Polygon</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppDesigPolygon</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppdesgpoly</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat, GRPrec</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And (StatusLeg &lt;&gt; "" OR StatusOth &lt;&gt; "") And Confident &lt;&gt; "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Designated_Polygon>
+		<Species_-_Bat>
+			<TableName>
+				<value>GiGL_DesignatedSpp_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppBatPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppbat</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And Confident &lt;&gt; "Y" and TaxonGroup = "Mammals - Terrestrial (bats)"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Bat>
+		<Species_-_Bat_Polygon>
+			<TableName>
+				<value>GiGL_AllTaxa_Polygon</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppBatPolygon</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppbatpoly</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", CentroidX(Select_Table.obj)"SppX", CentroidY(Select_Table.obj)"SppY", CentroidX(Buffer_Area.obj)"SearchX", CentroidY(Buffer_Area.obj)"SearchY", RecDate, BreedStat, GRPrec</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And (StatusLeg &lt;&gt; "" OR StatusOth &lt;&gt; "") And Confident &lt;&gt; "Y" And TaxonGroup = "Mammals - Terrestrial (bats)"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Bat_Polygon>
+		<Species_-_Confidential>
+			<TableName>
+				<value>GiGL_DesignatedSpp_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppConfPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_sppconf</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLeg, StatusOth, Abundance, 0"Distance", 0"SppX", 0"SppY", 0"SearchX", 0"SearchY", RecDate, BreedStat</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And Confident = "Y"</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName, Distance</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_Confidential>
+		<Species_-_LISI>
+			<TableName>
+				<value>GiGL_LISISpp_Point</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppLISIPoint</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_spplisi</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLISI, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", RecDate, GridRef</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_LISI>
+		<Species_-_LISI_polygon>
+			<TableName>
+				<value>GiGL_AllTaxa_Polygon</value>
+			</TableName>
+			<GISOutputName>
+				<value>SppLISIPolygon</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_spplisipoly</value>
+			</TableOutputName>
+			<Columns>
+				<value>TaxonName, CommonName, TaxonGroup, StatusLISI, Abundance, Distance(CentroidX(Select_Table.obj), CentroidY(Select_Table.obj), CentroidX(Buffer_Area.obj), CentroidY(Buffer_Area.obj), "m")"Distance", RecDate, GridRef, GRPRec</value>
+			</Columns>
+			<SelectCriteria>
+				<value>And StatusLISI &lt;&gt; ""</value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SortOrder, TaxonName</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Species_-_LISI_polygon>
+		<Habitats_-_Surveys>
+			<TableName>
+				<value>GiGL_habitats</value>
+			</TableName>
+			<GISOutputName>
+				<value>%ref% Habitat Survey</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_habsurvey</value>
+			</TableOutputName>
+			<Columns>
+				<value>SiteName, PolygonID, GridRef, AreaHa, SurveyDate, HabitatShortName, HabitatClassification</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SiteRef, SurveyDate Desc</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Habitats_-_Surveys>
+		<Habitats_-_BAP>
+			<TableName>
+				<value>GiGL_BAP_CA_S</value>
+			</TableName>
+			<GISOutputName>
+				<value>%ref% BAP Habitat</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_baphabitat</value>
+			</TableOutputName>
+			<Columns>
+				<value>SiteName, PolygonID, GridRef, PolygonAreaHa, DataCreatedDate, ConditionShort, SuitabilityShort</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SiteRef, DataCreatedDate Desc</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Habitats_-_BAP>
+		<Habitats_-_OpenSpaces>
+			<TableName>
+				<value>GiGL_OpenSpace_Sites</value>
+			</TableName>
+			<GISOutputName>
+				<value>%ref% OpenSpace</value>
+			</GISOutputName>
+			<TableOutputName>
+				<value>%subref%_openspace</value>
+			</TableOutputName>
+			<Columns>
+				<value>SiteName, SiteID, GridRef, AreaHa, PPG17, PrimaryUse, OtherUses, StatDes, NonStatDes, LandscDes, Access, Features</value>
+			</Columns>
+			<SelectCriteria>
+				<value></value>
+			</SelectCriteria>
+			<ExportCriteria>
+				<value>Order By SiteName, SiteID</value>
+			</ExportCriteria>
+			<KeyColumn>
+				<value></value>
+			</KeyColumn>
+			<Format>
+				<value>Dbf</value>
+			</Format>
+		</Habitats_-_OpenSpaces>
 	</MapTables>
 
 </DataSearches>
