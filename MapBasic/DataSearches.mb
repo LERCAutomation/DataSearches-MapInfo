@@ -21,7 +21,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.22
+'* DataSearches v1.4.23
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +29,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - February 2018
+'* Last revised:	Andy Foy - March 2018
+'*
+'* *****************  Version 1.4.23  **************
+'* Author: Andy Foy		Date: 09/03/2018
+'* A. Enable zero buffer for point and line sites.
 '*
 '* *****************  Version 1.4.22  **************
 '* Author: Andy Foy		Date: 20/02/2018
@@ -185,7 +189,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.22"
+	sVersion = "1.4.23"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -2051,7 +2055,11 @@ Sub BufferSearch
 	' search area table)
 	'-------------------------------------------------
 	Call MyPrint("Buffering the search reference ...")
-	sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sCosmeticLayer
+	If Int(sBufferSize) = 0 Then
+		sCmd = "Insert Into " + sCosmeticLayer + " (Obj) Select Obj from " + sSearchAreaTable
+	Else
+		sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sCosmeticLayer
+	End If
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2863,19 +2871,20 @@ Sub OverwriteMapLabels
 			sCmd = "Update MapLabels Set " + sLabelColumn + " = " + iMapLabelCounter + " Where RowID = " + iRow
 			Run Command (sCmd)
 
-			'-------------------------------------------------
-			' Fetch the next of the selected rows
-			'-------------------------------------------------
-			Fetch next from MapLabels
-			
 			iRow = iRow + 1
-
-			'-------------------------------------------------
-			' Increment the label counter if the row
-			' key value has changed
-			'-------------------------------------------------
-			If sKeyValue <> nKeyCol Then
-				iMapLabelCounter = iMapLabelCounter + 1
+			If iRow <= iRows Then
+				'-------------------------------------------------
+				' Fetch the next of the selected rows
+				'-------------------------------------------------
+				Fetch next from MapLabels
+				
+				'-------------------------------------------------
+				' Increment the label counter if the row
+				' key value has changed
+				'-------------------------------------------------
+				If sKeyValue <> nKeyCol Then
+					iMapLabelCounter = iMapLabelCounter + 1
+				End If
 			End If
 
 		Loop
