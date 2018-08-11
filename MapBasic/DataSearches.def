@@ -72,7 +72,8 @@ Type MapDetails
 	Overwrite As String
 	LabelColumn As String
 	LabelClause As String
-	LabelReset As String
+	Symbology As String
+	DisplayLabel As String
 	SiteColumns As String
 	SiteCriteria As String
 End Type
@@ -237,12 +238,15 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 Global sVersion As String
 Global sToolTitle As String
 
+Global bLogMessages As Logical
+
 Global sDatabase As String
 Global sEnquiriesDir As String
 Global sEnquiriesTable As String
 Global sRefColumn As String
 Global sSiteColumn As String
 Global sOrgColumn As String
+Global sRadiusColumn As String
 Global sRequireSiteName As String
 Global sRepChar As String
 Global sSaveRootDir As String
@@ -251,6 +255,7 @@ Global sGISFolder As String
 Global sLocalPath As String
 Global sLogFileName As String
 Global sLogFile As String
+Global sDefaultClearLogFile As String
 
 Global sDefaultBufferSize As String
 Global iDefaultBufferUnit As SmallInt
@@ -265,7 +270,10 @@ Global sSearchTable As String
 Global sAggregateColumns As String
 Global sUpdateTable As String
 Global sKeepBufferArea As String
-Global sKeepSearchArea As String
+Global sKeepSearchFeature As String
+Global sBufferSaveName As String
+Global sGroupLayerName As String
+Global sSearchFeatureName As String
 
 Global sAddSelectedTablesOptions As String
 Global iDefaultAddSelectedTables As SmallInt
@@ -290,6 +298,7 @@ Global sSiteName As String
 Global sOrganisation As String
 Global sShortRefNo As String
 Global sSubRefNo As String
+Global sRadius As String
 
 Global AllMaps(99) As MapDetails
 Global OpenMaps(99) As MapDetails
@@ -304,8 +313,9 @@ Global iRecMax As Integer
 Global bClearLog As Logical
 Global iMapLabelCounter As Integer
 Global bKeepBufferArea As Logical
-Global bKeepSearchArea As Logical
+Global bKeepSearchFeature As Logical
 Global bRequireSiteName As Logical
+Global bDefaultClearLogFile As Logical
 
 Global sBufferSize As String
 Global sBufferUnit As String
@@ -319,5 +329,6 @@ Global aWindowId(99) As Integer
 Global aWindowGroup(99) As String
 Global aWindowGroupLayers(99) As Integer
 Global sGroupLayer As String
+Global sLastGroupName As String
 
 Global iNumSearchTable as Integer

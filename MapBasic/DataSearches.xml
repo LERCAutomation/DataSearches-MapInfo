@@ -58,6 +58,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value></value>
 	</OrgColumn>
 
+	<!-- The field name of the search reference radius. Leave blank to ignore column. -->
+	<RadiusColumn>
+		<value></value>
+	</RadiusColumn>
+
 	<!-- Whether a site name must be entered (or retrieved from the database). -->
 	<RequireSiteName>
 		<value>No</value>
@@ -88,6 +93,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>Data_Search_%subref%.log</value>
 	</LogFileName>
 	
+	<!-- By default, should an existing log file be cleared? -->
+	<DefaultClearLogFile>
+		<value>Yes</value>
+	</DefaultClearLogFile>
+
 	<!-- The default size to use for the buffer. -->
 	<DefaultBufferSize>
 		<value>1</value>
@@ -143,10 +153,20 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>Yes</value>
 	</KeepBufferArea>
 
+	<!-- The output name for the buffer GIS file. -->
+	<BufferSaveName>
+		<value>Buffer_%subref%_%radius%</value>
+	</BufferSaveName>
+
 	<!-- Whether the search area table should be kept and added to the map windows. -->
-	<KeepSearchArea>
+	<KeepSearchFeature>
 		<value>Yes</value>
-	</KeepSearchArea>
+	</KeepSearchFeature>
+
+	<!-- The name of the search feature output layer -->
+	<SearchFeatureName>
+		<value>SearchArea_%subref%</value>
+	</SearchFeatureName>
 
 	<!-- The options for showing the selected tables. -->
 	<AddSelectedTablesOptions>
@@ -158,9 +178,14 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>1</value>
 	</DefaultAddSelectedTables>
 
-	<!-- The options for overwritting the map labels. -->
+	<!-- The name of the group layer that will be created in the table of contents -->
+	<GroupLayerName>
+		<value>%subref%_%sitename%</value>
+	</GroupLayerName>
+
+	<!-- The options for overwritting the map labels -->
 	<OverwriteLabelOptions>
-		<value>No;Yes - Reset Counter;Yes - Increment Counter</value>
+		<value>No;Yes - Reset Each Layer;Yes - Reset Each Group;Yes - Do Not Reset</value><!-- do not change -->
 	</OverwriteLabelOptions>
 
 	<!-- Whether any map label columns should be overwritten. Leave blank to hide option in dialog. -->
@@ -239,9 +264,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelClause>
 				<value></value>
 			</LabelClause>
-			<LabelReset>
-				<value></value>
-			</LabelReset>
+			<Symbology>
+				<value>Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)</value>
+			</Symbology>
 			<CombinedSitesColumns>
 				<value></value>
 			</CombinedSitesColumns>
@@ -280,6 +305,9 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 			<LabelColumn>
 				<value>BoroughName</value>
 			</LabelColumn>
+			<LabelClause>
+				<value></value>
+			</LabelClause>
 		</Sites_-_Boroughs>
 		<Sites_-_SACs>
 			<TableName>

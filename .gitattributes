@@ -2,8 +2,8 @@
 * text=auto
 
 # Standard to msysgit
-*.mb	 diff=astextplain
-*.MB	 diff=astextplain
+#*.mb	 diff=astextplain
+#*.MB	 diff=astextplain
 *.def  diff=astextplain
 *.DEF  diff=astextplain
 *.xml  diff=astextplain
