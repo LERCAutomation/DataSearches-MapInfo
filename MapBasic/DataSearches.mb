@@ -29,7 +29,12 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - July 2018
+'* Last revised:	Andy Foy - September 2018
+'*
+'* *****************  Version 1.4.25  **************
+'* Author: Andy Foy		Date: 21/09/2018
+'* A. Reverse out use of cosmetic layer to create search
+'*    area buffer - use search layer instead.
 '*
 '* *****************  Version 1.4.24  **************
 '* Author: Andy Foy		Date: 30/07/2018
@@ -202,7 +207,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.24"
+	sVersion = "1.4.25"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -1097,6 +1102,14 @@ RegisterTable:
 		End If
 		
 		'-------------------------------------------------
+		' Check the reference is the correct data type
+		'-------------------------------------------------
+		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 And Str$(Val(sRef)) <> sRef Then
+			Note "Error: Search Reference must be numeric!"
+			Exit Sub
+		End If
+
+		'-------------------------------------------------
 		' Select the site name and organisation for the enquiry
 		'-------------------------------------------------
 		Dim sSiteCol As String, sOrgCol As String
@@ -1113,7 +1126,7 @@ RegisterTable:
 
 		Call MyPrint("Getting details from '" + sEnquiries + "' ...")
 
-		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 Then
+		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 And Str$(Val(sRef)) = sRef Then
 			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
 		Else
 			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
@@ -1523,22 +1536,6 @@ SetSubRef:
 	Redim aWindowGroup(iNumWindows)
 
 	'-------------------------------------------------
-	' Call the subroutine to buffer the search area
-	' with the required size and units
-	'-------------------------------------------------
-	Call BufferSearch
-	Dim lResponse As Logical
-	If sBufferTable = "" Then
-		Call MyPrint("Error buffering search reference.")
-		Call MyPrint("")
-		Call MyPrint("----------------------------------------------------------------------")
-		Call MyPrint("Process stopped!")
-		Call MyPrint("----------------------------------------------------------------------")
-		lResponse = Ask("Processing stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
-		Goto Response
-	End If
-
-	'-------------------------------------------------
 	' Find the layer number of the search table by
 	' looking through all the windows until it is
 	' found
@@ -1652,6 +1649,22 @@ HideLayer:
 	'-------------------------------------------------
 	If TableIsOpen(sTempTable) Then
 		Close Table sTempTable
+	End If
+
+	'-------------------------------------------------
+	' Call the subroutine to buffer the search area
+	' with the required size and units
+	'-------------------------------------------------
+	Call BufferSearch
+	Dim lResponse As Logical
+	If sBufferTable = "" Then
+		Call MyPrint("Error buffering search reference.")
+		Call MyPrint("")
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("Process stopped!")
+		Call MyPrint("----------------------------------------------------------------------")
+		lResponse = Ask("Processing stopped!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+		Goto Response
 	End If
 
 	'-------------------------------------------------
@@ -2021,11 +2034,38 @@ Sub BufferSearch
 	sBufferTable = "Buffer_Area"
 
 	'-------------------------------------------------
-	' Get the name of the cosmetic layer in the first
-	' map window
+	' Find the layer number of the search table by
+	' looking through all the windows until it is
+	' found
 	'-------------------------------------------------
-	Dim sCosmeticLayer As String
-	sCosmeticLayer = WindowInfo(aWindowId(1), WIN_INFO_TABLE)
+	Dim iNumWindows As Integer
+	iNumWindows = UBound(aWindowId)
+	Dim iWindowNum As Integer
+	For iWindowNum = 1 to iNumWindows
+		Dim iNumTables As Integer
+		Dim iNumSearchTable as Integer
+		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+		For iNumSearchTable = 1 to iNumTables
+			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+				Goto EditLayer
+			End If
+		Next
+	Next
+
+EditLayer:
+	'-------------------------------------------------
+	' Make the search area table visible if it is not already
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
+	End If
+	
+	'-------------------------------------------------
+	' Make the search area table editable if it is not already
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_EDITABLE) = False Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
+	End If
 
 	'-------------------------------------------------
 	' Save the search table (in case it has
@@ -2093,62 +2133,32 @@ Sub BufferSearch
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Close and re-open the search area table (so that
-	' if can be deleted later if required)
-	'-------------------------------------------------
-	If TableIsOpen(sSearchAreaTable) Then
-		Close Table sSearchAreaTable
-		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " As " + sSearchAreaTable
-		Run Command (sCmd)
-	End If
-
-	'-------------------------------------------------
-	' Make the cosmetic layer editable
-	'-------------------------------------------------
-	Set Map Window aWindowId(1) Layer 0 Editable On
-
-	'-------------------------------------------------
-	' Set the coordinate system in case any geographic
-	' functions are used
-	'-------------------------------------------------
-	sCmd = "Set CoordSys " + sCoordSys
-	Run Command (sCmd)
-
-	'-------------------------------------------------
-	' Buffer the selected search area (from the
+	' Buffer the selected search area (in the
 	' search area table)
 	'-------------------------------------------------
 	Call MyPrint("Buffering the search reference ...")
 	If Int(sBufferSize) = 0 Then
-		sCmd = "Insert Into " + sCosmeticLayer + " (Obj) Select Obj from " + sSearchAreaTable
+		sCmd = "Insert Into " + sSearchTable + " Select * from " + sSearchAreaTable
 	Else
-		sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sCosmeticLayer
+		sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
 	End If
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Create the buffer table
+	' Check if the buffer table is
+	' already/still open and close it if it is
 	'-------------------------------------------------
-	Call MyPrint("Creating the buffer table ...")
-	sCmd = "Create Table " + Chr$(34) + sBufferTable + Chr$(34) + " (ID Integer) File " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
-	Run Command (sCmd)
-
-	'-------------------------------------------------
-	' Make buffer table mappable
-	'-------------------------------------------------
-	sCmd = "Create Map For " + sBufferTable + " CoordSys " + sCoordSys
-	Run Command (sCmd)
-
-	'-------------------------------------------------
-	' Insert the buffer area into the buffer table
-	'-------------------------------------------------
-	sCmd = "Insert Into " + sBufferTable + "(obj) Select obj From " + sCosmeticLayer
-	Run Command (sCmd)
+	If TableIsOpen(sBufferTable) Then
+		Call MyPrint("Closing buffer table ...")
+		Close Table sBufferTable
+	End If
 
 	'-------------------------------------------------
 	' Save the buffer table
 	'-------------------------------------------------
-	Commit Table sBufferTable
+	Call MyPrint("Saving buffer table ...")
+	sCmd = "Commit Table Selection As " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	Run Command (sCmd)
 
 	'-------------------------------------------------
 	' Close the selection table
@@ -2167,15 +2177,28 @@ Sub BufferSearch
 	Next
 
 	'-------------------------------------------------
-	' Undo the updates to the cosmetic layer to remove
-	' the temporary buffered object
+	' Open the new buffered table
 	'-------------------------------------------------
-	Rollback Table sCosmeticLayer
+	Call MyPrint("Opening buffer table ...")
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " As " + sBufferTable
+	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Make the cosmetic layer non-editable
+	' Undo the updates to the search table to remove the temporary buffered object
 	'-------------------------------------------------
-	Set Map Window aWindowId(1) Layer 0 Editable Off
+	Rollback Table sSearchTable
+
+	'-------------------------------------------------
+	' Make the search area table non-editable
+	'-------------------------------------------------
+	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
+
+	'-------------------------------------------------
+	' Turn off the search area table if it is visible
+	'-------------------------------------------------
+	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
+		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
+	End If
 
 	Call MyPrint("Buffering complete.")
 	Call MyPrint("")
@@ -3144,7 +3167,7 @@ Sub AboutBox
 		Title "Created by Andy Foy Consulting."
 		Position 10,60
 	Control StaticText
-		Title "Copyright© 2012-2013 GiGL, 2015 - 2016 TVERC, GiGL."
+		Title "Copyright© 2012-2013 GiGL, 2015 - 2018 TVERC, GiGL."
 		Position 10,70
 	Control OKButton
 		Position 185,95
