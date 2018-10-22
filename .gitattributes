@@ -4,8 +4,8 @@
 # Standard to msysgit
 #*.mb	 diff=astextplain
 #*.MB	 diff=astextplain
-*.def  diff=astextplain
-*.DEF  diff=astextplain
+#*.def  diff=astextplain
+#*.DEF  diff=astextplain
 *.xml  diff=astextplain
 *.XML  diff=astextplain
 *.vbs  diff=astextplain

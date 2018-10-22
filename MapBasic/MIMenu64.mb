@@ -1,0 +1,192 @@
+'* DataSearches is a MapInfo tool to lists all the available MapInfo
+'* habitat, species and other layers and allows the user to select
+'* which layers to extract for the current data search.
+'*
+'* Copyright © 2013 - 2018 TVERC, GiGL, SBIC
+'* 
+'* This file is part of the MapInfo tool 'DataSearches'.
+'* 
+'* DataSearches is free software: you can redistribute it and/or modify
+'* it under the terms of the GNU General Public License as published by
+'* the Free Software Foundation, either version 3 of the License, or
+'* (at your option) any later version.
+'* 
+'* DataSearches is distributed in the hope that it will be useful,
+'* but WITHOUT ANY WARRANTY; without even the implied warranty of
+'* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'* GNU General Public License for more details.
+'* 
+'* You should have received a copy of the GNU General Public License
+'* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
+'*
+'***************************************************************
+'* MIMenu64bit v1.00
+'*
+'* Contains functions to set the tool button for MI 64bit.
+'*
+'*
+'* Created:			Andy Foy - October 2018
+'* Last revised:	Andy Foy - October 2018
+'*
+'* *****************  Version 1.00  *****************
+'* Author: Andy Foy		Date: 22/10/2018
+'* A. Initial version of code.
+'* 
+'***************************************************************
+Include "DataSearches.def"
+
+Sub CreateToolMenu(ByVal sToolTitle As String)
+'*************************************************
+'* Set the tool menu & button
+'*************************************************
+
+	If (SystemInfo(SYS_INFO_MIPLATFORM) = MIPLATFORM_WIN64) And (SystemInfo(SYS_INFO_MAPINFO_INTERFACE) = MIINTERFACE_RIBBON) then
+
+		'-------------------------------------------------
+		' We need this to get resources, like icons, from .NET assemblies
+		'-------------------------------------------------
+		Call RegisterUriParser(New_GenericUriParser(1), "pack", -1)
+
+		'-------------------------------------------------
+		' Get the IMapInfoPro instance
+		'-------------------------------------------------
+		mtsMapInfoApplication = SystemInfo(SYS_INFO_IMAPINFOAPPLICATION)
+
+		'-------------------------------------------------
+		' Get the Ribbon from the MapInfo Pro instance
+		'-------------------------------------------------
+		mtsRibbon = GetRibbon(mtsMapInfoApplication)
+
+		'-------------------------------------------------
+		' Get the Ribbon Tab Collection from the Ribbon instance
+		'-------------------------------------------------
+		mtsRibbonTabColl = GetTabsColl(mtsRibbon)
+
+		'-------------------------------------------------
+		' Get the Ribbon Tab named "TabHome" from the Ribbon Tab Collection
+		'-------------------------------------------------
+		Dim tsRibbonTab As This
+		tsRibbonTab = GetRbnTabCollItemStr(mtsRibbonTabColl, "TabHome")
+
+		'-------------------------------------------------
+		' Get the ribbon group collection.
+		'-------------------------------------------------
+		Dim tsRibbonGroupColl As This
+		tsRibbonGroupColl = GetRbnTabGrps(tsRibbonTab)
+
+		'-------------------------------------------------
+		' Get the ribbon group called "HomeTools" in the ribbon group collection
+		'-------------------------------------------------
+		Dim tsRibbonGroup As This
+		tsRibbonGroup = GetRbnCtrlGrpCollItemStr(tsRibbonGroupColl, "HomeTools")
+
+		'-------------------------------------------------
+		' Get Group controls collection
+		'-------------------------------------------------
+		mtsGroupControlColl = GetRbnCtrlGrpCtrls(tsRibbonGroup)
+
+		'-------------------------------------------------
+		' Now add a button to the group's controls collection with a name,
+		' caption, and enumerated ControlType
+		'-------------------------------------------------
+		mtsBtn = MICtrlCollAddStrStrInt(mtsGroupControlColl, "btnDataSearches", sToolTitle, ControlType_Button)
+
+		'-------------------------------------------------
+		' Set command to the button
+		'-------------------------------------------------
+		Call SetRbnBtnCtrlCallingHandler(mtsBtn, "DataSearches")
+
+		'-------------------------------------------------
+		' Create & set the button tooltip
+		'-------------------------------------------------
+		Dim tsToolTip As This
+		tsToolTip = New_MapInfoRibbonToolTip()
+		Call SetMIRbnToolTipToolTipDescription(tsToolTip, "Data Searches")
+		Call SetMIRbnToolTipToolTipText(tsToolTip, "Extracts selected GIS layers that intersect with a given feature with a specified buffer.")
+		'Call SetMIRbnToolTipToolTipDisabledText(tsToolTip, "Extracts selected GIS layers that intersect with a given feature with a specified buffer.")
+		Call SetRbnBtnCtrlToolTip(mtsBtn, tsToolTip)
+
+		'-------------------------------------------------
+		' Set the button icon
+		'-------------------------------------------------
+		Call SetRbnBtnCtrlSmallIcon(mtsBtn, New_Uri("D:\GitHub\DataSearches-MapInfo\MapBasic\btnDataSearches.png", 0))
+		Call SetRbnBtnCtrlLargeIcon(mtsBtn, New_Uri("D:\GitHub\DataSearches-MapInfo\MapBasic\DataSearches.png", 0))
+		Call SetRbnBtnCtrlIsLarge(mtsBtn, TRUE)
+
+		Alter Menu ID 4 Add
+			"&" + sToolTitle + "..." Calling DataSearches
+
+	Else
+
+		'-------------------------------------------------
+		' Create the old menu style
+		'-------------------------------------------------
+		Create Menu "&" & sToolTitle As
+		   "&Run " & sToolTitle & " ..." Calling DataSearches,
+		   "(-",
+		   "&About " & sToolTitle & " ..." Calling AboutBox,
+		   "E&xit " & sToolTitle Calling egsit
+
+		'-------------------------------------------------
+		' Add the new menu item to the Tools menu
+		'-------------------------------------------------
+		Alter Menu "Tools" Add
+			sToolTitle As sToolTitle
+
+	End If
+
+End Sub
+
+Sub EndHandler
+'***************************************************************
+'* Remove controls from ribbon
+'***************************************************************
+
+	Dim bRemoved As Logical
+
+OnError Goto HandleError
+
+	bRemoved = MICtrlCollRemove(mtsGroupControlColl, mtsBtn)
+	mtsBtn	= NULL_PTR
+	mtsGroupControlColl = NULL_PTR
+	mtsRibbonTabColl = NULL_PTR
+	mtsRibbon = NULL_PTR
+	mtsMapInfoApplication = NULL_PTR
+
+	Exit Sub
+
+HandleError:
+	Note "EndHandler: " + Error$()
+	Resume Next
+
+End Sub
+
+Sub AddIn_About
+
+	Call AboutBox
+
+End Sub
+
+Function AddIn_Name() As String
+
+	AddIn_Name	= "Data Searches"
+
+End Function
+
+Function AddIn_Description() As String
+
+	AddIn_Description = "Extracts selected GIS layers that intersect with a given feature with a specified buffer."
+
+End Function
+
+Function AddIn_Version() As String
+
+	AddIn_Version = sVersion
+
+End Function
+
+Function AddIn_ImageUri() As String
+
+	AddIn_ImageUri = "D:\GitHub\DataSearches-MapInfo\MapBasic\btnDataSearches.png"
+
+End Function

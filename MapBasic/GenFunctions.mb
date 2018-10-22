@@ -198,7 +198,7 @@ Dim i As Integer, c As String, strReturn as String
 
 End Function
 
-Function RemoveSpecialChars(ByVal strInput As String) As String
+Function RemoveSpecialChars(ByVal strInput As String, ByVal bIgnoreSlash As Logical) As String
 '*************************************************
 '* Remove any special characters from a sting that can't be used in
 '* folder or file names.
@@ -207,7 +207,6 @@ Function RemoveSpecialChars(ByVal strInput As String) As String
     strInput = StringReplace(strInput, "$", "")
     strInput = StringReplace(strInput, ":", "")
     strInput = StringReplace(strInput, "*", "")
-    strInput = StringReplace(strInput, "\", "")
     strInput = StringReplace(strInput, "/", "")
     strInput = StringReplace(strInput, "*", "")
     strInput = StringReplace(strInput, "?", "")
@@ -216,11 +215,15 @@ Function RemoveSpecialChars(ByVal strInput As String) As String
     strInput = StringReplace(strInput, "|", "")
     strInput = StringReplace(strInput, "%", "")
 
+	If bIgnoreSlash = False Then
+	    strInput = StringReplace(strInput, "\", "")
+	End If
+
     RemoveSpecialChars = strInput
 
 End Function
 
-Function ReplaceSpecialChars(ByVal strInput As String, ByVal strRepChar As String) As String
+Function ReplaceSpecialChars(ByVal strInput As String, ByVal strRepChar As String, ByVal bIgnoreSlash As Logical) As String
 '*************************************************
 '* Remove any special characters from a sting that can't be used in
 '* folder or file names.
@@ -229,7 +232,6 @@ Function ReplaceSpecialChars(ByVal strInput As String, ByVal strRepChar As Strin
     strInput = StringReplace(strInput, "$", strRepChar)
     strInput = StringReplace(strInput, ":", strRepChar)
     strInput = StringReplace(strInput, "*", strRepChar)
-    strInput = StringReplace(strInput, "\", strRepChar)
     strInput = StringReplace(strInput, "/", strRepChar)
     strInput = StringReplace(strInput, "*", strRepChar)
     strInput = StringReplace(strInput, "?", strRepChar)
@@ -238,7 +240,12 @@ Function ReplaceSpecialChars(ByVal strInput As String, ByVal strRepChar As Strin
     strInput = StringReplace(strInput, "|", strRepChar)
     strInput = StringReplace(strInput, "%", strRepChar)
 
-    strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
+	If bIgnoreSlash = False Then
+	    strInput = StringReplace(strInput, "\", strRepChar)
+	End If
+
+    strInput = StringReplace(strInput, strRepChar + strRepChar + strRepChar + strRepChar, strRepChar)
+    strInput = StringReplace(strInput, strRepChar + strRepChar + strRepChar, strRepChar)
     strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
     strInput = StringReplace(strInput, strRepChar + strRepChar, strRepChar)
 
@@ -251,7 +258,6 @@ Function StringReplace(ByVal sToBeSearched As String, ByVal sSearchFor As String
 '* Finds and replaces one string with another
 '* in a given string
 '*************************************************
-
 Dim i, nLenR, nLenS As Integer
 
 	OnError GoTo ErrorOccured
@@ -262,7 +268,7 @@ Dim i, nLenR, nLenS As Integer
 	nLenS = Len(sSearchFor)
 	i = InStr(1, sToBeSearched, sSearchFor)
 	Do While i > 0
-	   sToBeSearched = Left$(sToBeSearched,i - 1) + sReplaceWith
+	   sToBeSearched = Left$(sToBeSearched, i - 1) + sReplaceWith
 	               + Right$(sToBeSearched, Len(sToBeSearched) - ((i - 1) + nLenS))
 	   i = InStr(i + nLenR, sToBeSearched, sSearchFor)
 	Loop
@@ -279,13 +285,13 @@ Function ColumnExists(ByVal sTableName As String, ByVal sColName As String) As L
 '*************************************************
 '* Check if the column exists in the table
 '*************************************************
+Dim i, j As Integer
+Dim sColName0 As String
 
 	'-------------------------------------------------
 	' Loop through all the columns looking for the
 	' required name
 	'-------------------------------------------------
-	Dim i, j As Integer
-	Dim sColName0 As String
 
 	ColumnExists = False
 
@@ -300,3 +306,58 @@ Function ColumnExists(ByVal sTableName As String, ByVal sColName As String) As L
 	Next
 
 End Function
+
+Function CreatePath(ByVal sPath As String) As Logical
+'*************************************************
+'* Checks and creates all the folders in a path
+'*************************************************
+Dim i As Integer
+Dim sFolder As String
+Dim iSuccess, iSecurity As Integer
+
+	OnError GoTo 0
+	
+	CreatePath = False
+	
+	' Find the first blackslash
+	i = InStr(1, sPath, "\")
+	Do While i > 0
+	   sFolder = Left$(sPath, i - 1)
+
+		' Check if the folder exists	   
+		iSecurity = 0
+		iSuccess = SetCurrentDirectory(sFolder)
+		
+		' If the folder doesn't exist
+		If iSuccess = 0 Then
+
+			' Create the folder
+			iSuccess = 0
+			iSuccess = CreateDirectory(sFolder, iSecurity)
+			
+			' If the folder couldn't be created
+			if iSuccess = 0 Then
+				GoTo ErrorOccured
+			End If
+		End If	   
+	   
+		' Find the next blackslash (or the end of the string)
+	    If i < Len(sPath) Then
+			i = InStr(i + 1, sPath, "\")
+			If i = 0 Then
+				i = Len(sPath) + 1
+			End If
+		Else
+			i = 0
+		End If
+	Loop
+	
+	CreatePath = True
+	
+	Exit Function
+
+ErrorOccured:
+	Note "Error: " + str$(Err()) + ": " + Error$()
+
+End Function
+

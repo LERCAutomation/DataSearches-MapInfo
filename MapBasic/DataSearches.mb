@@ -2,8 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2018 TVERC, GiGL
+'* Copyright © 2013 - 2018 TVERC, GiGL, SBIC
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -21,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.24
+'* DataSearches v1.4.27
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,7 +28,17 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - September 2018
+'* Last revised:		Andy Foy - October 2018
+'*
+'* *****************  Version 1.4.27  **************
+'* Author: Andy Foy		Date: 22/10/2018
+'* A. Include new tool buttons for MI Pro 64bit.
+'*
+'* *****************  Version 1.4.26  **************
+'* Author: Andy Foy		Date: 04/10/2018
+'* A. Enable %partner% to be used as a variable in the XML.
+'* B. Update partner organisation in search layer if required.
+'* C. Log selection options in log file.
 '*
 '* *****************  Version 1.4.25  **************
 '* Author: Andy Foy		Date: 21/09/2018
@@ -204,32 +213,25 @@ Sub Main
 '* Main sub-routine
 '***************************************************************
 
+	OnError Goto HandleError
+
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.25"
+	sVersion = "1.4.27"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
 	'-------------------------------------------------
 	Call GetToolTitle
 
-	'-------------------------------------------------
-	' Create a new menu
-	'-------------------------------------------------
-	Create Menu "&" & sToolTitle As
-	   "&Run " & sToolTitle & " ..." Calling OpenDialog,
-	   "(-",
-	   "&About " & sToolTitle & " ..." Calling AboutBox,
-	   "E&xit " & sToolTitle Calling egsit
-
-	'-------------------------------------------------
-	' Add the new menu item to the Tools menu
-	'-------------------------------------------------
-	Alter Menu "Tools" Add
-		sToolTitle As sToolTitle
-
+	Call CreateToolMenu(sToolTitle)
+	
 	Exit Sub
+
+HandleError:
+	Note "Main: " + Error$()
+	Resume Next
 
 End Sub
 
@@ -390,6 +392,9 @@ Sub GetDefaultValues
 
 					' The field name of the search reference organisation
 					sOrgColumn = GetSingleNodeValue(hXMLNode, "OrgColumn")
+
+					' The field name of the search reference partner organisation
+					sPartnerColumn = GetSingleNodeValue(hXMLNode, "PartnerColumn")
 
 					' The field name of the search reference radius
 					sRadiusColumn = GetSingleNodeValue(hXMLNode, "RadiusColumn")
@@ -690,7 +695,7 @@ GetVariablesError:
 
 End Sub
 
-Sub OpenDialog
+Sub DataSearches
 '***************************************************************
 '* Create the user dialog window
 '***************************************************************
@@ -842,7 +847,7 @@ Sub OpenDialog
 		Title sCombinedSitesOptions
 		Position 120,215
 		Width 100
-		'Into iAddSelectedTables
+		'Into iCombinedSitesTable
 
 	'-------------------------------------------------
 	' Add Ok and cancel buttons
@@ -966,7 +971,7 @@ Sub DialogSetup
 		' Set the control value if this table is to
 		' be pre-selected.
 		'-------------------------------------------------
-		If UCase$(OpenMaps(i).Preselect) = "YES" Then
+		If UCase$(OpenMaps(i).Preselect) = "YES" Or UCase$(OpenMaps(i).Preselect) = "Y" Then
 			Alter Control 3 Value i
 		End If
 
@@ -1110,9 +1115,9 @@ RegisterTable:
 		End If
 
 		'-------------------------------------------------
-		' Select the site name and organisation for the enquiry
+		' Select the site name, organisation and partner for the enquiry
 		'-------------------------------------------------
-		Dim sSiteCol As String, sOrgCol As String
+		Dim sSiteCol As String, sOrgCol As String, sPartnerCol As String
 		If sSiteColumn = "" Then
 			sSiteCol = Chr$(34) + Chr$(34) + " " + Chr$(34) + "SiteName" + Chr$(34)
 		Else
@@ -1123,13 +1128,18 @@ RegisterTable:
 		Else
 			sOrgCol = sOrgColumn
 		End If
+		If sPartnerColumn = "" Then
+			sPartnerCol = Chr$(34) + Chr$(34) + " " + Chr$(34) + "Partner" + Chr$(34)
+		Else
+			sPartnerCol = sPartnerColumn
+		End If
 
 		Call MyPrint("Getting details from '" + sEnquiries + "' ...")
 
 		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 And Str$(Val(sRef)) = sRef Then
-			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
 		Else
-			sCmd = "Select " + sSiteCol + ", " + sOrgCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
 		
@@ -1150,10 +1160,11 @@ RegisterTable:
 			Fetch First from Enquiry
 	
 			'-------------------------------------------------
-			' Get the site name and organisation values
+			' Get the site name, organisation and partner values
 			'-------------------------------------------------
 			sSiteName = Enquiry.Col1
 			sOrganisation = Enquiry.Col2
+			sPartner = Enquiry.Col3
 
 			'-------------------------------------------------
 			' Put the site name in the site name field
@@ -1353,46 +1364,83 @@ SetSubRef:
     sSaveFolder = StringReplace(sSaveFolder, "%shortref%", sShortRefNo)
     sSaveFolder = StringReplace(sSaveFolder, "%subref%", sSubRefNo)
     sSaveFolder = StringReplace(sSaveFolder, "%sitename%", sSiteName)
+    sSaveFolder = StringReplace(sSaveFolder, "%organisation%", sOrganisation)
+    sSaveFolder = StringReplace(sSaveFolder, "%partner%", sPartner)
     sSaveFolder = StringReplace(sSaveFolder, "%radius%", sRadius)
     
     sGISFolder = StringReplace(sGISFolder, "%ref%", sSearchRef)
     sGISFolder = StringReplace(sGISFolder, "%shortref%", sShortRefNo)
     sGISFolder = StringReplace(sGISFolder, "%subref%", sSubRefNo)
     sGISFolder = StringReplace(sGISFolder, "%sitename%", sSiteName)
+    sGISFolder = StringReplace(sGISFolder, "%organisation%", sOrganisation)
+    sGISFolder = StringReplace(sGISFolder, "%partner%", sPartner)
     sGISFolder = StringReplace(sGISFolder, "%radius%", sRadius)
     
     sLogFileName = StringReplace(sLogFileName, "%ref%", sSearchRef)
     sLogFileName = StringReplace(sLogFileName, "%shortref%", sShortRefNo)
     sLogFileName = StringReplace(sLogFileName, "%subref%", sSubRefNo)
     sLogFileName = StringReplace(sLogFileName, "%sitename%", sSiteName)
+    sLogFileName = StringReplace(sLogFileName, "%organisation%", sOrganisation)
+    sLogFileName = StringReplace(sLogFileName, "%partner%", sPartner)
     sLogFileName = StringReplace(sLogFileName, "%radius%", sRadius)
     
     sBufferSaveName = StringReplace(sBufferSaveName, "%ref%", sSearchRef)
     sBufferSaveName = StringReplace(sBufferSaveName, "%shortref%", sShortRefNo)
     sBufferSaveName = StringReplace(sBufferSaveName, "%subref%", sSubRefNo)
     sBufferSaveName = StringReplace(sBufferSaveName, "%sitename%", sSiteName)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%organisation%", sOrganisation)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
     sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
     
     sGroupLayerName = StringReplace(sGroupLayerName, "%ref%", sSearchRef)
     sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
     sGroupLayerName = StringReplace(sGroupLayerName, "%subref%", sSubRefNo)
     sGroupLayerName = StringReplace(sGroupLayerName, "%sitename%", sSiteName)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%organisation%", sOrganisation)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
     sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
     
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%ref%", sSearchRef)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%subref%", sSubRefNo)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%sitename%", sSiteName)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%organisation%", sOrganisation)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%partner%", sPartner)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%radius%", sRadius)
     
 	'-------------------------------------------------
     ' Remove any invalid characters from file/folder names
 	'-------------------------------------------------
-    sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar)))
-    sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar)))
-    sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar)))
-    sBufferSaveName = LTrim$(RTrim$(ReplaceSpecialChars(sBufferSaveName, sRepChar)))
-    sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar)))
+    sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar, True)))
+    sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar, True)))
+    sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar, False)))
+    sBufferSaveName = LTrim$(RTrim$(ReplaceSpecialChars(sBufferSaveName, sRepChar, False)))
+    sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar, False)))
+
+	'-------------------------------------------------
+    ' Check if folder names contain only/excess backslashes
+	'-------------------------------------------------
+	sSaveFolder = LTrim$(RTrim$(StringReplace(sSaveFolder, "\\", "\")))
+	If Left$(sSaveFolder, 1) = "\" Then
+		sSaveFolder = Right$(sSaveFolder, Len(sSaveFolder) - 1)
+	End If
+	If Right$(sSaveFolder, 1) = "\" Then
+		sSaveFolder = Left$(sSaveFolder, Len(sSaveFolder) - 1)
+	End If
+	If LTrim$(RTrim$(StringReplace(sSaveFolder, "\", ""))) = "" Then
+		sSaveFolder = ""
+	End If
+	
+	sGISFolder = LTrim$(RTrim$(StringReplace(sGISFolder, "\\", "\")))
+	If Left$(sGISFolder, 1) = "\" Then
+		sGISFolder = Right$(sGISFolder, Len(sGISFolder) - 1)
+	End If
+	If Right$(sGISFolder, 1) = "\" Then
+		sGISFolder = Left$(sGISFolder, Len(sGISFolder) - 1)
+	End If
+	If LTrim$(RTrim$(StringReplace(sGISFolder, "\", ""))) = "" Then
+		sGISFolder = ""
+	End If
 
 	'-------------------------------------------------
     ' Set the layer names to use
@@ -1415,15 +1463,11 @@ SetSubRef:
 		sRootPath = sSaveRootDir + "\" + sSaveFolder
 	End If
 	
-	Dim iSuccess, iSecurity As Integer
-	iSecurity = 0
-	iSuccess = SetCurrentDirectory(sRootPath)
-	if iSuccess = 0 Then
-		iSuccess = CreateDirectory(sRootPath, iSecurity)
-		if iSuccess = 0 Then
-			Note "Error: Unable to create search folder. Process terminated."
-			Exit Sub
-		End If
+	Dim iSuccess As Logical
+	iSuccess  = CreatePath(sRootPath)
+	if iSuccess = False Then
+		Note "Error: Unable to create folder path '" + sRootPath + "'. Process terminated."
+		Exit Sub
 	End If
 	
 	'-------------------------------------------------
@@ -1436,14 +1480,10 @@ SetSubRef:
 		sLocalPath = sRootPath + "\" + sGISFolder
 	End If
 	
-	iSecurity = 0
-	iSuccess = SetCurrentDirectory(sLocalPath)
-	if iSuccess = 0 Then
-		iSuccess = CreateDirectory(sLocalPath, iSecurity)
-		if iSuccess = 0 Then
-			Note "Error: Unable to create search sub-folder. Process terminated."
-			Exit Sub
-		End If
+	iSuccess  = CreatePath(sLocalPath)
+	if iSuccess = False Then
+		Note "Error: Unable to create folder path '" + sLocalPath + "'. Process terminated."
+		Exit Sub
 	End If
 	
 	'-------------------------------------------------
@@ -1464,6 +1504,47 @@ SetSubRef:
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Processing search '" + sSearchRef + "' ...")
 	Call MyPrint("----------------------------------------------------------------------")
+	Call MyPrint("")
+
+	'-------------------------------------------------
+	' Log the selected options
+	'-------------------------------------------------
+	Call MyPrint("Buffer size = '" + sBufferSize + sBufferUnit + "'")
+
+	Do Case iAddSelectedTables
+		Case 1
+			Call MyPrint("Selected output layers will be deleted")
+		Case 2
+			Call MyPrint("Selected output layers will be kept")
+		Case 3
+			Call MyPrint("Selected output layers will be added to the map - without labels")
+		Case 4
+			Call MyPrint("Selected output layers will be added to the map - with labels")
+		Case Else
+	End Case
+
+	Do Case iOverwriteLabels
+		Case 1
+			Call MyPrint("Map labels will not be added")
+		Case 2
+			Call MyPrint("Map labels will be added and reset for each layer")
+		Case 3
+			Call MyPrint("Map labels will be added and reset for each group")
+		Case 4
+			Call MyPrint("Map labels will be added but not reset")
+		Case Else
+	End Case
+
+	Do Case iCombinedSitesTable
+		Case 1
+			Call MyPrint("No combined sites table will be created")
+		Case 2
+			Call MyPrint("Any combined sites table will be appended to")
+		Case 3
+			Call MyPrint("Any combined sites table will be overwritten")
+		Case Else
+	End Case
+
 	Call MyPrint("")
 
 	'-------------------------------------------------
@@ -1571,8 +1652,8 @@ EditLayer:
 	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
 
 	'-------------------------------------------------
-	' Update the site name and organisation in the
-	' search table
+	' Update the site name, organisation and partner
+	' in the search table
 	'-------------------------------------------------
 	Dim sCmd As String
 	Dim sTempTable As String
@@ -1592,6 +1673,10 @@ EditLayer:
 	End If
 	If sOrgColumn <> "" Then
 		sCmd = "Update " + sTempTable + " Set " + sOrgColumn + " = " + Chr$(34) + sOrganisation + Chr$(34)
+		Run Command (sCmd)
+	End If
+	If sPartnerColumn <> "" Then
+		sCmd = "Update " + sTempTable + " Set " + sPartnerColumn + " = " + Chr$(34) + sPartner + Chr$(34)
 		Run Command (sCmd)
 	End If
 	If sRadiusColumn <> "" Then
@@ -1696,7 +1781,10 @@ HideLayer:
 	    sSitesTable = StringReplace(sSitesTable, "%shortref%", sShortRefNo)
 	    sSitesTable = StringReplace(sSitesTable, "%subref%", sSubRefNo)
 	    sSitesTable = StringReplace(sSitesTable, "%sitename%", sSiteName)
-	    sSitesTable = LTrim$(RTrim$(ReplaceSpecialChars(sSitesTable, sRepChar)))
+	    sSitesTable = StringReplace(sSitesTable, "%organisation%", sOrganisation)
+	    sSitesTable = StringReplace(sSitesTable, "%partner%", sPartner)
+	    sSitesTable = StringReplace(sSitesTable, "%radius%", sRadius)
+	    sSitesTable = LTrim$(RTrim$(ReplaceSpecialChars(sSitesTable, sRepChar, False)))
 	    
 	    'If sSitesTable = sCombinedSitesOutputName Then
 	    '	sSitesTable = sSubRefNo + sCombinedSitesOutputName
@@ -2381,7 +2469,10 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sOutputName = StringReplace(sOutputName, "%shortref%", sShortRefNo)
     sOutputName = StringReplace(sOutputName, "%subref%", sSubRefNo)
     sOutputName = StringReplace(sOutputName, "%sitename%", sSiteName)
-    sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar)))
+    sOutputName = StringReplace(sOutputName, "%organisation%", sOrganisation)
+    sOutputName = StringReplace(sOutputName, "%partner%", sPartner)
+    sOutputName = StringReplace(sOutputName, "%radius%", sRadius)
+    sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar, False)))
     
     If Len(SelectedMap.TableName + "_" + sSubRefNo) > 30 Then
 	    sLocalName = Left$(SelectedMap.TableName, 29 - Len(sSubRefNo)) + "_" + sSubRefNo
@@ -2394,7 +2485,10 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
     sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
     sExportName = StringReplace(sExportName, "%sitename%", sSiteName)
-    sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar)))
+    sExportName = StringReplace(sExportName, "%organisation%", sOrganisation)
+    sExportName = StringReplace(sExportName, "%partner%", sPartner)
+    sExportName = StringReplace(sExportName, "%radius%", sRadius)
+    sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar, False)))
     
     'If sExportName = SelectedMap.TableOutputName Then
     '	sExportName = sSubRefNo + SelectedMap.TableOutputName
@@ -2530,7 +2624,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' If the user wants to overwrite the map labels
 	' and this table allows it, then overwrite them
 	'-------------------------------------------------
-	If iOverwriteLabels > 1	And UCase$(SelectedMap.Overwrite) = "YES" Then
+	If iOverwriteLabels > 1	And (UCase$(SelectedMap.Overwrite) = "YES" Or UCase$(SelectedMap.Overwrite) = "Y") Then
 
 		'-------------------------------------------------
 		' Reset the map label counter if required
@@ -2673,18 +2767,18 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' If the local table is not required then
 	' delete it, otherwise close it
 	'-------------------------------------------------
-	If UCase$(SelectedMap.Keep) <> "YES" Then
-		Call MyPrint("Deleting local file ...")
-		Drop Table sSelectName
-	Else
+	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 		Call MyPrint("Keeping local file ...")
 		Close Table sSelectName
+	Else
+		Call MyPrint("Deleting local file ...")
+		Drop Table sSelectName
 	End If
 	
 	'-------------------------------------------------
-	' Add the local table to the map if required
+	' Add the local table to the map (if required)
 	'-------------------------------------------------
-	If iAddSelectedTables > 1 And UCase$(SelectedMap.Keep) = "YES" Then
+	If iAddSelectedTables > 2 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 		
 		'-------------------------------------------------
 		' Re-open the selection table with the correct
@@ -2752,7 +2846,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 				'-------------------------------------------------
 				' If the layer is to be added with labels ...
 				'-------------------------------------------------
-				If iAddSelectedTables = 3 Then
+				If iAddSelectedTables = 4 Then
 	
 					'-------------------------------------------------
 					' If the table doesn't contain the map label
@@ -2835,7 +2929,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 				'-------------------------------------------------
 				' If the layer is to be added with labels ...
 				'-------------------------------------------------
-				If iAddSelectedTables = 3 Then
+				If iAddSelectedTables = 4 Then
 	
 					'-------------------------------------------------
 					' If the table doesn't contain the map label

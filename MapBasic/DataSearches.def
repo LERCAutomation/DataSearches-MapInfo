@@ -2,8 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2018 TVERC, GiGL
+'* Copyright © 2013 - 2018 TVERC, GiGL, SBIC
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,9 +19,25 @@
 '* You should have received a copy of the GNU General Public License
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
+'***************************************************************
+'* DataSearches.def v1.05
+'*
+'* Defines global variables and declares subroutines and functions.
+'*
+'*
+'* Created:			Andy Foy - February 2013
+'* Last revised:	Andy Foy - October 2018
+'***************************************************************
+
 Include "MapBasic.def"
 Include "Menu.def"
 Include "Icons.def"
+
+'Include "XMLMenu32.def"
+
+Include "IMapInfoPro.def"
+Include "Enums.def"
+Include "XMLMenu64.def"
 
 '-------------------------------------------------
 ' Define the custom variable types
@@ -84,23 +99,16 @@ End Type
 Define NORMAL_PRIORITY_CLASS &H20
 Define INFINITE -1
 Define STRING_LEN 1024
-Define MIXmlDocument Integer
-Define MIXmlNode Integer
-Define MIXmlNodeList Integer
-Define MIXmlNamedNodeMap Integer
-Define MIXMLSchemaCollection Integer
-Define MIXML_LIB_NAME "GmlXlat.dll"
-Define MIWEBSERVICES_LIB_NAME "GmlXlat.dll"
-'Define MIXML_LIB_NAME "MapInfo.XmlUtil.dll"
-'Define MIWEBSERVICES_LIB_NAME "MapInfo.XmlUtil.dll"
 
 '-------------------------------------------------
 ' Declare the subroutines
 '-------------------------------------------------
 Declare Sub Main
 Declare Sub GetToolTitle
+Declare Sub CreateToolMenu
+	(ByVal sToolTitle As String)
 Declare Sub GetDefaultValues
-Declare Sub OpenDialog
+Declare Sub DataSearches
 Declare Sub DialogSetup
 Declare Sub GetSiteName
 Declare Sub CheckSelection
@@ -163,10 +171,12 @@ Declare Function KeepNumbersAndSpaces
 	(ByVal strInput As String,
 	repChar As String) As String
 Declare Function RemoveSpecialChars
-	(ByVal strInput As String) As String
+	(ByVal strInput As String,
+	ByVal bIgnoreSlash As Logical) As String
 Declare Function ReplaceSpecialChars
 	(ByVal strInput As String,
-	ByVal strRepChar As String) As String
+	ByVal strRepChar As String,
+	ByVal bIgnoreSlash As Logical) As String
 Declare Function StringReplace
 	(ByVal sToBeSearched As String,
 	ByVal sSearchFor As String,
@@ -174,6 +184,8 @@ Declare Function StringReplace
 Declare Function ColumnExists
 	(ByVal sTableName As String,
 	ByVal sColName As String) As Logical
+	Declare Function CreatePath
+	(ByVal sPath As String) As Logical
 
 Declare Function CreateDirectory Lib "kernel32"
 	Alias "CreateDirectoryA"
@@ -211,6 +223,7 @@ Declare Function MIXmlGetChildList Lib MIXML_LIB_NAME Alias "MIXmlGetChildList" 
 Declare Function MIXmlGetNextNode Lib MIXML_LIB_NAME Alias "MIXmlGetNextNode" (
 	ByVal hXMLNodeList As MIXmlNodeList)
 	As MIXmlNode
+
 Declare Function MIXmlGetAttributeList Lib MIXML_LIB_NAME Alias "MIXmlGetAttributeList" (
 	ByVal hXMLNode As MIXmlNode)
 	As MIXmlNamedNodeMap
@@ -246,6 +259,7 @@ Global sEnquiriesTable As String
 Global sRefColumn As String
 Global sSiteColumn As String
 Global sOrgColumn As String
+Global sPartnerColumn As String
 Global sRadiusColumn As String
 Global sRequireSiteName As String
 Global sRepChar As String
@@ -296,6 +310,7 @@ Global sSearchValues As String
 Global sSearchRef As String
 Global sSiteName As String
 Global sOrganisation As String
+Global sPartner As String
 Global sShortRefNo As String
 Global sSubRefNo As String
 Global sRadius As String
