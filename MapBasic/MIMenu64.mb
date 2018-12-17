@@ -109,8 +109,8 @@ Sub CreateToolMenu(ByVal sToolTitle As String)
 		'-------------------------------------------------
 		' Set the button icon
 		'-------------------------------------------------
-		Call SetRbnBtnCtrlSmallIcon(mtsBtn, New_Uri("D:\GitHub\DataSearches-MapInfo\MapBasic\btnDataSearches.png", 0))
-		Call SetRbnBtnCtrlLargeIcon(mtsBtn, New_Uri("D:\GitHub\DataSearches-MapInfo\MapBasic\DataSearches.png", 0))
+		Call SetRbnBtnCtrlSmallIcon(mtsBtn, New_Uri(ApplicationDirectory$() + "btnDataSearches.png", 0))
+		Call SetRbnBtnCtrlLargeIcon(mtsBtn, New_Uri(ApplicationDirectory$() + "DataSearches.png", 0))
 		Call SetRbnBtnCtrlIsLarge(mtsBtn, TRUE)
 
 		Alter Menu ID 4 Add
@@ -187,6 +187,7 @@ End Function
 
 Function AddIn_ImageUri() As String
 
-	AddIn_ImageUri = "D:\GitHub\DataSearches-MapInfo\MapBasic\btnDataSearches.png"
+	AddIn_ImageUri = ApplicationDirectory$() + "btnDataSearches.png"
+'	AddIn_ImageUri = "D:\GitHub\DataSearches-MapInfo\MapBasic\btnDataSearches.png"
 
 End Function
