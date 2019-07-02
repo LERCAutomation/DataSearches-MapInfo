@@ -21,13 +21,18 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* GenFunctions v1.42
+'* GenFunctions v1.43
 '*
 '* Contains general functions used by the DataSearches tool.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - August 2016
+'* Last revised:	Andy Foy - February 2019
+'*
+'* *****************  Version 1.43  *****************
+'* Author: Andy Foy		Date: 27/02/2019
+'* A. Added functions to return userid and execute and wait.
+'* 
 '***************************************************************
 Include "DataSearches.def"
 
@@ -62,7 +67,6 @@ Function TableIsOpen(ByVal sTabName As String) As Logical
 	Next
 
 End Function
-
 
 Function TabFileExists(ByVal sTabFileName As String) As Logical
 '*************************************************
@@ -361,3 +365,77 @@ ErrorOccured:
 
 End Function
 
+Function GetUserID() As String
+'*************************************************
+'* Get the User ID of the current user
+'*************************************************
+
+	'-------------------------------------------------
+	' Loop through all the columns in the table and
+	' sum the column lengths
+	'-------------------------------------------------
+	Dim sUserID As String ' receives name of the user
+	Dim iLength As Integer ' length of the string
+	Dim iRetVal As Integer ' return value
+
+	'-------------------------------------------------
+	' Create room in the buffer to receive the returned string
+	'-------------------------------------------------
+	sUserID = Space$(255)
+	iLength = 255
+
+	'-------------------------------------------------
+	' Get the user id
+	'-------------------------------------------------
+	iRetVal = GetUserName(sUserID, iLength)
+
+	'-------------------------------------------------
+	' Extract the returned info from the buffer
+	'-------------------------------------------------
+	sUserID = Left$(sUserID, iLength - 1)
+
+	GetUserID = sUserID
+
+End Function
+
+Function ExecuteAndWait(ByVal cmdLine as string) As Integer
+'*************************************************
+'* Execute a command and wait for it to finish
+'*************************************************
+
+	OnError Goto ErrorHandle
+
+	Dim nRetVal As Integer, nExitCode As Integer
+	Dim NameOfProc As Process_Information, NameStart As StartUpInfo
+	Dim hProc As Integer
+
+	NameStart.cb = 256
+	NameStart.dwFlags = 1
+	NameStart.wShowWindow = 0
+
+	' Start the shelled application
+	nRetVal = CreateProcessA(0, cmdLine, 0, 0, 1, NORMAL_PRIORITY_CLASS, 0, 0, NameStart, NameOfProc)
+
+	' Get the handle of the started process
+	hProc = NameOfProc.hProcess
+
+	' Wait for the shelled application process to finish
+	nRetVal = WaitForSingleObject(hProc, INFINITE)
+
+	' Get the exit code from the shelled application
+	nRetVal = GetExitCodeProcess(hProc, nExitCode)
+
+	' Close the process handle
+	nRetVal = CloseHandle(hProc)
+
+	ExecuteAndWait = nExitCode
+
+Exit Function
+
+ErrorHandle:
+	ExecuteAndWait = FALSE
+	Note str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Exit Function
+
+End Function

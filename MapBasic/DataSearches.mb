@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.27
+'* DataSearches v1.4.28
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:		Andy Foy - October 2018
+'* Last revised:		Andy Foy - February 2019
+'*
+'* *****************  Version 1.4.28  **************
+'* Author: Andy Foy		Date: 27/02/2019
+'* A. Add option for keeping tables as TAB and/or SHP files.
 '*
 '* *****************  Version 1.4.27  **************
 '* Author: Andy Foy		Date: 22/10/2018
@@ -218,7 +222,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.27"
+	sVersion = "1.4.28"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -498,6 +502,18 @@ Sub GetDefaultValues
 						iDefaultAddSelectedTables = sDefaultAddSelectedTables
 					End If
 
+					' Options for keeping the selected tables
+					sKeepSelectedTablesOptions = GetSingleNodeValue(hXMLNode, "KeepSelectedTablesOptions")
+
+					' Default option for keeping selected tables
+					Dim sDefaultKeepSelectedTables As String
+					sDefaultKeepSelectedTables = GetSingleNodeValue(hXMLNode, "DefaultKeepSelectedTables")
+					If sDefaultKeepSelectedTables = "" Then
+						iDefaultKeepSelectedTables = 0
+					Else
+						iDefaultKeepSelectedTables = sDefaultKeepSelectedTables
+					End If
+
 					' The name of the group layer that will be created in the table of contents
 					sGroupLayerName = GetSingleNodeValue(hXMLNode, "GroupLayerName")
 
@@ -524,6 +540,12 @@ Sub GetDefaultValues
 					Else
 						iDefaultCombinedSitesTable = sDefaultCombinedSitesTable
 					End If
+
+					' Path to universal translator program
+					sUTPath = GetSingleNodeValue(hXMLNode, "UTPath")
+
+					' Command for running universal translator program
+					sUTCommand = GetSingleNodeValue(hXMLNode, "UTCommand")
 
 					'-------------------------------------------------
 					' Get a handle on the Combined Sites table sub-node
@@ -706,6 +728,13 @@ Sub DataSearches
     OnError Goto ErrorTrap
 
 	'-------------------------------------------------
+	' Get the current user ID
+	'-------------------------------------------------
+	sUserID = GetUserID()
+	sUserID = StringReplace(sUserID, " ", "_")
+	sUserID = StringReplace(sUserID, ".", "_")
+
+	'-------------------------------------------------
 	' Retrieve the default values from the config file
 	'-------------------------------------------------
 	Call GetDefaultValues
@@ -724,7 +753,7 @@ Sub DataSearches
 	Dialog
 		Title "Data Searches " + sVersion
 		Width 235
-		Height 270
+		Height 300
 		Position 50, 70
 		Calling DialogSetup
 
@@ -771,7 +800,7 @@ Sub DataSearches
 		ID 3
 		Title ""
 		Position 10,80
-		Height 150
+		Height 185
 		Width 95
 
 	'-------------------------------------------------
@@ -800,16 +829,6 @@ Sub DataSearches
 		'Into iBufferInt
 
 	'-------------------------------------------------
-	' Add a checkbox for clearing the log file
-	'-------------------------------------------------
-	Control CheckBox
-		ID 6
-		Title "Clear log file?  "
-		Position 10,250
-		Value bDefaultClearLogFile
-		'Into bClearLog
-
-	'-------------------------------------------------
 	' Add a radio group for adding the selected tables
 	' to the map window
 	'-------------------------------------------------
@@ -824,15 +843,28 @@ Sub DataSearches
 		'Into iAddSelectedTables
 
 	'-------------------------------------------------
+	' Add a radio group for keeping the selected tables
+	'-------------------------------------------------
+	Control StaticText Title "Keep Selected Tables:  "
+		ID 22
+		Position 120,170
+	Control PopupMenu
+		ID 12
+		Title sKeepSelectedTablesOptions
+		Position 120,180
+		Width 100
+		'Into iKeepSelectedTables
+
+	'-------------------------------------------------
 	' Add a radio group for overwritting map labels
 	'-------------------------------------------------
 	Control StaticText Title "Overwrite Map Labels:  "
 		ID 20
-		Position 120,170
+		Position 120,205
 	Control PopupMenu
 		ID 10
 		Title sOverwriteLabelOptions
-		Position 120,180
+		Position 120,215
 		Width 100
 		'Into iOverwriteLabels
 
@@ -841,24 +873,34 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Create Combined Sites Table:  "
 		ID 21
-		Position 120,205
+		Position 120,240
 	Control PopupMenu
 		ID 11
 		Title sCombinedSitesOptions
-		Position 120,215
+		Position 120,250
 		Width 100
 		'Into iCombinedSitesTable
+
+	'-------------------------------------------------
+	' Add a checkbox for clearing the log file
+	'-------------------------------------------------
+	Control CheckBox
+		ID 6
+		Title "Clear log file?  "
+		Position 10,280
+		Value bDefaultClearLogFile
+		'Into bClearLog
 
 	'-------------------------------------------------
 	' Add Ok and cancel buttons
 	'-------------------------------------------------
 	Control CancelButton
-		Position 140,250
+		Position 140,280
 		Width 40
 	Control Button
 		ID 99
 		Title "Ok"
-		Position 185,250
+		Position 185,280
 		Width 40
 		Calling CheckSelection
 
@@ -1212,6 +1254,7 @@ Sub CheckSelection
 	iBufferInt = ReadControlValue(5)
 	bClearLog = ReadControlValue(6)
 	iAddSelectedTables = ReadControlValue(9)
+	iKeepSelectedTables = ReadControlValue(12)
 	iOverwriteLabels = ReadControlValue(10)
 	iCombinedSitesTable = ReadControlValue(11)
 
@@ -1499,6 +1542,17 @@ SetSubRef:
 		If FileExists(sLogFile) Then
 			Kill sLogFile
 		End If
+
+		'-------------------------------------------------
+		' Clear the translate to shapefile log file
+		' (if it exists)
+		'-------------------------------------------------
+		Dim sLogFileShp As String
+		sLogFileShp = "TabToShp" + "_" + sUserID
+
+		If FileExists(sLocalPath + "\" + sLogFileShp + "_MUT.log") Then
+			Kill sLocalPath + "\" + sLogFileShp + "_MUT.log"
+		End If
 	End If
 
 	Call MyPrint("----------------------------------------------------------------------")
@@ -1513,13 +1567,23 @@ SetSubRef:
 
 	Do Case iAddSelectedTables
 		Case 1
-			Call MyPrint("Selected output layers will be deleted")
+			Call MyPrint("Selected output layers will not be added to the map")
 		Case 2
-			Call MyPrint("Selected output layers will be kept")
-		Case 3
 			Call MyPrint("Selected output layers will be added to the map - without labels")
-		Case 4
+		Case 3
 			Call MyPrint("Selected output layers will be added to the map - with labels")
+		Case Else
+	End Case
+
+	Do Case iKeepSelectedTables
+		Case 1
+			Call MyPrint("Selected output layers will not be kept")
+		Case 2
+			Call MyPrint("Selected output layers will be kept as TAB files")
+		Case 3
+			Call MyPrint("Selected output layers will be kept as SHP files")
+		Case 4
+			Call MyPrint("Selected output layers will be kept as both TAB & SHP files")
 		Case Else
 	End Case
 
@@ -2221,6 +2285,30 @@ EditLayer:
 	Run Command (sCmd)
 
 	'-------------------------------------------------
+	' Close the selection table
+	'-------------------------------------------------
+	Close Table sSearchAreaTable
+
+	'-------------------------------------------------
+	' Close the latest query table
+	'-------------------------------------------------
+	Dim t As SmallInt
+	For t = NumTables() to 1 Step -1
+		If TableInfo(t, TAB_INFO_TEMP) = True Then
+			Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
+			Close Table TableInfo(t, TAB_INFO_NAME)
+			Exit For
+		End If
+	Next
+
+	'-------------------------------------------------
+	' Open the new buffered table
+	'-------------------------------------------------
+	Call MyPrint("Opening search area table ...")
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " As " + sSearchAreaTable
+	Run Command (sCmd)
+
+	'-------------------------------------------------
 	' Buffer the selected search area (in the
 	' search area table)
 	'-------------------------------------------------
@@ -2256,9 +2344,9 @@ EditLayer:
 	'-------------------------------------------------
 	' Close the latest query table
 	'-------------------------------------------------
-	Dim t As SmallInt
 	For t = NumTables() to 1 Step -1
-		If TableInfo(t, TAB_INFO_TEMP) = True And TableInfo(t, TAB_INFO_MAPPABLE) = False Then
+		If TableInfo(t, TAB_INFO_TEMP) = True Then
+			Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
 			Close Table TableInfo(t, TAB_INFO_NAME)
 			Exit For
 		End If
@@ -2590,7 +2678,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' to get locked somehow and won't drop)
 	'-------------------------------------------------
 	Close Table sSelectName
-	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sSelectName
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sLocalName
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2598,7 +2686,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' map label column
 	'-------------------------------------------------
 	If SelectedMap.LabelColumn <> ""
-	And ColumnExists(sSelectName, SelectedMap.LabelColumn) = False Then
+	And ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
 
 		'-------------------------------------------------
 		' If the map label column is needed for the
@@ -2613,7 +2701,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			' Add the column to the combined sites table
 			'-------------------------------------------------
 			Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
-			sCmd = "Alter Table " + sSelectName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
+			sCmd = "Alter Table " + sLocalName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
 			Run Command (sCmd)
 		
 		End If
@@ -2638,7 +2726,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Overwrite the map labels (adding the map
 		' label column if required)
 		'-------------------------------------------------
-		Call OverwriteMapLabels(sSelectName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
+		Call OverwriteMapLabels(sLocalName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
 
 	End If
 
@@ -2653,8 +2741,16 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Add the site details to the combined sites
 		' table
 		'-------------------------------------------------
-		Call AddToCombinedSitesTable(sSelectName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
+		Call AddToCombinedSitesTable(sLocalName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
 		
+	End If
+
+	'-------------------------------------------------
+	' Skip the export if there are no export columns
+	' or export format
+	'-------------------------------------------------
+	If SelectedMap.Columns = "" Or SelectedMap.Format = "" Then
+		Goto TranslateTable
 	End If
 
 	'-------------------------------------------------
@@ -2676,9 +2772,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Call MyPrint("Including overlap area in table output ...")
 
 		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
-			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sLocalName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
 		Else
-			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sLocalName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
 		End If
 	End If
 
@@ -2688,7 +2784,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' a temporary table
 	'-------------------------------------------------
 	Call MyPrint("Executing selection for export ...")
-	sCmd = "Select " + sColumns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
+	sCmd = "Select " + sColumns + " From " + sLocalName + ", " + sBufferTable + " Where " + sLocalName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2747,10 +2843,10 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Format the export file (if required)
+	' Process the export file (if required)
 	'-------------------------------------------------
 	If SelectedMap.Macro <> "" Then
-		Call MyPrint("Formatting the export file ...")
+		Call MyPrint("Processing the export file ...")
 		sCmd = "Run Program " + Chr$(34) + "cscript.exe " +  + Chr$(34) + Chr$(34) + SelectedMap.Macro + Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sLocalPath
 			+ Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sExportName + "." + SelectedMap.Format + Chr$(34) + Chr$(34) + " " + Chr$(34) + Chr$(34) + sExportName + ".xlsx" + Chr$(34) + Chr$(34) + Chr$(34)
 		Run Command (sCmd)
@@ -2763,22 +2859,39 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Close Table sExportTemp
 	End If
 	
+TranslateTable:
+	'-------------------------------------------------
+	' Translate the table to ESRI shapefile if required
+	'-------------------------------------------------
+	If iKeepSelectedTables > 2  And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
+		Dim sLogFileShp As String
+		sLogFileShp = "TabToShp" + "_" + sUserID
+
+		Call MyPrint("Log File Path = '" + sLocalPath + "'")
+		Call MyPrint("Log File Name = '" + sLogFileShp + "'")
+
+		Call TranslateToShapefile(sUTPath, sUTCommand, sLocalPath, sLogFileShp, sLocalPath, sOutputName)
+	End If
+	
 	'-------------------------------------------------
 	' If the local table is not required then
 	' delete it, otherwise close it
 	'-------------------------------------------------
 	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 		Call MyPrint("Keeping local file ...")
-		Close Table sSelectName
+		Close Table sLocalName
 	Else
-		Call MyPrint("Deleting local file ...")
-		Drop Table sSelectName
+		If iKeepSelectedTables = 1 Or iKeepSelectedTables = 3 Then
+			Call MyPrint("Deleting local file ...")
+			Drop Table sLocalName
+		End If
 	End If
 	
+AddToMap:
 	'-------------------------------------------------
 	' Add the local table to the map (if required)
 	'-------------------------------------------------
-	If iAddSelectedTables > 2 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
+	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 		
 		'-------------------------------------------------
 		' Re-open the selection table with the correct
@@ -3261,7 +3374,7 @@ Sub AboutBox
 		Title "Created by Andy Foy Consulting."
 		Position 10,60
 	Control StaticText
-		Title "Copyright© 2012-2013 GiGL, 2015 - 2018 TVERC, GiGL."
+		Title "Copyright© 2012-2013 GiGL, 2015 - 2019 TVERC, GiGL."
 		Position 10,70
 	Control OKButton
 		Position 185,95

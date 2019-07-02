@@ -20,24 +20,24 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
 '***************************************************************
-'* DataSearches.def v1.05
+'* DataSearches.def v1.06
 '*
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - October 2018
+'* Last revised:	Andy Foy - February 2019
 '***************************************************************
 
 Include "MapBasic.def"
 Include "Menu.def"
 Include "Icons.def"
 
-'Include "XMLMenu32.def"
+Include "XMLMenu32.def"
 
-Include "IMapInfoPro.def"
-Include "Enums.def"
-Include "XMLMenu64.def"
+'Include "IMapInfoPro.def"
+'Include "Enums.def"
+'Include "XMLMenu64.def"
 
 '-------------------------------------------------
 ' Define the custom variable types
@@ -129,6 +129,19 @@ Declare Sub AddToCombinedSitesTable
 	(sTableName As String,
 	sSitesColumns As String,
 	sSitesCriteria As String)
+Declare Sub SetUTDirectory
+	(ByVal sPath as string)
+Declare Sub AmendVersion
+	(ByVal sFileName As String)
+Declare Sub AmendMappingFile
+	(ByVal sFileName As String)
+Declare Sub TranslateToShapefile
+	(sUTPath As String,
+	sUTCommand As String,
+	sDefaultPath As String,
+	sLocalPath As String,
+	sLocalName As String,
+	sShortName As String)
 
 Declare Sub MIXmlDocumentDestroy Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentDestroy" (
@@ -186,6 +199,17 @@ Declare Function ColumnExists
 	ByVal sColName As String) As Logical
 	Declare Function CreatePath
 	(ByVal sPath As String) As Logical
+Declare Function CloseHandle Lib "kernel32"
+	(hObject As Integer) As smallint
+Declare Function WaitForSingleObject Lib "kernel32"
+	(ByVal hHandle As Integer,
+	ByVal dwMilliseconds As Integer) As Integer
+Declare Function GetExitCodeProcess Lib "kernel32"
+	(ByVal hProcess As Integer,
+	lpExitCode As Integer) As Integer
+Declare Function GetUserID() As String
+Declare Function ExecuteAndWait
+	(ByVal cmdLine as string) As Integer
 
 Declare Function CreateDirectory Lib "kernel32"
 	Alias "CreateDirectoryA"
@@ -197,6 +221,19 @@ Declare Function SetCurrentDirectory Lib "kernel32"
 Declare Function MoveFile Lib "kernel32" Alias "MoveFileA"
 	(byval lpExistingFileName as string,
 	byval lpNewFileName as string) As Integer
+Declare Function CreateProcessA Lib "kernel32"
+	(ByVal lpApplicationName As Integer,
+	ByVal lpCommandLine As String,
+	ByVal lpProcessAttributes As Integer,
+	ByVal lpThreadAttributes As Integer,
+	ByVal bInheritHandles As Integer,
+	ByVal dwCreationFlags As Integer,
+	ByVal lpEnvironment As Integer,
+	ByVal lpCurrentDirectory As Integer,
+	lpStartupInfo As STARTUPINFO,
+	lpProcessInformation As PROCESS_INFORMATION) As Integer
+Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" 
+	(lpBuffer As String, nSize As Integer) As Integer
 
 Declare Function MIXmlDocumentCreate Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentCreate" () As MIXmlDocument
@@ -249,6 +286,7 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 ' Declare the global variables
 '-------------------------------------------------
 Global sVersion As String
+Global sUserId As String
 Global sToolTitle As String
 
 Global bLogMessages As Logical
@@ -270,6 +308,8 @@ Global sLocalPath As String
 Global sLogFileName As String
 Global sLogFile As String
 Global sDefaultClearLogFile As String
+Global sUTPath As String
+Global sUTCommand As String
 
 Global sDefaultBufferSize As String
 Global iDefaultBufferUnit As SmallInt
@@ -292,6 +332,10 @@ Global sSearchFeatureName As String
 Global sAddSelectedTablesOptions As String
 Global iDefaultAddSelectedTables As SmallInt
 Global iAddSelectedTables As SmallInt
+
+Global sKeepSelectedTablesOptions As String
+Global iDefaultKeepSelectedTables As SmallInt
+Global iKeepSelectedTables As SmallInt
 
 Global sOverwriteLabelOptions As String
 Global iDefaultOverwriteLabels As SmallInt
