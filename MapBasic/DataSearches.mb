@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.28
+'* DataSearches v1.4.29
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,11 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:		Andy Foy - February 2019
+'* Last revised:	Andy Foy - July 2019
+'*
+'* *****************  Version 1.4.29  **************
+'* Author: Andy Foy		Date: 02/07/2019
+'* A. Allow user to select XML profile to use.
 '*
 '* *****************  Version 1.4.28  **************
 '* Author: Andy Foy		Date: 27/02/2019
@@ -222,7 +226,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.28"
+	sVersion = "1.4.29"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -301,6 +305,12 @@ Sub GetToolTitle
 						sToolTitle = sTitle
 					End If
 
+					' Default XML file
+					sDefaultXMLFile = GetSingleNodeValue(hXMLNode, "DefaultProfile")
+					If sDefaultXMLFile = "" Then
+						sDefaultXMLFile = "DefaultProfile"
+					End If
+
 				End If
 
 			End If
@@ -329,7 +339,7 @@ GetTitleError:
 
 End Sub
 
-Sub GetDefaultValues
+Sub GetDefaultValues(ByVal sXMLFile As String)
 '***************************************************************
 '* Retrieve all the default values from the config file
 '* which is a XML document
@@ -360,7 +370,7 @@ Sub GetDefaultValues
 		' Load the document into the document handle
 		'-------------------------------------------------
 		Dim iXMLLoad As SmallInt
-		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + "DataSearches.xml", bParseError, FALSE, FALSE)
+		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + sXMLFile, bParseError, FALSE, FALSE)
 		If iXMLLoad > 0 Then
 
 			'-------------------------------------------------
@@ -735,9 +745,18 @@ Sub DataSearches
 	sUserID = StringReplace(sUserID, ".", "_")
 
 	'-------------------------------------------------
+	' Prompt the user for their required config file
+	'-------------------------------------------------
+	sXMLFile = ""
+	Call GetXmlProfile
+	If sXMLFile = "" Then
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
 	' Retrieve the default values from the config file
 	'-------------------------------------------------
-	Call GetDefaultValues
+	Call GetDefaultValues(sXMLFile)
 
 	'-------------------------------------------------
 	' Check the search area table is open
@@ -913,6 +932,110 @@ ErrorTrap:
 	Resume Done
 
 End Sub
+
+Sub GetXMLProfile()
+'***************************************************************
+'* Create the user dialog window
+'***************************************************************
+
+ 	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+    OnError Goto ErrorTrap
+
+ 	Dim sFileExclude As String
+	sFileExclude = "DataSearches.xml"
+
+ 	Dim sDir As String
+	sDir = ApplicationDirectory$()
+
+ 	Dim bResult As Logical
+	Dim sFileNames() as String
+	bResult = GetFileList(sDir, "*.xml" , sFileNames(), sFileExclude)
+
+ 	Dim i as integer
+	Dim sXMLFiles As String
+	sXMLFiles = ""
+	If bResult = True And UBound(sFileNames()) > 0 Then
+
+ 		For i = 1 to UBound(sFileNames())
+
+ 			sXMLFiles = sXMLFiles + sFileNames(i) + ";"
+
+ 		Next
+
+ 		sXMLFiles = Left$(sXMLFiles, Len(sXMLFiles) - 1)
+
+ 	Else
+
+ 		Note "There are no profile XML files in '" + ApplicationDirectory$() + "'"
+		Goto Done
+
+ 	End If	
+
+ 	If UBound(sFileNames()) = 1 Then
+		sXMLFile = sFileNames(1) + ".xml"
+		Goto Done
+	End If
+
+ 	'-------------------------------------------------
+	' Build a new dialog window
+	'-------------------------------------------------
+	Dialog
+		Title "Data Searches " + sVersion
+		Width 190
+		Height 80
+		Position 50, 70
+
+ 	'-------------------------------------------------
+	' Add a profile table listbox
+	'-------------------------------------------------
+	Control StaticText Title "Please Choose a Profile:"
+		Position 10, 10
+	Control PopupMenu
+		ID 1
+		Title From Variable sXMLFiles
+		Value iDefaultXMLFile
+		Position 10, 20
+		Height 10
+		Width 170
+		Into iXMLFile
+
+ 	'-------------------------------------------------
+	' Add Ok and cancel buttons
+	'-------------------------------------------------
+	Control CancelButton
+		Position 95,60
+		Width 40
+	Control OkButton
+		Title "Ok"
+		Position 140,60
+		Width 40
+		'Calling CheckSelection
+
+ 	'-------------------------------------------------
+	' Store the dialog variables
+	'-------------------------------------------------
+	If CommandInfo(CMD_INFO_DLG_OK) Then
+		sXMLFile = sFileNames(iXMLFile) + ".xml"
+	Else
+		sXMLFile = ""
+	End If
+
+ 	'-------------------------------------------------
+	' Close the dialog
+	'-------------------------------------------------
+	'Dialog Remove
+
+ Done:
+	Exit Sub
+
+ ErrorTrap:
+	Note str$(Err()) + ": " + Error$()
+	Call MyPrint(str$(Err()) + ": " + Error$())
+	Resume Done
+
+ End Sub
 
 Sub DialogSetup
 '***************************************************************

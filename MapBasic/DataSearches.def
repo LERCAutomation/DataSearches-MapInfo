@@ -33,11 +33,11 @@ Include "MapBasic.def"
 Include "Menu.def"
 Include "Icons.def"
 
-Include "XMLMenu32.def"
+'Include "XMLMenu32.def"
 
-'Include "IMapInfoPro.def"
-'Include "Enums.def"
-'Include "XMLMenu64.def"
+Include "IMapInfoPro.def"
+Include "Enums.def"
+Include "XMLMenu64.def"
 
 '-------------------------------------------------
 ' Define the custom variable types
@@ -70,6 +70,24 @@ Type PROCESS_INFORMATION
 	dwThreadID As Integer
 End Type
 
+Type FILETIME
+   dwLowDateTime As Integer
+   dwHighDateTime As Integer
+End Type
+
+ Type WIN32_FIND_DATA
+   dwFileAttributes As Integer
+   ftCreationTime As FILETIME
+   ftLastAccessTime As FILETIME
+   ftLastWriteTime As FILETIME
+   nFileSizeHigh As Integer
+   nFileSizeLow As Integer
+   dwReserved0 As Integer
+   dwReserved1 As Integer
+   cFileName As String * 260
+   cAlternate As String * 14
+End Type
+
 Type MapDetails
 	Node As String
 	TableName As String
@@ -99,6 +117,7 @@ End Type
 Define NORMAL_PRIORITY_CLASS &H20
 Define INFINITE -1
 Define STRING_LEN 1024
+Define FILE_ATTRIBUTE_DIRECTORY 16
 
 '-------------------------------------------------
 ' Declare the subroutines
@@ -108,12 +127,14 @@ Declare Sub GetToolTitle
 Declare Sub CreateToolMenu
 	(ByVal sToolTitle As String)
 Declare Sub GetDefaultValues
+	(ByVal sXMLFile As String)
 Declare Sub DataSearches
 Declare Sub DialogSetup
 Declare Sub GetSiteName
 Declare Sub CheckSelection
 Declare Sub SelectMaps
 	(SelectedMap As MapDetails)
+Declare Sub GetXmlProfile
 Declare Sub AboutBox
 Declare Sub egsit
 Declare Sub MyPrint
@@ -142,7 +163,12 @@ Declare Sub TranslateToShapefile
 	sLocalPath As String,
 	sLocalName As String,
 	sShortName As String)
-
+Declare Function GetFileList
+	(ByVal sFilePath As String,
+	ByVal sFileFilter As String,
+	sFileList() As String,
+	sFileExclude As String) As Logical
+	
 Declare Sub MIXmlDocumentDestroy Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentDestroy" (
 	ByVal hXMLDocument As MIXmlDocument)
@@ -234,6 +260,16 @@ Declare Function CreateProcessA Lib "kernel32"
 	lpProcessInformation As PROCESS_INFORMATION) As Integer
 Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" 
 	(lpBuffer As String, nSize As Integer) As Integer
+Declare Function FindFirstFile Lib "kernel32"
+	Alias "FindFirstFileA"
+	(ByVal lpFileName As String,
+	lpFindFileData As WIN32_FIND_DATA) As Integer
+Declare Function FindNextFile Lib "kernel32"
+	Alias "FindNextFileA"
+	(ByVal hFindFile As Integer,
+	lpFindFileData As WIN32_FIND_DATA) As Integer
+Declare Function FindClose Lib "kernel32"
+	(ByVal hFindFile As Integer) As Integer
 
 Declare Function MIXmlDocumentCreate Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentCreate" () As MIXmlDocument
@@ -288,6 +324,11 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 Global sVersion As String
 Global sUserId As String
 Global sToolTitle As String
+
+Global iXMLFile As Integer
+Global sXMLFile As String
+Global sDefaultXMLFile As String
+Global iDefaultXMLFile As Integer
 
 Global bLogMessages As Logical
 
