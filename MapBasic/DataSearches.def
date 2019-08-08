@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 - 2018 TVERC, GiGL, SBIC
+'* Copyright © 2013 - 2019 TVERC, GiGL, SBIC
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,24 +20,26 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
 '***************************************************************
-'* DataSearches.def v1.06
+'* DataSearches.def v1.07
 '*
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - February 2019
+'* Last revised:	Andy Foy - July 2019
 '***************************************************************
 
 Include "MapBasic.def"
 Include "Menu.def"
 Include "Icons.def"
 
-'Include "XMLMenu32.def"
+Include "XMLMenu32.def"
+Include "Windows32.def"
 
-Include "IMapInfoPro.def"
-Include "Enums.def"
-Include "XMLMenu64.def"
+'Include "IMapInfoPro.def"
+'Include "Enums.def"
+'Include "XMLMenu64.def"
+'Include "Windows64.def"
 
 '-------------------------------------------------
 ' Define the custom variable types
@@ -68,24 +70,6 @@ Type PROCESS_INFORMATION
 	hThread As Integer
 	dwProcessID As Integer
 	dwThreadID As Integer
-End Type
-
-Type FILETIME
-   dwLowDateTime As Integer
-   dwHighDateTime As Integer
-End Type
-
- Type WIN32_FIND_DATA
-   dwFileAttributes As Integer
-   ftCreationTime As FILETIME
-   ftLastAccessTime As FILETIME
-   ftLastWriteTime As FILETIME
-   nFileSizeHigh As Integer
-   nFileSizeLow As Integer
-   dwReserved0 As Integer
-   dwReserved1 As Integer
-   cFileName As String * 260
-   cAlternate As String * 14
 End Type
 
 Type MapDetails
@@ -244,6 +228,11 @@ Declare Function CreateDirectory Lib "kernel32"
 Declare Function SetCurrentDirectory Lib "kernel32"
 	Alias "SetCurrentDirectoryA"
 	(lpBuffer As String) As Integer
+Declare Function SHCreateDirectoryEx Lib "shell32.dll"
+	Alias "SHCreateDirectoryExA"
+	(ByVal hwnd as integer,
+	Byval LPCWSTR as string,
+	ByVal iSecurityAttributes as Integer) As integer
 Declare Function MoveFile Lib "kernel32" Alias "MoveFileA"
 	(byval lpExistingFileName as string,
 	byval lpNewFileName as string) As Integer
@@ -260,16 +249,6 @@ Declare Function CreateProcessA Lib "kernel32"
 	lpProcessInformation As PROCESS_INFORMATION) As Integer
 Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" 
 	(lpBuffer As String, nSize As Integer) As Integer
-Declare Function FindFirstFile Lib "kernel32"
-	Alias "FindFirstFileA"
-	(ByVal lpFileName As String,
-	lpFindFileData As WIN32_FIND_DATA) As Integer
-Declare Function FindNextFile Lib "kernel32"
-	Alias "FindNextFileA"
-	(ByVal hFindFile As Integer,
-	lpFindFileData As WIN32_FIND_DATA) As Integer
-Declare Function FindClose Lib "kernel32"
-	(ByVal hFindFile As Integer) As Integer
 
 Declare Function MIXmlDocumentCreate Lib MIXML_LIB_NAME
 	Alias "MIXmlDocumentCreate" () As MIXmlDocument

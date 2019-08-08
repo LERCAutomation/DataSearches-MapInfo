@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 Greenspace Information for Greater London (GiGL)
+'* Copyright © 2013 - 2019 GiGL
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,14 +20,19 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* TranslateToSHP v1.43
+'* TranslateToSHP v1.44
 '*
 '* Contains functions to translate MapInfo .tab files into
 '* ESRI .shp files.
 '*
 '*
-'* Created:				Andy Foy - February 2013
-'* Last revised:		Andy Foy - August 2017
+'* Created:			Andy Foy - February 2013
+'* Last revised:		Andy Foy - August 2019
+'*
+'* *****************  Version 1.44  *****************
+'* Author: Andy Foy		Date: 05/08/2019
+'* A. Fix bug if Universal Translator mapping file is
+'*    missing.
 '*
 '* *****************  Version 1.43  *****************
 '* Author: Andy Foy		Date: 09/08/2017
@@ -161,13 +166,20 @@ Sub TranslateToShapefile(sUTPath As String, sUTCommand As String, sDefaultPath A
 		" --_FULLBASENAME " + sLocalName
 
 	Call MyPrint("Amending Mapping file ...")
-	Call AmendMappingFile(sMappingFile)
+
+	'-------------------------------------------------
+	' Amend the mapping file so that the Universal Translator
+	' will generate a 2D shapefile not a 3D shapefile.
+	'-------------------------------------------------
+	If FileExists(sMappingFile) then
+		Call AmendMappingFile(sMappingFile)
+	End If
 
 	'-------------------------------------------------
 	' Check to see if the Mapping file was created
 	' before running the translation
 	'-------------------------------------------------
-	if FileExists(sMappingFile) then
+	If FileExists(sMappingFile) then
 		'-------------------------------------------------
 		' Execute the command and wait for it to finish
 		'-------------------------------------------------

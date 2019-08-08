@@ -2,8 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 GiGL
-'* Copyright © 2015 - 2016 TVERC, GiGL
+'* Copyright © 2013 - 2019 GiGL, TVERC, SBIC
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -450,17 +449,14 @@ Function GetFileList(ByVal sFilePath as String, ByVal sFileFilter as String, sFi
 '*************************************************
 OnError Goto CatchEx
 
-    Dim hFind As Integer
-   Dim wfd As WIN32_FIND_DATA
-
     Dim sFileName as String
-   Dim sSubDirFileList() As String
+    Dim sSubDirFileList() As String
 
     Dim iReturn as Integer 
-   iReturn = 1
+    iReturn = 1
 
     Dim i as Integer, j as Integer
-   i = 1 
+    i = 1 
 
     hFind = FindFirstFile(sFilePath & sFileFilter, wfd)
 

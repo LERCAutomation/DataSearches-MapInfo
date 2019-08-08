@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 - 2018 TVERC, GiGL, SBIC
+'* Copyright © 2013 - 2019 TVERC, GiGL, SBIC
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.29
+'* DataSearches v1.4.31
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,6 +29,16 @@
 '*
 '* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - July 2019
+'*
+'* *****************  Version 1.4.31  **************
+'* Author: Andy Foy		Date: 05/08/2019
+'* A. Fix bug if Universal Translator mapping file is missing.
+'*
+'* *****************  Version 1.4.30  **************
+'* Author: Andy Foy		Date: 01/08/2019
+'* A. Enable loading XML profiles when running in 64bit.
+'* B. Create output file paths if missing.
+'* C. Add details of funding organisations to About box.
 '*
 '* *****************  Version 1.4.29  **************
 '* Author: Andy Foy		Date: 02/07/2019
@@ -226,7 +236,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.29"
+	sVersion = "1.4.31"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -720,7 +730,7 @@ CleanUp:
 
 GetDefaultsError:
 	Note "Error: " + str$(Err()) + ": " + Error$()
-	Exit Sub
+	Goto CleanUp
 
 GetVariablesError:
 	Resume Next
@@ -938,47 +948,62 @@ Sub GetXMLProfile()
 '* Create the user dialog window
 '***************************************************************
 
- 	'-------------------------------------------------
+	'-------------------------------------------------
 	' Trap errors
 	'-------------------------------------------------
     OnError Goto ErrorTrap
 
- 	Dim sFileExclude As String
-	sFileExclude = "DataSearches.xml"
-
- 	Dim sDir As String
+	'-------------------------------------------------
+	' Get an array of all the XML profiles in the
+	' same file directory as the application
+	'-------------------------------------------------
+	Dim sDir As String
 	sDir = ApplicationDirectory$()
-
- 	Dim bResult As Logical
+	
+	Dim sFileExclude As String
+	sFileExclude = "DataSearches.xml"
+	
+	Dim bResult As Logical
 	Dim sFileNames() as String
 	bResult = GetFileList(sDir, "*.xml" , sFileNames(), sFileExclude)
-
- 	Dim i as integer
+	
+	'-------------------------------------------------
+	' Loop through all the XML profiles
+	'-------------------------------------------------
+	Dim i as integer
 	Dim sXMLFiles As String
 	sXMLFiles = ""
+	iDefaultXMLFile = 0
 	If bResult = True And UBound(sFileNames()) > 0 Then
+	
+		For i = 1 to UBound(sFileNames())
+		
+			'-------------------------------------------------
+			' Build a string of the XML profiles
+			'-------------------------------------------------
+			sXMLFiles = sXMLFiles + sFileNames(i) + ";"
+			
+			If UCase$(sFileNames(i)) = UCase$(sDefaultXMLFile) Then
+				iDefaultXMLFile = i
+			End If
+	
+		Next
+		
+		sXMLFiles = Left$(sXMLFiles, Len(sXMLFiles) - 1)
 
- 		For i = 1 to UBound(sFileNames())
+	Else
 
- 			sXMLFiles = sXMLFiles + sFileNames(i) + ";"
-
- 		Next
-
- 		sXMLFiles = Left$(sXMLFiles, Len(sXMLFiles) - 1)
-
- 	Else
-
- 		Note "There are no profile XML files in '" + ApplicationDirectory$() + "'"
+		Note "There are no profile XML files in '" + ApplicationDirectory$() + "'"
 		Goto Done
 
- 	End If	
-
- 	If UBound(sFileNames()) = 1 Then
+	End If	
+	
+	If UBound(sFileNames()) = 1 Then
 		sXMLFile = sFileNames(1) + ".xml"
 		Goto Done
 	End If
-
- 	'-------------------------------------------------
+	
+	'-------------------------------------------------
 	' Build a new dialog window
 	'-------------------------------------------------
 	Dialog
@@ -987,7 +1012,7 @@ Sub GetXMLProfile()
 		Height 80
 		Position 50, 70
 
- 	'-------------------------------------------------
+	'-------------------------------------------------
 	' Add a profile table listbox
 	'-------------------------------------------------
 	Control StaticText Title "Please Choose a Profile:"
@@ -1001,7 +1026,7 @@ Sub GetXMLProfile()
 		Width 170
 		Into iXMLFile
 
- 	'-------------------------------------------------
+	'-------------------------------------------------
 	' Add Ok and cancel buttons
 	'-------------------------------------------------
 	Control CancelButton
@@ -1013,7 +1038,7 @@ Sub GetXMLProfile()
 		Width 40
 		'Calling CheckSelection
 
- 	'-------------------------------------------------
+	'-------------------------------------------------
 	' Store the dialog variables
 	'-------------------------------------------------
 	If CommandInfo(CMD_INFO_DLG_OK) Then
@@ -1022,20 +1047,20 @@ Sub GetXMLProfile()
 		sXMLFile = ""
 	End If
 
- 	'-------------------------------------------------
+	'-------------------------------------------------
 	' Close the dialog
 	'-------------------------------------------------
 	'Dialog Remove
 
- Done:
+Done:
 	Exit Sub
-
- ErrorTrap:
+	
+ErrorTrap:
 	Note str$(Err()) + ": " + Error$()
 	Call MyPrint(str$(Err()) + ": " + Error$())
 	Resume Done
 
- End Sub
+End Sub
 
 Sub DialogSetup
 '***************************************************************
@@ -1254,8 +1279,8 @@ RegisterTable:
 		' If the 'Enquiries' table isn't open ...
 		'-------------------------------------------------
 		If TableIsOpen("Enquiries") = False Then
-		
-			Call MyPrint("Registering table '" + sEnquiries + "' ...")
+
+			'Call MyPrint("Registering table '" + sEnquiries + "' ...")
 
 			'-------------------------------------------------
 			' Register the 'Enquiries' table from the database
@@ -1270,7 +1295,7 @@ RegisterTable:
 			Run Command (sCmd)
 			
 		End If
-		
+
 		'-------------------------------------------------
 		' Check the reference is the correct data type
 		'-------------------------------------------------
@@ -1299,7 +1324,7 @@ RegisterTable:
 			sPartnerCol = sPartnerColumn
 		End If
 
-		Call MyPrint("Getting details from '" + sEnquiries + "' ...")
+		'Call MyPrint("Getting details from '" + sEnquiries + "' ...")
 
 		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 And Str$(Val(sRef)) = sRef Then
 			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
@@ -1307,7 +1332,7 @@ RegisterTable:
 			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
-		
+
 		'-------------------------------------------------
 		' Count the number of rows selected
 		'-------------------------------------------------
@@ -1318,7 +1343,7 @@ RegisterTable:
 		' If any rows were selected then set the object
 		'-------------------------------------------------
 		If iRows > 0 Then
-		
+	
 			'-------------------------------------------------
 			' Fetch the first of the selected rows
 			'-------------------------------------------------
@@ -1629,13 +1654,21 @@ SetSubRef:
 		sRootPath = sSaveRootDir + "\" + sSaveFolder
 	End If
 	
-	Dim iSuccess As Logical
-	iSuccess  = CreatePath(sRootPath)
-	if iSuccess = False Then
-		Note "Error: Unable to create folder path '" + sRootPath + "'. Process terminated."
-		Exit Sub
+	Dim iSuccess, iSecurity As Integer
+	iSecurity = 0
+
+	iSuccess = SetCurrentDirectory(sRootPath)
+	if iSuccess = 0 Then
+		'Call MyPrint("Creating output file path '" + sRootPath + "'")
+		'iSuccess = CreateDirectory(sRootPath , iSecurity)
+		iSuccess = SHCreateDirectoryEx(0, sRootPath, iSecurity)
+		if iSuccess <> 0 Then
+			Call MyPrint("Error creating output folder path")
+			Call MyPrint("Process terminated.")
+			Exit Sub
+		End If
 	End If
-	
+
 	'-------------------------------------------------
 	' Create the GIS sub-folder if it doesn't
 	' already exist
@@ -1646,12 +1679,18 @@ SetSubRef:
 		sLocalPath = sRootPath + "\" + sGISFolder
 	End If
 	
-	iSuccess  = CreatePath(sLocalPath)
-	if iSuccess = False Then
-		Note "Error: Unable to create folder path '" + sLocalPath + "'. Process terminated."
-		Exit Sub
+	iSuccess = SetCurrentDirectory(sLocalPath)
+	if iSuccess = 0 Then
+		'Call MyPrint("Creating output file path '" + sLocalPath + "'")
+		'iSuccess = CreateDirectory(sLocalPath , iSecurity)
+		iSuccess = SHCreateDirectoryEx(0, sLocalPath, iSecurity)
+		if iSuccess <> 0 Then
+			Call MyPrint("Error creating output sub-folder path")
+			Call MyPrint("Process terminated.")
+			Exit Sub
+		End If
 	End If
-	
+
 	'-------------------------------------------------
 	' Set the log file name for the output messages
 	'-------------------------------------------------
@@ -2158,6 +2197,7 @@ HideLayer:
 	End If
 
 	'-------------------------------------------------
+
 	' Add the search area and buffer tables to all
 	' map windows and zoom to the extent of the buffer
 	' table
@@ -2476,6 +2516,7 @@ EditLayer:
 	Next
 
 	'-------------------------------------------------
+
 	' Open the new buffered table
 	'-------------------------------------------------
 	Call MyPrint("Opening buffer table ...")
@@ -2801,7 +2842,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' to get locked somehow and won't drop)
 	'-------------------------------------------------
 	Close Table sSelectName
-	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sLocalName
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sSelectName
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2809,7 +2850,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' map label column
 	'-------------------------------------------------
 	If SelectedMap.LabelColumn <> ""
-	And ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
+	And ColumnExists(sSelectName, SelectedMap.LabelColumn) = False Then
 
 		'-------------------------------------------------
 		' If the map label column is needed for the
@@ -2824,7 +2865,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			' Add the column to the combined sites table
 			'-------------------------------------------------
 			Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
-			sCmd = "Alter Table " + sLocalName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
+			sCmd = "Alter Table " + sSelectName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
 			Run Command (sCmd)
 		
 		End If
@@ -2849,7 +2890,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Overwrite the map labels (adding the map
 		' label column if required)
 		'-------------------------------------------------
-		Call OverwriteMapLabels(sLocalName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
+		Call OverwriteMapLabels(sSelectName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
 
 	End If
 
@@ -2864,7 +2905,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Add the site details to the combined sites
 		' table
 		'-------------------------------------------------
-		Call AddToCombinedSitesTable(sLocalName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
+		Call AddToCombinedSitesTable(sSelectName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
 		
 	End If
 
@@ -2895,9 +2936,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Call MyPrint("Including overlap area in table output ...")
 
 		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
-			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sLocalName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
 		Else
-			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sLocalName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
 		End If
 	End If
 
@@ -2907,7 +2948,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' a temporary table
 	'-------------------------------------------------
 	Call MyPrint("Executing selection for export ...")
-	sCmd = "Select " + sColumns + " From " + sLocalName + ", " + sBufferTable + " Where " + sLocalName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
+	sCmd = "Select " + sColumns + " From " + sSelectName + ", " + sBufferTable + " Where " + sSelectName + ".obj Intersects " + sBufferTable + ".obj " + SelectedMap.ExportCriteria + " Into " + sExportTemp
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -3002,11 +3043,11 @@ TranslateTable:
 	'-------------------------------------------------
 	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 		Call MyPrint("Keeping local file ...")
-		Close Table sLocalName
+		Close Table sSelectName
 	Else
 		If iKeepSelectedTables = 1 Or iKeepSelectedTables = 3 Then
 			Call MyPrint("Deleting local file ...")
-			Drop Table sLocalName
+			Drop Table sSelectName
 		End If
 	End If
 	
@@ -3210,6 +3251,7 @@ AddToMap:
 						
 					End If
 	
+
 				End If
 		
 			End If
@@ -3479,7 +3521,7 @@ Sub AboutBox
 	Dialog
 		Title "About Data Searches " + sVersion
 		Width 230
-		Height 115
+		Height 155
 
 	Control StaticText
 		Title "This program will extract all required GIS layers that"
@@ -3499,8 +3541,20 @@ Sub AboutBox
 	Control StaticText
 		Title "Copyright© 2012-2013 GiGL, 2015 - 2019 TVERC, GiGL."
 		Position 10,70
+	Control StaticText
+		Title "This tool was developed with funding from:"
+		Position 10,90
+	Control StaticText
+		Title "  - Greenspace Information for Greater London CIC"
+		Position 10,100
+	Control StaticText
+		Title "  - Thames Valley Environmental Records Centre"
+		Position 10,110
+	Control StaticText
+		Title "  - Surrey Biodiversity Information Centre"
+		Position 10,120
 	Control OKButton
-		Position 185,95
+		Position 185,135
 
 End Sub
 
