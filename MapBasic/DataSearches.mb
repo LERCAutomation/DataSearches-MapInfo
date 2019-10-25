@@ -1182,6 +1182,12 @@ SetDefaults:
 		Alter Control 9 Value 1
 	End If
 
+	If iDefaultKeepSelectedTables > 0 Then
+		Alter Control 12 Value iDefaultKeepSelectedTables
+	Else
+		Alter Control 12 Value 1
+	End If
+
 	If iDefaultOverwriteLabels > 0 Then
 		Alter Control 10 Value iDefaultOverwriteLabels
 	Else
@@ -2190,6 +2196,7 @@ HideLayer:
 	'-------------------------------------------------
 	' Keep/Remove the search area table
 	'-------------------------------------------------
+
 	If bKeepSearchFeature = False Then
 		Call MyPrint("Deleting search area table ...")
 		Drop Table sSearchAreaTable
