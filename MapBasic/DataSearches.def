@@ -20,26 +20,26 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
 '***************************************************************
-'* DataSearches.def v1.07
+'* DataSearches.def v1.08
 '*
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - July 2019
+'* Last revised:	Andy Foy - December 2019
 '***************************************************************
 
 Include "MapBasic.def"
 Include "Menu.def"
 Include "Icons.def"
 
-Include "XMLMenu32.def"
-Include "Windows32.def"
+'Include "XMLMenu32.def"
+'Include "Windows32.def"
 
-'Include "IMapInfoPro.def"
-'Include "Enums.def"
-'Include "XMLMenu64.def"
-'Include "Windows64.def"
+Include "IMapInfoPro.def"
+Include "Enums.def"
+Include "XMLMenu64.def"
+Include "Windows64.def"
 
 '-------------------------------------------------
 ' Define the custom variable types
@@ -322,6 +322,14 @@ Global sRadiusColumn As String
 Global sRequireSiteName As String
 Global sRepChar As String
 Global sSaveRootDir As String
+
+Global sDefaultSaveFolder As String
+Global sDefaultGISFolder As String
+Global sDefaultLogFileName As String
+Global sDefaultBufferSaveName As String
+Global sDefaultGroupLayerName As String
+Global sDefaultSearchFeatureName As String
+
 Global sSaveFolder As String
 Global sGISFolder As String
 Global sLocalPath As String

@@ -20,15 +20,27 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.32
+'* DataSearches v1.4.34
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
 '*
-'* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - August 2019
+'* Created:				Andy Foy - February 2013
+'* Last revised:		Andy Foy - December 2019
+'*
+'* *****************  Version 1.4.34  **************
+'* Author: Andy Foy		Date: 15/12/2019
+'* A. Fix bug when tool not closed between runs.
+'*
+'* *****************  Version 1.4.33  **************
+'* Author: Andy Foy		Date: 31/10/2019
+'* A. Fix bug where map labels are being added when
+'*    the label clause is blank.
+'* B. Fix bug when there is no map window open.
+'* C. Trap error when exporting combined sites table.
+'* D. Ensure local tables are added into group layer.
 '*
 '* *****************  Version 1.4.32  **************
 '* Author: Andy Foy		Date: 30/08/2019
@@ -240,7 +252,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.32"
+	sVersion = "1.4.34"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -443,13 +455,13 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 					sSaveRootDir = GetSingleNodeValue(hXMLNode, "SaveRootDir")
 
 					' The folder where the report will be saved
-					sSaveFolder = GetSingleNodeValue(hXMLNode, "SaveFolder")
+					sDefaultSaveFolder = GetSingleNodeValue(hXMLNode, "SaveFolder")
 
 					' Sub-folder where all the extract files will be stored
-					sGISFolder = GetSingleNodeValue(hXMLNode, "GISFolder")
+					sDefaultGISFolder = GetSingleNodeValue(hXMLNode, "GISFolder")
 
 					' Log file name prefix for storing output messages
-					sLogFileName = GetSingleNodeValue(hXMLNode, "LogFileName")
+					sDefaultLogFileName = GetSingleNodeValue(hXMLNode, "LogFileName")
 
 					' By default, should an existing log file be cleared?
 					sDefaultClearLogFile = GetSingleNodeValue(hXMLNode, "DefaultClearLogFile")
@@ -500,7 +512,7 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 					End If
 
 					' The output name for the buffer GIS file
-					sBufferSaveName = GetSingleNodeValue(hXMLNode, "BufferSaveName")
+					sDefaultBufferSaveName = GetSingleNodeValue(hXMLNode, "BufferSaveName")
 
 					' Whether the search area should be kept (and added to the map)
 					sKeepSearchFeature = GetSingleNodeValue(hXMLNode, "KeepSearchFeature")
@@ -512,7 +524,7 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 					End If
 
 					' The name of the search feature output layer
-					sSearchFeatureName = GetSingleNodeValue(hXMLNode, "SearchFeatureName")
+					sDefaultSearchFeatureName = GetSingleNodeValue(hXMLNode, "SearchFeatureName")
 
 					' Options for adding the selected tables to the map window
 					sAddSelectedTablesOptions = GetSingleNodeValue(hXMLNode, "AddSelectedTablesOptions")
@@ -538,8 +550,9 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 						iDefaultKeepSelectedTables = sDefaultKeepSelectedTables
 					End If
 
+
 					' The name of the group layer that will be created in the table of contents
-					sGroupLayerName = GetSingleNodeValue(hXMLNode, "GroupLayerName")
+					sDefaultGroupLayerName = GetSingleNodeValue(hXMLNode, "GroupLayerName")
 
 					' Options for overwritting the map labels
 					sOverwriteLabelOptions = GetSingleNodeValue(hXMLNode, "OverwriteLabelOptions")
@@ -1304,6 +1317,7 @@ RegisterTable:
 			sCmd = "Open Table " + Chr$(34) + sEnquiries + Chr$(34) + " As Enquiries"
 			Run Command (sCmd)
 			
+
 		End If
 
 		'-------------------------------------------------
@@ -1420,6 +1434,7 @@ Sub CheckSelection
 	' Check if the user has entered a search reference
 	'-------------------------------------------------
 	If sSearchRef = "" Then
+
 		Note "Error: No search reference has been entered!"
 		Exit Sub
 	End If
@@ -1561,7 +1576,7 @@ SetSubRef:
 	'-------------------------------------------------
     ' Replace any variables
 	'-------------------------------------------------
-    sSaveFolder = StringReplace(sSaveFolder, "%ref%", sSearchRef)
+    sSaveFolder = StringReplace(sDefaultSaveFolder, "%ref%", sSearchRef)
     sSaveFolder = StringReplace(sSaveFolder, "%shortref%", sShortRefNo)
     sSaveFolder = StringReplace(sSaveFolder, "%subref%", sSubRefNo)
     sSaveFolder = StringReplace(sSaveFolder, "%sitename%", sSiteName)
@@ -1569,7 +1584,7 @@ SetSubRef:
     sSaveFolder = StringReplace(sSaveFolder, "%partner%", sPartner)
     sSaveFolder = StringReplace(sSaveFolder, "%radius%", sRadius)
     
-    sGISFolder = StringReplace(sGISFolder, "%ref%", sSearchRef)
+    sGISFolder = StringReplace(sDefaultGISFolder, "%ref%", sSearchRef)
     sGISFolder = StringReplace(sGISFolder, "%shortref%", sShortRefNo)
     sGISFolder = StringReplace(sGISFolder, "%subref%", sSubRefNo)
     sGISFolder = StringReplace(sGISFolder, "%sitename%", sSiteName)
@@ -1577,7 +1592,7 @@ SetSubRef:
     sGISFolder = StringReplace(sGISFolder, "%partner%", sPartner)
     sGISFolder = StringReplace(sGISFolder, "%radius%", sRadius)
     
-    sLogFileName = StringReplace(sLogFileName, "%ref%", sSearchRef)
+    sLogFileName = StringReplace(sDefaultLogFileName, "%ref%", sSearchRef)
     sLogFileName = StringReplace(sLogFileName, "%shortref%", sShortRefNo)
     sLogFileName = StringReplace(sLogFileName, "%subref%", sSubRefNo)
     sLogFileName = StringReplace(sLogFileName, "%sitename%", sSiteName)
@@ -1585,7 +1600,7 @@ SetSubRef:
     sLogFileName = StringReplace(sLogFileName, "%partner%", sPartner)
     sLogFileName = StringReplace(sLogFileName, "%radius%", sRadius)
     
-    sBufferSaveName = StringReplace(sBufferSaveName, "%ref%", sSearchRef)
+    sBufferSaveName = StringReplace(sDefaultBufferSaveName, "%ref%", sSearchRef)
     sBufferSaveName = StringReplace(sBufferSaveName, "%shortref%", sShortRefNo)
     sBufferSaveName = StringReplace(sBufferSaveName, "%subref%", sSubRefNo)
     sBufferSaveName = StringReplace(sBufferSaveName, "%sitename%", sSiteName)
@@ -1593,7 +1608,7 @@ SetSubRef:
     sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
     sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
     
-    sGroupLayerName = StringReplace(sGroupLayerName, "%ref%", sSearchRef)
+    sGroupLayerName = StringReplace(sDefaultGroupLayerName, "%ref%", sSearchRef)
     sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
     sGroupLayerName = StringReplace(sGroupLayerName, "%subref%", sSubRefNo)
     sGroupLayerName = StringReplace(sGroupLayerName, "%sitename%", sSiteName)
@@ -1601,7 +1616,7 @@ SetSubRef:
     sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
     sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
     
-    sSearchFeatureName = StringReplace(sSearchFeatureName, "%ref%", sSearchRef)
+    sSearchFeatureName = StringReplace(sDefaultSearchFeatureName, "%ref%", sSearchRef)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%subref%", sSubRefNo)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%sitename%", sSiteName)
@@ -1792,63 +1807,84 @@ SetSubRef:
 	Redim aWindowId(99)
 	Redim aWindowGroup(99)
 	
-	' Loop through all the windows
-	For iWindowNum = 1 to NumWindows()
+	' If there are any open windows
+	If NumWindows() > 0 Then
 	
-		' Check if the window is a map window
-		If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
+		' Loop through all the windows
+		For iWindowNum = 1 to NumWindows()
 		
-			bMapWindow = False
+			' Check if the window is a map window
+			If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
 			
-			' Loop through all the map layers in the map window
-			For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
-			
-				' Check if the layer is a normal layer
-				If LayerInfo(WindowId(iWindowNum),iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
-					bMapWindow = True
-					Exit For
-				End If
-			
-			Next
-
-			' If the window contains any normal map layers then
-			' add it to the array of map windows
-			If bMapWindow = True Then
-
-				' Increment the windows number				
-				iNumWindows = iNumWindows + 1
+				bMapWindow = False
 				
-				' Store the window ID
-				aWindowId(iNumWindows) = WindowId(iWindowNum)
-
-				bGroupFound = False
-
-				' Loop through all the group layers in the map window
-				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_GROUPLAYERS)
+				' Loop through all the map layers in the map window
+				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
 				
-					' Check if the layer is the group layer
-					If GroupLayerInfo(WindowId(iWindowNum),iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
-						bGroupFound = True
+					' Check if the layer is a normal layer
+					If LayerInfo(WindowId(iWindowNum),iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
+						bMapWindow = True
 						Exit For
 					End If
 				
 				Next
-
-				' If the window contains the group layer then store
-				' the group layer name in the array of map windows
-				If bGroupFound = True Then
-					Call MyPrint("Group layer '" + sGroupLayer + "' found in map window " + iNumWindows + ".")
-					aWindowGroup(iNumWindows) = sGroupLayer
-				Else
-					aWindowGroup(iNumWindows) = ""
-				End If
-			
-			End If
-
-		End If
-
-	Next
 	
+				' If the window contains any normal map layers then
+				' add it to the array of map windows
+				If bMapWindow = True Then
+	
+					' Increment the windows number				
+					iNumWindows = iNumWindows + 1
+					
+					' Store the window ID
+					aWindowId(iNumWindows) = WindowId(iWindowNum)
+	
+					bGroupFound = False
+	
+					' Loop through all the group layers in the map window
+					For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_GROUPLAYERS)
+					
+						' Check if the layer is the group layer
+						If GroupLayerInfo(WindowId(iWindowNum),iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
+							bGroupFound = True
+							Exit For
+						End If
+					
+					Next
+	
+					' If the window contains the group layer then store
+					' the group layer name in the array of map windows
+					If bGroupFound = True Then
+						Call MyPrint("Group layer '" + sGroupLayer + "' found in map window " + iNumWindows + ".")
+						aWindowGroup(iNumWindows) = sGroupLayer
+					Else
+						aWindowGroup(iNumWindows) = ""
+					End If
+				
+				End If
+	
+			End If
+	
+		Next
+
+	
+	End If
+
+	'-------------------------------------------------
+	' If there aren't any open map windows
+	' Open a new map window using the search table
+	'-------------------------------------------------
+	If iNumWindows = 0 Then
+		Call MyPrint("Mapping table " + sSearchTable + " ...")
+		Map from sSearchTable
+	
+		' Store the window ID and group layer name
+		iNumWindows = 1
+		iWindowNum = 1
+		aWindowId(iNumWindows) = WindowId(iWindowNum)
+		aWindowGroup(iNumWindows) = ""
+	End If
+
 	Redim aWindowId(iNumWindows)
 	Redim aWindowGroup(iNumWindows)
 
@@ -1866,7 +1902,22 @@ SetSubRef:
 			End If
 		Next
 	Next
-	
+
+	'-------------------------------------------------
+	' If it's not found in any windows then add
+	' it to the first window
+	'-------------------------------------------------
+	If iWindowNum > iNumWindows Then
+		iWindowNum = 1
+		Call MyPrint("Adding table " + sSearchTable + " to map ...")
+		Dim sCmd as String
+		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchTable
+		Run Command (sCmd)
+		iNumSearchTable = 1
+	End If
+
+	' Something's gone wrong if the search table can't be
+	' found so skip the layer editing
 	Goto HideLayer
 
 EditLayer:
@@ -1891,7 +1942,6 @@ EditLayer:
 	' Update the site name, organisation and partner
 	' in the search table
 	'-------------------------------------------------
-	Dim sCmd As String
 	Dim sTempTable As String
 	sTempTable = "SearchTemp"
 
@@ -2054,6 +2104,7 @@ HideLayer:
 		'-------------------------------------------------
 		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
 		
+
 			'-------------------------------------------------
 			' Create a new combined sites table.
 			'-------------------------------------------------
@@ -2132,6 +2183,11 @@ HideLayer:
 		End If
 
 		'-------------------------------------------------
+		' Trap errors creating combined sites table
+		'-------------------------------------------------
+		OnError Goto ErrorCreatingSitesTable
+	
+		'-------------------------------------------------
 		' Export the combined sites table as a DBF file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "DBF" Then
@@ -2164,11 +2220,18 @@ HideLayer:
 			Export sCombinedSitesTable
 				Into sLocalPath + "\" + sSitesTable + ".csv"
 				Type "CSV"
+
+
 				CharSet "WindowsLatin1"
 				Titles
 				Overwrite
 		End If
-	
+		
+		'-------------------------------------------------
+		' Trap errors
+		'-------------------------------------------------
+		OnError Goto ErrorTrap
+		
 		'-------------------------------------------------
 		' Close the combined sites table
 		'-------------------------------------------------
@@ -2196,7 +2259,6 @@ HideLayer:
 	'-------------------------------------------------
 	' Keep/Remove the search area table
 	'-------------------------------------------------
-
 	If bKeepSearchFeature = False Then
 		Call MyPrint("Deleting search area table ...")
 		Drop Table sSearchAreaTable
@@ -2208,7 +2270,6 @@ HideLayer:
 	End If
 
 	'-------------------------------------------------
-
 	' Add the search area and buffer tables to all
 	' map windows and zoom to the extent of the buffer
 	' table
@@ -2266,6 +2327,7 @@ HideLayer:
 		End If
 	
 		If bKeepBufferArea = True Then
+
 			
 			'-------------------------------------------------
 			' Add the buffer table to the map window
@@ -2344,6 +2406,22 @@ ErrorTrap:
 	Call MyPrint(str$(Err()) + ": " + Error$())
 	Exit Sub
 
+ErrorCreatingSitesTable:
+		'-------------------------------------------------
+		' Inform user of error creating table
+		'-------------------------------------------------
+		If Err() = 497 Then
+			Note "Unable to save combined sites table " + sSitesTable + ". The table may be open in another application."
+			Call MyPrint("Error: Unable to create combined sites table " + sSitesTable + ".")
+			Call MyPrint("")
+			Resume Next
+		Else
+			Note "Error: " + str$(Err()) + ": " + Error$()
+			Call MyPrint(str$(Err()) + ": " + Error$())
+			Call MyPrint("")
+			Exit Sub
+		End If
+		
 IgnoreError:
 	Resume Next
 
@@ -2364,19 +2442,22 @@ Sub BufferSearch
 	' looking through all the windows until it is
 	' found
 	'-------------------------------------------------
-	Dim iNumWindows As Integer
 	iNumWindows = UBound(aWindowId)
+
 	Dim iWindowNum As Integer
-	For iWindowNum = 1 to iNumWindows
-		Dim iNumTables As Integer
-		Dim iNumSearchTable as Integer
-		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
-		For iNumSearchTable = 1 to iNumTables
-			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
-				Goto EditLayer
-			End If
+	iWindowNum = 0
+
+	If iNumWindows > 0 Then
+		For iWindowNum = 1 to iNumWindows
+			Dim iNumTables As Integer
+			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+			For iNumSearchTable = 1 to iNumTables
+				If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+					Goto EditLayer
+				End If
+			Next
 		Next
-	Next
+	End If
 
 EditLayer:
 	'-------------------------------------------------
@@ -2430,7 +2511,7 @@ EditLayer:
 	' and put it into the search area table
 	'-------------------------------------------------
 	Call MyPrint("Selecting reference feature(s) ...")
-	Dim sCmd as String
+	Dim sCmd As String
 	sCmd = "Select * from " + sSearchTable + " Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
 	Run Command (sCmd)
 
@@ -2495,15 +2576,6 @@ EditLayer:
 	Run Command (sCmd)
 
 	'-------------------------------------------------
-	' Check if the buffer table is
-	' already/still open and close it if it is
-	'-------------------------------------------------
-	If TableIsOpen(sBufferTable) Then
-		Call MyPrint("Closing buffer table ...")
-		Close Table sBufferTable
-	End If
-
-	'-------------------------------------------------
 	' Save the buffer table
 	'-------------------------------------------------
 	Call MyPrint("Saving buffer table ...")
@@ -2527,7 +2599,6 @@ EditLayer:
 	Next
 
 	'-------------------------------------------------
-
 	' Open the new buffered table
 	'-------------------------------------------------
 	Call MyPrint("Opening buffer table ...")
@@ -2742,7 +2813,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     	sLocalName = SelectedMap.TableName + "_" + sSubRefNo
     End If
 
-	sExportName = SelectedMap.TableOutputName
+	 sExportName = SelectedMap.TableOutputName
     sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
     sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
     sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
@@ -3033,243 +3104,292 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Close Table sExportTemp
 	End If
 	
-TranslateTable:
 	'-------------------------------------------------
-	' Translate the table to ESRI shapefile if required
+	' If this layer should be kept
 	'-------------------------------------------------
-	If iKeepSelectedTables > 2  And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
-		Dim sLogFileShp As String
-		sLogFileShp = "TabToShp" + "_" + sUserID
-
-		Call MyPrint("Log File Path = '" + sLocalPath + "'")
-		Call MyPrint("Log File Name = '" + sLogFileShp + "'")
-
-		Call TranslateToShapefile(sUTPath, sUTCommand, sLocalPath, sLogFileShp, sLocalPath, sOutputName)
-	End If
+	If (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 	
-	'-------------------------------------------------
-	' If the local table is not required then
-	' delete it, otherwise close it
-	'-------------------------------------------------
-	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
-		Call MyPrint("Keeping local file ...")
-		Close Table sSelectName
-	Else
-		If iKeepSelectedTables = 1 Or iKeepSelectedTables = 3 Then
+TranslateTable:
+		'-------------------------------------------------
+		' Translate the table to ESRI shapefile if required
+		'-------------------------------------------------
+		If iKeepSelectedTables > 2 Then
+			Dim sLogFileShp As String
+			sLogFileShp = "TabToShp" + "_" + sUserID
+
+			'Call MyPrint("Log File Path = '" + sLocalPath + "'")
+			'Call MyPrint("Log File Name = '" + sLogFileShp + "'")
+
+			Call TranslateToShapefile(sUTPath, sUTCommand, sLocalPath, sLogFileShp, sLocalPath, sOutputName)
+
+		End If
+	
+		'-------------------------------------------------
+		' If keeping the table as a TAB file then
+		' close the local file
+		'-------------------------------------------------
+		If iKeepSelectedTables = 2 or iKeepSelectedTables = 4 Or iAddSelectedTables > 1 Then
+			Call MyPrint("Keeping local file ...")
+			Close Table sSelectName
+		Else
 			Call MyPrint("Deleting local file ...")
 			Drop Table sSelectName
 		End If
-	End If
-	
+
 AddToMap:
-	'-------------------------------------------------
-	' Add the local table to the map (if required)
-	'-------------------------------------------------
-	If iAddSelectedTables > 1 And (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
-		
 		'-------------------------------------------------
-		' Re-open the selection table with the correct
-		' name
+		' Add the local table to the map (if required)
 		'-------------------------------------------------
-		sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sLocalName
-		Run Command (sCmd)
-	
-		'-------------------------------------------------
-		' Add the local table to the same window that
-		' the original table is mapped in, otherwise
-		' add it to the active map window
-		'-------------------------------------------------
-		Dim bTableAdded As Logical
-		bTableAdded = False
-		Dim iWindowNum As Integer
-		For iWindowNum = 1 to iNumWindows
+		If iAddSelectedTables > 1 Then
+			
+			'-------------------------------------------------
+			' Re-open the selection table with the correct
+			' name
+			'-------------------------------------------------
+			sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " As " + sLocalName
+			Run Command (sCmd)
 		
 			'-------------------------------------------------
-			' Find the layer number for the original table
+			' Add the local table to the same window that
+			' the original table is mapped in, otherwise
+			' add it to the active map window
 			'-------------------------------------------------
-			Dim iNumTables As Integer
-			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
-			Dim	iNumTable As Integer, bMapFound As Logical
-			bMapFound = False
-			For iNumTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.TableName Then
-					bMapFound = True
-					Exit For
-				End If
-			Next
-		
-			'-------------------------------------------------
-			' If the original table was found then add
-			' the local table to the same map window
-			'-------------------------------------------------
-			If bMapFound = True Then
-
+			Dim bTableAdded As Logical
+			bTableAdded = False
+			Dim iWindowNum As Integer
+			For iWindowNum = 1 to iNumWindows
+			
 				'-------------------------------------------------
-				' Add a group layer if one doesn't already exist
+				' Find the layer number for the original table
 				'-------------------------------------------------
-				If aWindowGroup(iWindowNum) = "" Then
-					Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
-
-					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
-					Run Command (sCmd)
-					
-					' Store the name of the group layer for the window
-					aWindowGroup(iWindowNum) = sGroupLayer
-				End If
-
-				'-------------------------------------------------
-				' Add the local table to the same map window
-				'-------------------------------------------------
-				Call MyPrint("Adding layer to map window " + iWindowNum + " ...")
-
-				If aWindowGroup(iWindowNum) = sGroupLayer Then
-					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34) + " Position 999"
-					Run Command (sCmd)
-				Else
-					sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName
-					Run Command (sCmd)
-				End If
-
-				'-------------------------------------------------
-				' If the layer is to be added with labels ...
-				'-------------------------------------------------
-				If iAddSelectedTables = 3 Then
-	
-					'-------------------------------------------------
-					' If the table doesn't contain the map label
-					' column then don't use it for the labels
-					'-------------------------------------------------
-					If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
-						SelectedMap.LabelColumn = ""
-						SelectedMap.LabelClause = ""
-					End If
-					
-					'-------------------------------------------------
-					' Set the map label clause if not already set
-					'-------------------------------------------------
-					If SelectedMap.LabelClause = "" Then
-						If SelectedMap.LabelColumn = "" Then
-							SelectedMap.LabelClause = ""
-						Else
-							SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn
+				Dim iNumTables As Integer
+				iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+				Dim	iNumTable As Integer, bMapFound As Logical
+				bMapFound = False
+				If iNumTables > 0 Then
+					For iNumTable = 1 to iNumTables
+						If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.TableName Then
+							bMapFound = True
+							Exit For
 						End If
-					End If
-	
-					'-------------------------------------------------
-					' Display the labels for the layer
-					'-------------------------------------------------
-					Call MyPrint("Setting labels for layer ...")
-
-					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
-					Run Command (sCmd)
-	
+					Next
 				End If
+			
+				'-------------------------------------------------
+				' If the original table was found then add
+				' the local table to the same map window
+				'-------------------------------------------------
+				If bMapFound = True Then
 
-				'-------------------------------------------------
-				' Apply any symbology to the local table
-				'-------------------------------------------------
-				If SelectedMap.Symbology <> "" Then
-					
 					'-------------------------------------------------
-					' Set the symbology for the layer
+					' Add a group layer if one doesn't already exist
 					'-------------------------------------------------
-					Call MyPrint("Setting symbology for layer ...")
-					
-					sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Display Global " + SelectedMap.Symbology
-					Run Command (sCmd)
-					
-				End If
+					If aWindowGroup(iWindowNum) = "" Then
+						Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
 
-				'-------------------------------------------------
-				' Indicate that the table has now been added to
-				' at least one map window.
-				'-------------------------------------------------
-				bTableAdded = True
-				
-			End If
-
-		Next
-
-		'-------------------------------------------------
-		' If the local table has not been added to any
-		' map windows
-		'-------------------------------------------------
-		If bTableAdded = False Then
-
-			'-------------------------------------------------
-			' Get the id of the active window
-			'-------------------------------------------------
-			Dim iWindowId As Integer
-			iWindowId = FrontWindow()
-
-			'-------------------------------------------------
-			' If there is an active window
-			'-------------------------------------------------
-			If iWindowId > 0 Then
-				
-				'-------------------------------------------------
-				' Add the local table to the map window
-				'-------------------------------------------------
-				Call MyPrint("Adding layer to active map window ...")
-				Add Map Window iWindowId Layer sLocalName
-	
-				'-------------------------------------------------
-				' If the layer is to be added with labels ...
-				'-------------------------------------------------
-				If iAddSelectedTables = 3 Then
-	
-					'-------------------------------------------------
-					' If the table doesn't contain the map label
-					' column then don't use it for the labels
-					'-------------------------------------------------
-					If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
-						SelectedMap.LabelColumn = ""
-						SelectedMap.LabelClause = ""
-					End If
+						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
+						Run Command (sCmd)
 						
-					'-------------------------------------------------
-					' Set the map label clause if not already set
-					'-------------------------------------------------
-					If SelectedMap.LabelClause = "" Then
-						If SelectedMap.LabelColumn = "" Then
-							SelectedMap.LabelClause = ""
-						Else
-							SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn
-						End If
+						' Store the name of the group layer for the window
+						aWindowGroup(iWindowNum) = sGroupLayer
 					End If
-	
+
 					'-------------------------------------------------
-					' Display the labels for the layer
+					' Add the local table to the same map window
 					'-------------------------------------------------
-					Call MyPrint("Setting labels for layer ...")
-					
-					sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
-					Run Command (sCmd)
-	
+					Call MyPrint("Adding layer to map window " + iWindowNum + " ...")
+
+					If aWindowGroup(iWindowNum) = sGroupLayer Then
+						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+						Run Command (sCmd)
+					Else
+						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName
+						Run Command (sCmd)
+					End If
+
+					'-------------------------------------------------
+					' If the layer is to be added with labels ...
+					'-------------------------------------------------
+					If iAddSelectedTables = 3 Then
+		
+						'-------------------------------------------------
+						' If the table doesn't contain the map label
+						' column then don't use it for the labels
+						'-------------------------------------------------
+						If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
+							SelectedMap.LabelColumn = ""
+							SelectedMap.LabelClause = ""
+						End If
+						
+						'-------------------------------------------------
+						' Set the map label clause if not already set
+						'-------------------------------------------------
+						If SelectedMap.LabelClause = "" Then
+							If SelectedMap.LabelColumn = "" Then
+								SelectedMap.LabelClause = ""
+							Else
+								SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn
+							End If
+						End If
+		
+						'-------------------------------------------------
+						' Display the labels for the layer
+						'-------------------------------------------------
+						If SelectedMap.LabelClause <> "" Then
+							Call MyPrint("Setting labels for layer ...")
+							sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
+							Run Command (sCmd)
+						End If
+		
+					End If
+
 					'-------------------------------------------------
 					' Apply any symbology to the local table
 					'-------------------------------------------------
-					If UCase$(SelectedMap.Symbology) <> "" Then
-				
+					If SelectedMap.Symbology <> "" Then
+						
 						'-------------------------------------------------
 						' Set the symbology for the layer
 						'-------------------------------------------------
 						Call MyPrint("Setting symbology for layer ...")
-			
+						
 						sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Display Global " + SelectedMap.Symbology
 						Run Command (sCmd)
 						
 					End If
-	
 
+					'-------------------------------------------------
+					' Indicate that the table has now been added to
+					' at least one map window.
+					'-------------------------------------------------
+					bTableAdded = True
+					
 				End If
+
+			Next
+
+			'-------------------------------------------------
+			' If the local table has not been added to any
+			' map windows
+			'-------------------------------------------------
+			If bTableAdded = False Then
+
+				'-------------------------------------------------
+				' Get the id of the active window
+				'-------------------------------------------------
+				Dim iWindowId As Integer
+				iWindowId = FrontWindow()
+
+				'-------------------------------------------------
+				' If there is an active window
+				'-------------------------------------------------
+				If iWindowId > 0 Then
+				
+					'-------------------------------------------------
+					' Find the window number for the active window
+					'-------------------------------------------------
+					For iWindowNum = 1 to iNumWindows
+						If aWindowId(iWindowNum) = iWindowId Then
+
+							'-------------------------------------------------
+							' Add a group layer if one doesn't already exist
+							'-------------------------------------------------
+							If aWindowGroup(iWindowNum) = "" Then
+								Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+			
+								sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
+								Run Command (sCmd)
+								
+								' Store the name of the group layer for the window
+								aWindowGroup(iWindowNum) = sGroupLayer
+							End If
 		
+							Exit For
+
+						End If
+					Next
+
+					'-------------------------------------------------
+					' Add the local table to the map window
+					'-------------------------------------------------
+					Call MyPrint("Adding layer to active map window ...")
+
+					If aWindowGroup(iWindowNum) = sGroupLayer Then
+						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
+						Run Command (sCmd)
+					Else
+						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName
+						Run Command (sCmd)
+					End If
+		
+					'-------------------------------------------------
+					' If the layer is to be added with labels ...
+					'-------------------------------------------------
+					If iAddSelectedTables = 3 Then
+		
+						'-------------------------------------------------
+						' If the table doesn't contain the map label
+						' column then don't use it for the labels
+						'-------------------------------------------------
+						If ColumnExists(sLocalName, SelectedMap.LabelColumn) = False Then
+							SelectedMap.LabelColumn = ""
+							SelectedMap.LabelClause = ""
+						End If
+							
+						'-------------------------------------------------
+						' Set the map label clause if not already set
+						'-------------------------------------------------
+						If SelectedMap.LabelClause = "" Then
+							If SelectedMap.LabelColumn = "" Then
+								SelectedMap.LabelClause = ""
+							Else
+								SelectedMap.LabelClause = "With " + SelectedMap.LabelColumn
+							End If
+						End If
+		
+						'-------------------------------------------------
+						' Display the labels for the layer
+						'-------------------------------------------------
+						If SelectedMap.LabelClause <> "" Then
+							Call MyPrint("Setting labels for layer ...")
+							sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
+							Run Command (sCmd)
+						End If
+		
+						'-------------------------------------------------
+						' Apply any symbology to the local table
+						'-------------------------------------------------
+						If UCase$(SelectedMap.Symbology) <> "" Then
+					
+							'-------------------------------------------------
+							' Set the symbology for the layer
+							'-------------------------------------------------
+							Call MyPrint("Setting symbology for layer ...")
+				
+							sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Display Global " + SelectedMap.Symbology
+							Run Command (sCmd)
+							
+						End If
+		
+
+					End If
+			
+				End If
+				
 			End If
 			
 		End If
-		
-	End If
 	
+	Else
+	
+		'-------------------------------------------------
+		' Delete the local file as it's not to be kept
+		'-------------------------------------------------
+		Call MyPrint("Deleting local file ...")
+		Drop Table sSelectName
+	
+	End If
+
 	' Update the last group name
 	sLastGroupName = sGroupName
 
