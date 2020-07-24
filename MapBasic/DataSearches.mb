@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.34
+'* DataSearches v1.4.35
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,11 @@
 '*
 '*
 '* Created:				Andy Foy - February 2013
-'* Last revised:		Andy Foy - December 2019
+'* Last revised:			Andy Foy - July 2020
+'*
+'* *****************  Version 1.4.35  **************
+'* Author: Andy Foy		Date: 24/07/2020
+'* A. Delete the combined sites output table if empty.
 '*
 '* *****************  Version 1.4.34  **************
 '* Author: Andy Foy		Date: 15/12/2019
@@ -252,7 +256,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.34"
+	sVersion = "1.4.35"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -1822,7 +1826,7 @@ SetSubRef:
 				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
 				
 					' Check if the layer is a normal layer
-					If LayerInfo(WindowId(iWindowNum),iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
+					If LayerInfo(WindowId(iWindowNum), iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
 						bMapWindow = True
 						Exit For
 					End If
@@ -1842,10 +1846,10 @@ SetSubRef:
 					bGroupFound = False
 	
 					' Loop through all the group layers in the map window
-					For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_GROUPLAYERS)
+					For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum), MAPPER_INFO_GROUPLAYERS)
 					
 						' Check if the layer is the group layer
-						If GroupLayerInfo(WindowId(iWindowNum),iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
+						If GroupLayerInfo(WindowId(iWindowNum), iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
 							bGroupFound = True
 							Exit For
 						End If
@@ -1897,7 +1901,7 @@ SetSubRef:
 		Dim iNumTables As Integer
 		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 		For iNumSearchTable = 1 to iNumTables
-			If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+			If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
 				Goto EditLayer
 			End If
 		Next
@@ -2051,7 +2055,7 @@ HideLayer:
 	'-------------------------------------------------
 	' Turn off the search table (if it is visible)
 	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
+	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) <> 0 Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
 	End If
 
@@ -2164,19 +2168,21 @@ HideLayer:
 	'-------------------------------------------------
 	' Export the combined sites table
 	'-------------------------------------------------
+	Dim sCombinedSitesOutput As String
+	Dim iSitesTotal As Integer
+	iSitesTotal = 0
 	If iCombinedSitesTable > 1 Then
 		
 		'-------------------------------------------------
 		' Count the number of rows in the combined
 		' sites table
 		'-------------------------------------------------
-		Dim iSitesTotal As Integer
 		iSitesTotal = TableInfo(sCombinedSitesTable, TAB_INFO_NROWS)
 	
-		'-------------------------------------------------
-		' Save the combined sites table changes
-		'-------------------------------------------------
 		If iSitesTotal > 0 Then
+			'-------------------------------------------------
+			' Save the combined sites table changes
+			'-------------------------------------------------
 			Call MyPrint("Saving combined sites table ...")
 			Call MyPrint(iSitesTotal + " records saved.")
 			Commit Table sCombinedSitesTable
@@ -2191,9 +2197,10 @@ HideLayer:
 		' Export the combined sites table as a DBF file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "DBF" Then
+			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".dbf"
 			Call MyPrint("Creating combined sites table as a DBF file ...")
 			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sSitesTable + ".dbf"
+				Into sCombinedSitesOutput
 				Type "DBF"
 				CharSet "WindowsLatin1"
 				Overwrite
@@ -2203,9 +2210,10 @@ HideLayer:
 		' Export the combined sites table as a TXT file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "TXT" Then
+			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".txt"
 			Call MyPrint("Creating combined sites table as a TXT file ...")
 			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sSitesTable + ".txt"
+				Into sCombinedSitesOutput
 				Type "ASCII"
 				Delimiter ","
 				CharSet "WindowsLatin1"
@@ -2216,12 +2224,11 @@ HideLayer:
 		' Export the combined sites table as a CSV file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "CSV" Then
+			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".csv"
 			Call MyPrint("Creating combined sites table as a CSV file ...")
 			Export sCombinedSitesTable
-				Into sLocalPath + "\" + sSitesTable + ".csv"
+				Into sCombinedSitesOutput
 				Type "CSV"
-
-
 				CharSet "WindowsLatin1"
 				Titles
 				Overwrite
@@ -2237,6 +2244,19 @@ HideLayer:
 		'-------------------------------------------------
 		Call MyPrint("Closing combined sites table ...")
 		Close Table sCombinedSitesTable
+
+ 		'-------------------------------------------------
+		' Delete the combined sites table if empty
+		'-------------------------------------------------
+		If iSitesTotal = 0 Then
+			'-------------------------------------------------
+			' Delete the empty combined sites table
+			'-------------------------------------------------
+			If FileExists(sCombinedSitesOutput) Then
+				Call MyPrint("Deleting empty combined sites table ...")
+				Kill sCombinedSitesOutput
+			End If
+		End If
 
 	End If
 
@@ -2311,7 +2331,7 @@ HideLayer:
 			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 			Dim	iNumBufferTable as Integer
 			For iNumBufferTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sSearchAreaTable Then
+				If LayerInfo(aWindowId(iWindowNum), iNumBufferTable, LAYER_INFO_NAME) = sSearchAreaTable Then
 					Exit For
 				End If
 			Next
@@ -2347,7 +2367,7 @@ HideLayer:
 			'-------------------------------------------------
 			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 			For iNumBufferTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumBufferTable, LAYER_INFO_NAME) = sBufferTable Then
+				If LayerInfo(aWindowId(iWindowNum), iNumBufferTable, LAYER_INFO_NAME) = sBufferTable Then
 					Exit For
 				End If
 			Next
@@ -2452,7 +2472,7 @@ Sub BufferSearch
 			Dim iNumTables As Integer
 			iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
 			For iNumSearchTable = 1 to iNumTables
-				If LayerInfo(aWindowId(iWindowNum),iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
+				If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
 					Goto EditLayer
 				End If
 			Next
@@ -2463,14 +2483,14 @@ EditLayer:
 	'-------------------------------------------------
 	' Make the search area table visible if it is not already
 	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
+	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
 	End If
 	
 	'-------------------------------------------------
 	' Make the search area table editable if it is not already
 	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_EDITABLE) = False Then
+	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable ,LAYER_INFO_EDITABLE) = False Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
 	End If
 
@@ -2618,7 +2638,7 @@ EditLayer:
 	'-------------------------------------------------
 	' Turn off the search area table if it is visible
 	'-------------------------------------------------
-	If LayerInfo(aWindowId(iWindowNum),iNumSearchTable,LAYER_INFO_DISPLAY) <> 0 Then
+	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) <> 0 Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
 	End If
 
@@ -3168,7 +3188,7 @@ AddToMap:
 				bMapFound = False
 				If iNumTables > 0 Then
 					For iNumTable = 1 to iNumTables
-						If LayerInfo(aWindowId(iWindowNum),iNumTable, LAYER_INFO_NAME) = SelectedMap.TableName Then
+						If LayerInfo(aWindowId(iWindowNum), iNumTable, LAYER_INFO_NAME) = SelectedMap.TableName Then
 							bMapFound = True
 							Exit For
 						End If
