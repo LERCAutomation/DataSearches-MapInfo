@@ -3,7 +3,7 @@ DataSearches
 
 DataSearches tool
 
-Copyright © 2013-2019 TVERC, GiGL, SBIC
+Copyright © 2013-2019 TVERC, GiGL, SBIC. Andy Foy Consulting 2020-2021.
 
 Overview
 --------

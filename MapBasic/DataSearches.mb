@@ -20,15 +20,22 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.35
+'* DataSearches v1.4.36
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
 '*
-'* Created:				Andy Foy - February 2013
-'* Last revised:			Andy Foy - July 2020
+'* Created:					Andy Foy - February 2013
+'* Last revised:			Andy Foy - January 2021
+'*
+'* *****************  Version 1.4.36  **************
+'* Author: Andy Foy		Date: 29/01/2021
+'* A. Enable the total area of the search area/buffer to be
+'*    included in the export files and combined sites table.
+'* B. Enable the total area of the input polygon(s) to be
+'*    included in the export files and combined sites table.
 '*
 '* *****************  Version 1.4.35  **************
 '* Author: Andy Foy		Date: 24/07/2020
@@ -256,7 +263,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.35"
+	sVersion = "1.4.36"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -3044,6 +3051,34 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' Check if the search area is to be included
+	' in the export columns
+	'-------------------------------------------------
+	If Instr(1, sColumns, "%SearchArea%") > 0 Then
+		Call MyPrint("Including search area in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%SearchArea%", "Sum(CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")) ""SearchArea""")
+		Else
+			sColumns = StringReplace(sColumns, "%SearchArea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"") ""SearchArea""")
+		End If
+	End If
+
+	'-------------------------------------------------
+	' Check if the input area is to be included
+	' in the export columns
+	'-------------------------------------------------
+	If Instr(1, sColumns, "%InputArea%") > 0 Then
+		Call MyPrint("Including input area in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%InputArea%", "Sum(CartesianArea(" + sSelectName + ".Obj, ""Hectare"")) ""InputArea""")
+		Else
+			sColumns = StringReplace(sColumns, "%InputArea%", "CartesianArea(" + sSelectName + ".Obj, ""Hectare"") ""InputArea""")
+		End If
+	End If
+
+	'-------------------------------------------------
 	' Execute the SQL statement to select only the
 	' table columns required for the export into
 	' a temporary table
@@ -3594,6 +3629,22 @@ Sub AddToCombinedSitesTable
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%Overlap%") > 0 Then
 		sSitesColumns = StringReplace(sSitesColumns, "%Overlap%", "Overlap")
+	End If
+
+	'-------------------------------------------------
+	' Check if the search area is to be included
+	' in the combined sites table
+	'-------------------------------------------------
+	If Instr(1, sSitesColumns, "%SearchArea%") > 0 Then
+		sSitesColumns = StringReplace(sSitesColumns, "%SearchArea%", "SearchArea")
+	End If
+
+	'-------------------------------------------------
+	' Check if the input area is to be included
+	' in the combined sites table
+	'-------------------------------------------------
+	If Instr(1, sSitesColumns, "%InputArea%") > 0 Then
+		sSitesColumns = StringReplace(sSitesColumns, "%InputArea%", "InputArea")
 	End If
 
 	'-------------------------------------------------
