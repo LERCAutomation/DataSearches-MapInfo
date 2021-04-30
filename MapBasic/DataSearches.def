@@ -132,6 +132,7 @@ Declare Sub OverwriteMapLabels
 	sLabelColumn As String)
 Declare Sub AddToCombinedSitesTable
 	(sTableName As String,
+	sBufferTable As String,
 	sSitesColumns As String,
 	sSitesCriteria As String)
 Declare Sub SetUTDirectory
@@ -340,7 +341,10 @@ Global sUTPath As String
 Global sUTCommand As String
 
 Global sDefaultBufferSize As String
+Global iDefaultBufferSize As SmallInt
+Global sDefaultBufferUnit As String
 Global iDefaultBufferUnit As SmallInt
+
 Global sBufferUnitOptions As String
 Global aBufferUnits(99) As String
 Global aBufferAbbrevs(99) As String
@@ -375,7 +379,7 @@ Global iCombinedSitesTable As SmallInt
 
 Global sCombinedSitesTable As String
 Global sCombinedSitesColumns As String
-Global sCombinedSitesOutputName As String
+Global sCombinedSitesTableName As String
 Global sCombinedSitesFormat As String
 
 Global sSearchValues As String

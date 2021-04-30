@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.36
+'* DataSearches v1.4.37
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,15 @@
 '*
 '*
 '* Created:					Andy Foy - February 2013
-'* Last revised:			Andy Foy - January 2021
+'* Last revised:			Andy Foy - March 2021
+'*
+'* *****************  Version 1.4.37  **************
+'* A. Fix bug including area outputs in combined sites table.
+'* B. Enable search variables to be included in the export
+'*    files and combined sites table.
+'* C. Hide buffer size and units when default values are
+'*    blank.
+'* D. Remove spaces in search ref when used in table names.
 '*
 '* *****************  Version 1.4.36  **************
 '* Author: Andy Foy		Date: 29/01/2021
@@ -263,7 +271,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.36"
+	sVersion = "1.4.37"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -485,9 +493,20 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 
 					' Default size to use for the buffer
 					sDefaultBufferSize = GetSingleNodeValue(hXMLNode, "DefaultBufferSize")
+					If sDefaultBufferSize = "" Then
+						iDefaultBufferSize = 0
+						sDefaultBufferSize = 0
+					Else
+						iDefaultBufferSize = sDefaultBufferSize
+					End If
 
 					' Default unit to use for the buffer
-					iDefaultBufferUnit = GetSingleNodeValue(hXMLNode, "DefaultBufferUnit")
+					sDefaultBufferUnit = GetSingleNodeValue(hXMLNode, "DefaultBufferUnit")
+					If sDefaultBufferUnit = "" Then
+						iDefaultBufferUnit = 3	' Kms
+					Else
+						iDefaultBufferUnit = sDefaultBufferUnit
+					End If
 
 					' Options for the buffer units
 					sBufferUnitOptions = GetSingleNodeValue(hXMLNode, "BufferUnitOptions")
@@ -606,9 +625,6 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 						
 						' Columns of the combined sites table
 						sCombinedSitesColumns = GetSingleNodeValue(hXMLSubNode, "Columns")
-						
-						' Table output name of the combined sites table
-						sCombinedSitesOutputName = GetSingleNodeValue(hXMLSubNode, "TableOutputName")
 						
 						' Format of the combined sites table
 						sCombinedSitesFormat = GetSingleNodeValue(hXMLSubNode, "Format")
@@ -822,7 +838,7 @@ Sub DataSearches
 	Control EditText
 		ID 1
 		Position 10,20
-		Width 65
+		Width 115
 		'Into sSearchRef
 
 	'-------------------------------------------------
@@ -831,7 +847,7 @@ Sub DataSearches
 	Control Button
 		ID 91
 		Title "Find"
-		Position 90,20
+		Position 140,20
 		Width 40
 		Hide
 		Calling GetSiteName
@@ -864,6 +880,7 @@ Sub DataSearches
 	' Add an edit text box for the buffer size
 	'-------------------------------------------------
 	Control StaticText Title "Buffer Size:  "
+		ID 14
 		Position 120,70
 	Control EditText
 		ID 4
@@ -876,6 +893,7 @@ Sub DataSearches
 	' Add a radio group for the buffer units
 	'-------------------------------------------------
 	Control StaticText Title "Buffer Units:  "
+		ID 15
 		Position 120,100
 	Control PopupMenu
 		ID 5
@@ -1227,6 +1245,16 @@ SetDefaults:
 	'-------------------------------------------------
 	' Hide the controls if the defaults are blank
 	'-------------------------------------------------
+	If iDefaultBufferSize = 0 Then
+		Alter Control 14 Hide
+		Alter Control 4 Hide
+	End If
+
+	If sDefaultBufferUnit = "" Then
+		Alter Control 15 Hide
+		Alter Control 5 Hide
+	End If
+	
 	If iDefaultAddSelectedTables = 0 Then
 		Alter Control 19 Hide
 		Alter Control 9 Hide
@@ -1240,6 +1268,11 @@ SetDefaults:
 	If iDefaultCombinedSitesTable = 0 Then
 		Alter Control 21 Hide
 		Alter Control 11 Hide
+	End If
+
+	If iDefaultKeepSelectedTables = 0 Then
+		Alter Control 22 Hide
+		Alter Control 12 Hide
 	End If
 
 	'-------------------------------------------------
@@ -1526,7 +1559,7 @@ Sub CheckSelection
 	'-------------------------------------------------
 	' Check if the user has entered a buffer size
 	'-------------------------------------------------
-	If sBufferSize = "" Then
+	If sBufferSize = "" And iDefaultBufferSize <> 0 Then
 		Note "Error: No buffer size has been entered!"
 		Exit Sub
 	End If
@@ -1559,6 +1592,7 @@ Sub CheckSelection
 	'-------------------------------------------------
     sShortRefNo = StringReplace(sSearchRef, "/", sRepChar)
     sShortRefNo = LTrim$(RTrim$(KeepNumbersAndSpaces(sShortRefNo, sRepChar)))
+    sShortRefNo = StringReplace(sShortRefNo, " ", "_")
 
 	Dim iLastPos As Integer, iNextPos As Integer
 	iLastPos = 1
@@ -1618,6 +1652,7 @@ SetSubRef:
     sBufferSaveName = StringReplace(sBufferSaveName, "%organisation%", sOrganisation)
     sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
     sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
+   	sBufferSaveName = StringReplace(sBufferSaveName, " ", "_")
     
     sGroupLayerName = StringReplace(sDefaultGroupLayerName, "%ref%", sSearchRef)
     sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
@@ -1626,6 +1661,7 @@ SetSubRef:
     sGroupLayerName = StringReplace(sGroupLayerName, "%organisation%", sOrganisation)
     sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
     sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
+   	sGroupLayerName = StringReplace(sGroupLayerName, " ", "_")
     
     sSearchFeatureName = StringReplace(sDefaultSearchFeatureName, "%ref%", sSearchRef)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
@@ -1634,6 +1670,7 @@ SetSubRef:
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%organisation%", sOrganisation)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%partner%", sPartner)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%radius%", sRadius)
+   	sSearchFeatureName = StringReplace(sSearchFeatureName, " ", "_")
     
 	'-------------------------------------------------
     ' Remove any invalid characters from file/folder names
@@ -2072,31 +2109,27 @@ HideLayer:
 	'-------------------------------------------------
 	If iCombinedSitesTable > 1 Then
 
-		Dim sSitesTable As String
-		sSitesTable = sCombinedSitesOutputName
-	    sSitesTable = StringReplace(sSitesTable, "%ref%", sSearchRef)
-	    sSitesTable = StringReplace(sSitesTable, "%shortref%", sShortRefNo)
-	    sSitesTable = StringReplace(sSitesTable, "%subref%", sSubRefNo)
-	    sSitesTable = StringReplace(sSitesTable, "%sitename%", sSiteName)
-	    sSitesTable = StringReplace(sSitesTable, "%organisation%", sOrganisation)
-	    sSitesTable = StringReplace(sSitesTable, "%partner%", sPartner)
-	    sSitesTable = StringReplace(sSitesTable, "%radius%", sRadius)
-	    sSitesTable = LTrim$(RTrim$(ReplaceSpecialChars(sSitesTable, sRepChar, False)))
+		sCombinedSitesTableName = sCombinedSitesTable
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%ref%", sSearchRef)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%shortref%", sShortRefNo)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%subref%", sSubRefNo)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%sitename%", sSiteName)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%organisation%", sOrganisation)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%partner%", sPartner)
+	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%radius%", sRadius)
+	    sCombinedSitesTableName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesTableName, sRepChar, False)))
+   		sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, " ", "_")
 	    
-	    'If sSitesTable = sCombinedSitesOutputName Then
-	    '	sSitesTable = sSubRefNo + sCombinedSitesOutputName
-	    'End If
-	
 		'-------------------------------------------------
 		' If a combined sites table is to be appended to
 		' (and already exists) ...
 		'-------------------------------------------------
-		If iCombinedSitesTable = 2 And TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = True Then
+		If iCombinedSitesTable = 2 And TabFileExists(sLocalPath + "\" + sCombinedSitesTableName + ".tab") = True Then
 
 			'-------------------------------------------------
 			' Open the existing combined sites table.
 			'-------------------------------------------------
-			If OpenCombinedSitesTable(sSitesTable) = False Then
+			If OpenCombinedSitesTable(sCombinedSitesTableName) = False Then
 			
 				Call MyPrint("Error opening combined sites table.")
 				Call MyPrint("")
@@ -2113,13 +2146,13 @@ HideLayer:
 		' If a combined sites table is to be over-written
 		' (or doesn't exist) ...
 		'-------------------------------------------------
-		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
+		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTableName + ".tab") = False Then
 		
 
 			'-------------------------------------------------
 			' Create a new combined sites table.
 			'-------------------------------------------------
-			If CreateCombinedSitesTable(sSitesTable) = False Then
+			If CreateCombinedSitesTable(sCombinedSitesTableName) = False Then
 			
 				Call MyPrint("Error creating combined sites table.")
 				Call MyPrint("")
@@ -2140,7 +2173,7 @@ HideLayer:
 	iExtractCnt = 1
 	iMapLabelCounter = 1
 	sLastGroupName = ""
-	ProgressBar "Processing data search " + sSearchRef + " ..."
+	ProgressBar "Processing data search '" + sSearchRef + "' ..."
 		Calling ProcessExtracts
 		Range iExtractTot
 
@@ -2184,7 +2217,7 @@ HideLayer:
 		' Count the number of rows in the combined
 		' sites table
 		'-------------------------------------------------
-		iSitesTotal = TableInfo(sCombinedSitesTable, TAB_INFO_NROWS)
+		iSitesTotal = TableInfo(sCombinedSitesTableName, TAB_INFO_NROWS)
 	
 		If iSitesTotal > 0 Then
 			'-------------------------------------------------
@@ -2192,7 +2225,7 @@ HideLayer:
 			'-------------------------------------------------
 			Call MyPrint("Saving combined sites table ...")
 			Call MyPrint(iSitesTotal + " records saved.")
-			Commit Table sCombinedSitesTable
+			Commit Table sCombinedSitesTableName
 		End If
 
 		'-------------------------------------------------
@@ -2204,9 +2237,9 @@ HideLayer:
 		' Export the combined sites table as a DBF file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "DBF" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".dbf"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".dbf"
 			Call MyPrint("Creating combined sites table as a DBF file ...")
-			Export sCombinedSitesTable
+			Export sCombinedSitesTableName
 				Into sCombinedSitesOutput
 				Type "DBF"
 				CharSet "WindowsLatin1"
@@ -2217,9 +2250,9 @@ HideLayer:
 		' Export the combined sites table as a TXT file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "TXT" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".txt"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".txt"
 			Call MyPrint("Creating combined sites table as a TXT file ...")
-			Export sCombinedSitesTable
+			Export sCombinedSitesTableName
 				Into sCombinedSitesOutput
 				Type "ASCII"
 				Delimiter ","
@@ -2231,9 +2264,9 @@ HideLayer:
 		' Export the combined sites table as a CSV file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "CSV" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sSitesTable + ".csv"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".csv"
 			Call MyPrint("Creating combined sites table as a CSV file ...")
-			Export sCombinedSitesTable
+			Export sCombinedSitesTableName
 				Into sCombinedSitesOutput
 				Type "CSV"
 				CharSet "WindowsLatin1"
@@ -2250,7 +2283,7 @@ HideLayer:
 		' Close the combined sites table
 		'-------------------------------------------------
 		Call MyPrint("Closing combined sites table ...")
-		Close Table sCombinedSitesTable
+		Close Table sCombinedSitesTableName
 
  		'-------------------------------------------------
 		' Delete the combined sites table if empty
@@ -2438,8 +2471,8 @@ ErrorCreatingSitesTable:
 		' Inform user of error creating table
 		'-------------------------------------------------
 		If Err() = 497 Then
-			Note "Unable to save combined sites table " + sSitesTable + ". The table may be open in another application."
-			Call MyPrint("Error: Unable to create combined sites table " + sSitesTable + ".")
+			Note "Unable to save combined sites table " + sCombinedSitesTableName + ". The table may be open in another application."
+			Call MyPrint("Error: Unable to create combined sites table " + sCombinedSitesTableName + ".")
 			Call MyPrint("")
 			Resume Next
 		Else
@@ -2668,9 +2701,9 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	' Check if an old combined sites table is
 	' already/still open and close it if it is
 	'-------------------------------------------------
-	If TableIsOpen(sCombinedSitesTable) Then
+	If TableIsOpen(sSitesTable) Then
 		Call MyPrint("Closing existing combined sites table ...")
-		Close Table sCombinedSitesTable
+		Close Table sSitesTable
 	End If
 	
 	'-------------------------------------------------
@@ -2679,7 +2712,7 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	Call MyPrint("Creating combined sites table ...")
 	
 	Dim sCmd As String
-	sCmd = "Create Table " + Chr$(34) + sCombinedSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sCombinedSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+	sCmd = "Create Table " + Chr$(34) + sSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
 	Call MyPrint("Creation complete.")
@@ -2707,9 +2740,9 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	' Check if the combined sites table is
 	' already/still open and close it if it is
 	'-------------------------------------------------
-	If TableIsOpen(sCombinedSitesTable) Then
+	If TableIsOpen(sSitesTable) Then
 		Call MyPrint("Closing existing combined sites table ...")
-		Close Table sCombinedSitesTable
+		Close Table sSitesTable
 		Call MyPrint("Re-opening existing combined sites table ...")
 	Else
 		Call MyPrint("Opening existing combined sites table ...")
@@ -2723,11 +2756,8 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	'-------------------------------------------------
 	' Try and open the combined sites table
 	'-------------------------------------------------
-	Dim sSitesTableName As String
-	sSitesTableName = sLocalPath + "\" + sCombinedSitesTable + ".tab"
-	
 	Dim sCmd As String
-	sCmd = "Open Table " + Chr$(34) + sSitesTableName + Chr$(34) + " As " + sCombinedSitesTable
+	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " As " + sSitesTable
 	Run Command (sCmd)
 	
 	Call MyPrint("Open complete.")
@@ -2833,6 +2863,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sOutputName = StringReplace(sOutputName, "%partner%", sPartner)
     sOutputName = StringReplace(sOutputName, "%radius%", sRadius)
     sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar, False)))
+    sOutputName = StringReplace(sOutputName, " ", "_")
     
     If Len(SelectedMap.TableName + "_" + sSubRefNo) > 30 Then
 	    sLocalName = Left$(SelectedMap.TableName, 29 - Len(sSubRefNo)) + "_" + sSubRefNo
@@ -2840,7 +2871,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     	sLocalName = SelectedMap.TableName + "_" + sSubRefNo
     End If
 
-	 sExportName = SelectedMap.TableOutputName
+	sExportName = SelectedMap.TableOutputName
     sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
     sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
     sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
@@ -2849,6 +2880,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sExportName = StringReplace(sExportName, "%partner%", sPartner)
     sExportName = StringReplace(sExportName, "%radius%", sRadius)
     sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar, False)))
+    sExportName = StringReplace(sExportName, " ", "_")
     
     'If sExportName = SelectedMap.TableOutputName Then
     '	sExportName = sSubRefNo + SelectedMap.TableOutputName
@@ -3013,7 +3045,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		' Add the site details to the combined sites
 		' table
 		'-------------------------------------------------
-		Call AddToCombinedSitesTable(sSelectName, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
+		Call AddToCombinedSitesTable(sSelectName, sBufferTable, SelectedMap.SiteColumns, SelectedMap.SiteCriteria)
 		
 	End If
 
@@ -3026,55 +3058,120 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check if the search radius is to be included
+	' Check if any search variables are to be included
 	' in the export columns
 	'-------------------------------------------------
 	Dim sColumns As String
 	sColumns = SelectedMap.Columns
-	If Instr(1, sColumns, "%Radius%") > 0 Then
+
+	If Instr(1, sColumns, "%ref%") > 0 Then
+		Call MyPrint("Including search ref in table output ...")
+		sColumns = StringReplace(sColumns, "%ref%", """" + sSearchRef + """ " + """Ref""")
+	End If
+	If Instr(1, sColumns, "%shortref%") > 0 Then
+		Call MyPrint("Including search shortref in table output ...")
+		sColumns = StringReplace(sColumns, "%shortref%", """" + sShortRefNo + """ " + """ShortRef""")
+	End If
+	If Instr(1, sColumns, "%subref%") > 0 Then
+		Call MyPrint("Including search subref in table output ...")
+		sColumns = StringReplace(sColumns, "%subref%", """" + sSubRefNo + """ " + """SubRef""")
+	End If
+	If Instr(1, sColumns, "%sitename%") > 0 Then
+		Call MyPrint("Including search sitename in table output ...")
+		sColumns = StringReplace(sColumns, "%sitename%", """" + sSiteName + """ " + """SiteName""")
+	End If
+	If Instr(1, sColumns, "%organisation%") > 0 Then
+		Call MyPrint("Including search organisation in table output ...")
+		sColumns = StringReplace(sColumns, "%organisation%", """" + sOrganisation + """ " + """Organisation""")
+	End If
+	If Instr(1, sColumns, "%partner%") > 0 Then
+		Call MyPrint("Including search partner in table output ...")
+		sColumns = StringReplace(sColumns, "%partner%", """" + sPartner + """ " + """Partner""")
+	End If
+	If Instr(1, sColumns, "%radius%") > 0 Then
 		Call MyPrint("Including search radius in table output ...")
-		sColumns = StringReplace(sColumns, "%Radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
+		sColumns = StringReplace(sColumns, "%radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
 	End If
 
 	'-------------------------------------------------
-	' Check if the overlap area is to be included
-	' in the export columns
+	' Check if the overlap area or length is to
+	' be included in the export columns
 	'-------------------------------------------------
-	If Instr(1, sColumns, "%Overlap%") > 0 Then
+	If Instr(1, sColumns, "%overlap%") > 0 Then
 		Call MyPrint("Including overlap area in table output ...")
 
 		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
-			sColumns = StringReplace(sColumns, "%Overlap%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+			sColumns = StringReplace(sColumns, "%overlap%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
 		Else
-			sColumns = StringReplace(sColumns, "%Overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+			sColumns = StringReplace(sColumns, "%overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+		End If
+	End If
+
+	If Instr(1, sColumns, "%overlaparea%") > 0 Then
+		Call MyPrint("Including overlap area in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%overlaparea%", "Sum(CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+		Else
+			sColumns = StringReplace(sColumns, "%overlaparea%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+		End If
+	End If
+
+	If Instr(1, sColumns, "%overlapLen%") > 0 Then
+		Call MyPrint("Including overlap length in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%overlapLen%", "Sum(CartesianObjectLen(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""m"")) ""OverlapLen""")
+		Else
+			sColumns = StringReplace(sColumns, "%overlapLen%", "CartesianObjectLen(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""m"") ""OverlapLen""")
 		End If
 	End If
 
 	'-------------------------------------------------
-	' Check if the search area is to be included
-	' in the export columns
+	' Check if the search area or length is to
+	' be included in the export columns
 	'-------------------------------------------------
-	If Instr(1, sColumns, "%SearchArea%") > 0 Then
+	If Instr(1, sColumns, "%searcharea%") > 0 Then
 		Call MyPrint("Including search area in table output ...")
 
 		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
-			sColumns = StringReplace(sColumns, "%SearchArea%", "Sum(CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")) ""SearchArea""")
+			sColumns = StringReplace(sColumns, "%searcharea%", "Min(CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")) ""SearchArea""")
 		Else
-			sColumns = StringReplace(sColumns, "%SearchArea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"") ""SearchArea""")
+			sColumns = StringReplace(sColumns, "%searcharea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"") ""SearchArea""")
+		End If
+	End If
+
+	If Instr(1, sColumns, "%searchlen%") > 0 Then
+		Call MyPrint("Including search area in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%searchlen%", "Min(CartesianObjectLen(" + sBufferTable + ".Obj, ""m"")) ""SearchLen""")
+		Else
+			sColumns = StringReplace(sColumns, "%searchlen%", "CartesianObjectLen(" + sBufferTable + ".Obj, ""m"") ""SearchLen""")
 		End If
 	End If
 
 	'-------------------------------------------------
-	' Check if the input area is to be included
-	' in the export columns
+	' Check if the input area or length is to
+	' be included in the export columns
 	'-------------------------------------------------
-	If Instr(1, sColumns, "%InputArea%") > 0 Then
+	If Instr(1, sColumns, "%inputarea%") > 0 Then
 		Call MyPrint("Including input area in table output ...")
 
 		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
-			sColumns = StringReplace(sColumns, "%InputArea%", "Sum(CartesianArea(" + sSelectName + ".Obj, ""Hectare"")) ""InputArea""")
+			sColumns = StringReplace(sColumns, "%inputarea%", "Sum(CartesianArea(" + sSelectName + ".Obj, ""Hectare"")) ""InputArea""")
 		Else
-			sColumns = StringReplace(sColumns, "%InputArea%", "CartesianArea(" + sSelectName + ".Obj, ""Hectare"") ""InputArea""")
+			sColumns = StringReplace(sColumns, "%inputarea%", "CartesianArea(" + sSelectName + ".Obj, ""Hectare"") ""InputArea""")
+		End If
+	End If
+
+	If Instr(1, sColumns, "%inputlen%") > 0 Then
+		Call MyPrint("Including input length in table output ...")
+
+		If InStr(1, SelectedMap.ExportCriteria, "Group By") > 0 Then
+			sColumns = StringReplace(sColumns, "%inputlen%", "Sum(CartesianObjectLen(" + sSelectName + ".Obj, ""m"")) ""InputLen""")
+		Else
+			sColumns = StringReplace(sColumns, "%inputlen%", "CartesianObjectLen(" + sSelectName + ".Obj, ""m"") ""InputLen""")
 		End If
 	End If
 
@@ -3600,6 +3697,7 @@ End Sub
 
 Sub AddToCombinedSitesTable
 	(sTableName As String,
+	sBufferTable As String,
 	sSitesColumns As String,
 	sSitesCriteria As String)
 '***************************************************************
@@ -3616,42 +3714,122 @@ Sub AddToCombinedSitesTable
 	Set ProgressBars Off
 
 	'-------------------------------------------------
-	' Check if the search radius is to be included
-	' in the combined sites table
+	' Check if any search variables are to be included
+	' in the export columns
 	'-------------------------------------------------
-	If Instr(1, sSitesColumns, "%Radius%") > 0 Then
-		sSitesColumns = StringReplace(sSitesColumns, "%Radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
+	If Instr(1, sSitesColumns, "%ref%") > 0 Then
+		Call MyPrint("Including search ref in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%ref%", """" + sSearchRef + """ " + """Ref""")
+	End If
+	If Instr(1, sSitesColumns, "%shortref%") > 0 Then
+		Call MyPrint("Including search shortref in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%shortref%", """" + sShortRefNo + """ " + """ShortRef""")
+	End If
+	If Instr(1, sSitesColumns, "%subref%") > 0 Then
+		Call MyPrint("Including search subref in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%subref%", """" + sSubRefNo + """ " + """SubRef""")
+	End If
+	If Instr(1, sSitesColumns, "%sitename%") > 0 Then
+		Call MyPrint("Including search sitename in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%sitename%", """" + sSiteName + """ " + """SiteName""")
+	End If
+	If Instr(1, sSitesColumns, "%organisation%") > 0 Then
+		Call MyPrint("Including search organisation in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%organisation%", """" + sOrganisation + """ " + """Organisation""")
+	End If
+	If Instr(1, sSitesColumns, "%partner%") > 0 Then
+		Call MyPrint("Including search partner in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%partner%", """" + sPartner + """ " + """Partner""")
+	End If
+	If Instr(1, sSitesColumns, "%radius%") > 0 Then
+		Call MyPrint("Including search radius in combined sites table ...")
+		sSitesColumns = StringReplace(sSitesColumns, "%radius%", """" + sBufferSize + sBufferUnit + """ " + """Radius""")
 	End If
 
 	'-------------------------------------------------
-	' Check if the overlap area is to be included
-	' in the combined sites table
+	' Check if the overlap area or length is to
+	' be included in the combined sites table
 	'-------------------------------------------------
-	If Instr(1, sSitesColumns, "%Overlap%") > 0 Then
-		sSitesColumns = StringReplace(sSitesColumns, "%Overlap%", "Overlap")
+	If Instr(1, sSitesColumns, "%overlap%") > 0 Then
+		Call MyPrint("Including overlap area in combined sites table ...")
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%overlap%", "Sum(CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%overlap%", "CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+		End If
+	End If
+
+	If Instr(1, sSitesColumns, "%overlaparea%") > 0 Then
+		Call MyPrint("Including overlap area in combined sites table ...")
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%overlaparea%", "Sum(CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")) ""Overlap""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%overlaparea%", "CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"") ""Overlap""")
+		End If
+	End If
+
+	If Instr(1, sSitesColumns, "%overlaplen%") > 0 Then
+		Call MyPrint("Including overlap length in combined sites table ...")
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%overlaplen%", "Sum(CartesianObjectLen(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""m"")) ""OverlapLen""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%overlaplen%", "CartesianObjectLen(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""m"") ""OverlapLen""")
+		End If
 	End If
 
 	'-------------------------------------------------
-	' Check if the search area is to be included
-	' in the combined sites table
+	' Check if the search area or length is to
+	' be included in the export columns
 	'-------------------------------------------------
-	If Instr(1, sSitesColumns, "%SearchArea%") > 0 Then
-		sSitesColumns = StringReplace(sSitesColumns, "%SearchArea%", "SearchArea")
+	If Instr(1, sSitesColumns, "%searcharea%") > 0 Then
+		Call MyPrint("Including search area in combined sites table ...")
+
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%searcharea%", "Min(CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")) ""SearchArea""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%searcharea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"") ""SearchArea""")
+		End If
+	End If
+
+	If Instr(1, sSitesColumns, "%searchlen%") > 0 Then
+		Call MyPrint("Including search length in combined sites table ...")
+
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%searchlen%", "Min(CartesianObjectLen(" + sBufferTable + ".Obj, ""m"")) ""SearchLen""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%searchlen%", "CartesianObjectLen(" + sBufferTable + ".Obj, ""m"") ""SearchLen""")
+		End If
 	End If
 
 	'-------------------------------------------------
-	' Check if the input area is to be included
-	' in the combined sites table
+	' Check if the input area or length is to
+	' be included in the export columns
 	'-------------------------------------------------
-	If Instr(1, sSitesColumns, "%InputArea%") > 0 Then
-		sSitesColumns = StringReplace(sSitesColumns, "%InputArea%", "InputArea")
+	If Instr(1, sSitesColumns, "%inputarea%") > 0 Then
+		Call MyPrint("Including input area in combined sites table ...")
+
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%inputarea%", "Sum(CartesianArea(" + sTableName + ".Obj, ""Hectare"")) ""InputArea""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%inputarea%", "CartesianArea(" + sTableName + ".Obj, ""Hectare"") ""InputArea""")
+		End If
+	End If
+
+	If Instr(1, sSitesColumns, "%inputlen%") > 0 Then
+		Call MyPrint("Including input length in combined sites table ...")
+
+		If InStr(1, sSitesCriteria, "Group By") > 0 Then
+			sSitesColumns = StringReplace(sSitesColumns, "%inputlen%", "Sum(CartesianObjectLen(" + sTableName + ".Obj, ""m"")) ""InputLen""")
+		Else
+			sSitesColumns = StringReplace(sSitesColumns, "%inputlen%", "CartesianObjectLen(" + sTableName + ".Obj, ""m"") ""InputLen""")
+		End If
 	End If
 
 	'-------------------------------------------------
 	' Select the site details to be added to the
 	' combined sites table
 	'-------------------------------------------------
-	sCmd = "Select " + sSitesColumns + " From " + sTableName + " " + sSitesCriteria + " Into TempSites NoSelect"
+	sCmd = "Select " + sSitesColumns + " From " + sTableName + ", " + sBufferTable + " Where (" + sTableName + ".obj Intersects " + sBufferTable + ".obj) " + sSitesCriteria + " Into TempSites NoSelect"
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -3665,13 +3843,13 @@ Sub AddToCombinedSitesTable
 	'-------------------------------------------------
 	' Insert the rows into the combined sites table
 	'-------------------------------------------------
-	sCmd = "Insert into " + sCombinedSitesTable + " Select * From TempSites"
+	sCmd = "Insert into " + sCombinedSitesTableName + " Select * From TempSites"
 	Run Command (sCmd)
 
 	'-------------------------------------------------
 	' Save the updates
 	'-------------------------------------------------
-	sCmd = "Commit Table " + sCombinedSitesTable
+	sCmd = "Commit Table " + sCombinedSitesTableName
 	Run Command (sCmd)
 
 CleanUp:
@@ -3722,7 +3900,7 @@ Sub AboutBox
 	Dialog
 		Title "About Data Searches " + sVersion
 		Width 230
-		Height 155
+		Height 165
 
 	Control StaticText
 		Title "This program will extract all required GIS layers that"
@@ -3740,22 +3918,25 @@ Sub AboutBox
 		Title "Created by Andy Foy Consulting."
 		Position 10,60
 	Control StaticText
-		Title "Copyright© 2012-2013 GiGL, 2015 - 2019 TVERC, GiGL."
+		Title "Copyright© 2012-2013 GiGL, 2015-2019 TVERC, GiGL."
 		Position 10,70
 	Control StaticText
-		Title "This tool was developed with funding from:"
-		Position 10,90
+		Title "Copyright© 2020-21 Andy Foy Consulting."
+		Position 10,80
 	Control StaticText
-		Title "  - Greenspace Information for Greater London CIC"
+		Title "This tool was developed with initial funding from:"
 		Position 10,100
 	Control StaticText
-		Title "  - Thames Valley Environmental Records Centre"
+		Title "  - Greenspace Information for Greater London CIC"
 		Position 10,110
 	Control StaticText
-		Title "  - Surrey Biodiversity Information Centre"
+		Title "  - Thames Valley Environmental Records Centre"
 		Position 10,120
+	Control StaticText
+		Title "  - Surrey Biodiversity Information Centre"
+		Position 10,130
 	Control OKButton
-		Position 185,135
+		Position 185,145
 
 End Sub
 
