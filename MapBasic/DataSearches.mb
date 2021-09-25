@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 - 2019 TVERC, GiGL, SBIC
+'* Copyright © 2013 - 2021 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.38
+'* DataSearches v1.4.39
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,10 @@
 '*
 '*
 '* Created:				Andy Foy - February 2013
-'* Last revised:			Andy Foy - March 2021
+'* Last revised:		Andy Foy - September 2021
+'*
+'* *****************  Version 1.4.39  **************
+'* A. Set symbology for search area and buffer features.
 '*
 '* *****************  Version 1.4.38  **************
 '* A. Don't include output column name by default for variables.
@@ -274,7 +277,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.38"
+	sVersion = "1.4.39"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -628,7 +631,10 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 						
 						' Columns of the combined sites table
 						sCombinedSitesColumns = GetSingleNodeValue(hXMLSubNode, "Columns")
-						
+
+						' Table output name of the combined sites table
+						sCombinedSitesOutputName = GetSingleNodeValue(hXMLSubNode, "TableOutputName")
+												
 						' Format of the combined sites table
 						sCombinedSitesFormat = GetSingleNodeValue(hXMLSubNode, "Format")
 						
@@ -2113,27 +2119,26 @@ HideLayer:
 	'-------------------------------------------------
 	If iCombinedSitesTable > 1 Then
 
-		sCombinedSitesTableName = sCombinedSitesTable
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%ref%", sSearchRef)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%shortref%", sShortRefNo)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%subref%", sSubRefNo)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%sitename%", sSiteName)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%organisation%", sOrganisation)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%partner%", sPartner)
-	    sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, "%radius%", sRadius)
-	    sCombinedSitesTableName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesTableName, sRepChar, False)))
-   		sCombinedSitesTableName = StringReplace(sCombinedSitesTableName, " ", "_")
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%ref%", sSearchRef)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%shortref%", sShortRefNo)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%subref%", sSubRefNo)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%sitename%", sSiteName)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%organisation%", sOrganisation)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%partner%", sPartner)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%radius%", sRadius)
+	    sCombinedSitesOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesOutputName, sRepChar, False)))
+   		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, " ", "_")
 	    
 		'-------------------------------------------------
 		' If a combined sites table is to be appended to
 		' (and already exists) ...
 		'-------------------------------------------------
-		If iCombinedSitesTable = 2 And TabFileExists(sLocalPath + "\" + sCombinedSitesTableName + ".tab") = True Then
+		If iCombinedSitesTable = 2 And TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = True Then
 
 			'-------------------------------------------------
 			' Open the existing combined sites table.
 			'-------------------------------------------------
-			If OpenCombinedSitesTable(sCombinedSitesTableName) = False Then
+			If OpenCombinedSitesTable(sCombinedSitesTable) = False Then
 			
 				Call MyPrint("Error opening combined sites table.")
 				Call MyPrint("")
@@ -2150,13 +2155,13 @@ HideLayer:
 		' If a combined sites table is to be over-written
 		' (or doesn't exist) ...
 		'-------------------------------------------------
-		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTableName + ".tab") = False Then
+		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
 		
 
 			'-------------------------------------------------
 			' Create a new combined sites table.
 			'-------------------------------------------------
-			If CreateCombinedSitesTable(sCombinedSitesTableName) = False Then
+			If CreateCombinedSitesTable(sCombinedSitesTable) = False Then
 			
 				Call MyPrint("Error creating combined sites table.")
 				Call MyPrint("")
@@ -2221,7 +2226,7 @@ HideLayer:
 		' Count the number of rows in the combined
 		' sites table
 		'-------------------------------------------------
-		iSitesTotal = TableInfo(sCombinedSitesTableName, TAB_INFO_NROWS)
+		iSitesTotal = TableInfo(sCombinedSitesTable, TAB_INFO_NROWS)
 	
 		If iSitesTotal > 0 Then
 			'-------------------------------------------------
@@ -2229,7 +2234,7 @@ HideLayer:
 			'-------------------------------------------------
 			Call MyPrint("Saving combined sites table ...")
 			Call MyPrint(iSitesTotal + " records saved.")
-			Commit Table sCombinedSitesTableName
+			Commit Table sCombinedSitesTable
 		End If
 
 		'-------------------------------------------------
@@ -2241,9 +2246,9 @@ HideLayer:
 		' Export the combined sites table as a DBF file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "DBF" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".dbf"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".dbf"
 			Call MyPrint("Creating combined sites table as a DBF file ...")
-			Export sCombinedSitesTableName
+			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "DBF"
 				CharSet "WindowsLatin1"
@@ -2254,9 +2259,9 @@ HideLayer:
 		' Export the combined sites table as a TXT file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "TXT" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".txt"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".txt"
 			Call MyPrint("Creating combined sites table as a TXT file ...")
-			Export sCombinedSitesTableName
+			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "ASCII"
 				Delimiter ","
@@ -2268,9 +2273,9 @@ HideLayer:
 		' Export the combined sites table as a CSV file
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "CSV" Then
-			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesTableName + ".csv"
+			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".csv"
 			Call MyPrint("Creating combined sites table as a CSV file ...")
-			Export sCombinedSitesTableName
+			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "CSV"
 				CharSet "WindowsLatin1"
@@ -2287,7 +2292,7 @@ HideLayer:
 		' Close the combined sites table
 		'-------------------------------------------------
 		Call MyPrint("Closing combined sites table ...")
-		Close Table sCombinedSitesTableName
+		Close Table sCombinedSitesTable
 
  		'-------------------------------------------------
 		' Delete the combined sites table if empty
@@ -2385,13 +2390,14 @@ HideLayer:
 			'-------------------------------------------------
 			Call MyPrint("Setting symbology for search area layer '" + sSearchAreaTable + "' ...")
 
-			sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sSearchAreaSymbology
-			Run Command (sCmd)
+			If sSearchAreaSymbology <> "" Then
+				sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sSearchAreaSymbology
+				Run Command (sCmd)
+			End If
 
 		End If
 	
 		If bKeepBufferArea = True Then
-
 			
 			'-------------------------------------------------
 			' Add the buffer table to the map window
@@ -2421,8 +2427,10 @@ HideLayer:
 			'-------------------------------------------------
 			Call MyPrint("Setting symbology for buffer area layer '" + sBufferTable + "' ...")
 
-			sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sBufferSymbology
-			Run Command (sCmd)
+			If sBufferSymbology <> "" Then
+				sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + iNumBufferTable + " Display Global " + sBufferSymbology
+				Run Command (sCmd)
+			End If
 	
 			'-------------------------------------------------
 			' Zoom to the local buffer table
@@ -2475,8 +2483,8 @@ ErrorCreatingSitesTable:
 		' Inform user of error creating table
 		'-------------------------------------------------
 		If Err() = 497 Then
-			Note "Unable to save combined sites table " + sCombinedSitesTableName + ". The table may be open in another application."
-			Call MyPrint("Error: Unable to create combined sites table " + sCombinedSitesTableName + ".")
+			Note "Unable to save combined sites table " + sCombinedSitesTable + ". The table may be open in another application."
+			Call MyPrint("Error: Unable to create combined sites table " + sCombinedSitesTable + ".")
 			Call MyPrint("")
 			Resume Next
 		Else
@@ -2597,6 +2605,14 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
+	' Set the symbology for the table
+	'-------------------------------------------------
+	Call MyPrint("Setting search area symbology ...")
+	Dim sNodeName As String
+	sNodeName = "SearchArea"
+	Call SetSymbology(sNodeName, sSearchAreaTable)
+
+	'-------------------------------------------------
 	' Save the search area table
 	'-------------------------------------------------
 	Call MyPrint("Saving search area table ...")
@@ -2609,7 +2625,7 @@ EditLayer:
 	Close Table sSearchAreaTable
 
 	'-------------------------------------------------
-	' Close the latest query table
+	' Close the latest query tables
 	'-------------------------------------------------
 	Dim t As SmallInt
 	For t = NumTables() to 1 Step -1
@@ -2652,7 +2668,7 @@ EditLayer:
 	Close Table Selection
 
 	'-------------------------------------------------
-	' Close the latest query table
+	' Close the latest query tables
 	'-------------------------------------------------
 	For t = NumTables() to 1 Step -1
 		If TableInfo(t, TAB_INFO_TEMP) = True Then
@@ -2667,6 +2683,16 @@ EditLayer:
 	'-------------------------------------------------
 	Call MyPrint("Opening buffer table ...")
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " As " + sBufferTable
+	Run Command (sCmd)
+
+	'-------------------------------------------------
+	' Set the symbology for the buffered table
+	'-------------------------------------------------
+	Call MyPrint("Setting buffer symbology ...")
+	sNodeName = "Buffer"
+	Call SetSymbology(sNodeName, sBufferTable)
+
+	sCmd = "Commit Table " + sBufferTable
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -3783,13 +3809,13 @@ Sub AddToCombinedSitesTable
 	'-------------------------------------------------
 	' Insert the rows into the combined sites table
 	'-------------------------------------------------
-	sCmd = "Insert into " + sCombinedSitesTableName + " Select * From TempSites"
+	sCmd = "Insert into " + sCombinedSitesTable + " Select * From TempSites"
 	Run Command (sCmd)
 
 	'-------------------------------------------------
 	' Save the updates
 	'-------------------------------------------------
-	sCmd = "Commit Table " + sCombinedSitesTableName
+	sCmd = "Commit Table " + sCombinedSitesTable
 	Run Command (sCmd)
 
 CleanUp:
@@ -3831,6 +3857,236 @@ ErrorTrap:
 	Goto CleanUp
 
 End Sub
+
+Sub SetSymbology(sNodeName as String, sTableName As String)
+'***************************************************************
+'* Retrieve the symbology styles and clauses from the config file
+'* which is a XML document
+'***************************************************************
+
+	Dim bParseError As SmallInt
+	Dim hXMLDoc As MIXmlDocument
+	Dim hXMLRoot As MIXmlNode
+	Dim hXMLNode As MIXmlNode
+	Dim hXMLTableNode As MIXmlNode
+	Dim hXMLSymbologyNode As MIXmlNode
+	Dim hXMLSymbolNodeList As MIXMLNodeList
+	Dim hXMLSymbolNode As MIXmlNode
+
+	OnError Goto GetSymbologyError
+
+	'-------------------------------------------------
+	' Create a document handle
+	'-------------------------------------------------
+	hXMLDoc = MIXmlDocumentCreate()
+	If hXMLDoc Then
+
+		'-------------------------------------------------
+		' Load the document into the document handle
+		'-------------------------------------------------
+		Dim iXMLLoad As SmallInt
+		iXMLLoad = MIXmlDocumentLoad(hXMLDoc, ApplicationDirectory$() + sXMLFile, bParseError, FALSE, FALSE)
+		if iXMLLoad > 0 Then
+
+			'-------------------------------------------------
+			' Get a handle on the XML root node of the document
+			'-------------------------------------------------
+			hXMLRoot = MIXmlDocumentGetRootNode(hXMLDoc)
+			If hXMLRoot Then
+
+				'-------------------------------------------------
+				' Get a handle on the DataExtractor node
+				'-------------------------------------------------
+				hXMLNode = MIXmlSelectSingleNode(hXMLRoot, "DataSearches")
+	          	If hXMLNode Then
+	
+					'-------------------------------------------------
+					' Get a handle on the table node
+					'-------------------------------------------------
+					hXMLTableNode = MIXmlSelectSingleNode(hXMLNode, sNodeName)
+
+					'-------------------------------------------------
+					' Get a handle on the symbology node for the table
+					'-------------------------------------------------
+					hXMLSymbologyNode = MIXmlSelectSingleNode(hXMLTableNode, "Symbology")
+
+					'-------------------------------------------------
+					' Get a handle on the node map of the above node
+					'-------------------------------------------------
+					hXMLSymbolNodeList = MIXMLGetChildList(hXMLSymbologyNode)
+
+					'-------------------------------------------------
+					' Get a handle on the first attribute in the node list
+					'-------------------------------------------------
+					hXMLSymbolNode = MIXMLGetNextNode(hXMLSymbolNodeList)
+
+					'-------------------------------------------------
+					' Loop through all the attributes in the node list
+					' applying the style using the SQL clauses
+					'-------------------------------------------------
+					Dim i As Integer
+					i = 0
+					Do while hXMLSymbolNode
+						
+						If i = 0 Then
+							Call MyPrint("Setting symbology in table ...")
+						End If
+						
+						'-------------------------------------------------
+						' Close the temporary NewStyle table if it is
+						' already/still open in the current MapInfo session
+						'-------------------------------------------------
+						If TableIsOpen("NewStyle") Then
+							Close Table NewStyle
+						End If
+
+						i = i + 1
+
+						'-------------------------------------------------
+						' Set the SQL clause used to retrieve the
+						' required rows from the SQL table
+						'-------------------------------------------------
+						Dim sClause As String
+						sClause = GetSingleNodeValue(hXMLSymbolNode, "Clause")
+						Dim sSQLClause As String
+						sSQLClause = sClause
+						If sSQLClause <> "" Then
+							sSQLClause = " And (" & sSQLClause & ")"
+						End If
+
+						'-------------------------------------------------
+						' Get the type of object (i.e. Point, Line or Region)
+						'-------------------------------------------------
+						Dim sObject As String
+						sObject = GetSingleNodeValue(hXMLSymbolNode, "Object")
+
+						'-------------------------------------------------
+						' Select all the rows of the desired object type
+						' matching the required SQL clause
+						'-------------------------------------------------
+						Dim sCmd As String
+						sCmd = "Select * From " + sTableName + " Where Str$(obj) = """ + sObject + """ " + sSQLClause + " Into NewStyle NoSelect"
+						Run Command (sCmd)
+
+						'-------------------------------------------------
+						' Count the number of rows selected
+						'-------------------------------------------------
+						Dim iRows As Integer
+						iRows = TableInfo(NewStyle, TAB_INFO_NROWS)
+
+						'If bDebug Then
+						'	Call MyPrint("Setting " + sObject + " style for " + FormatNumber$(iRows) + " rows where ... " + sClause)
+						'End If
+
+						'-------------------------------------------------
+						' If any rows were selected then set the styles
+						'-------------------------------------------------
+						If iRows > 0 Then
+
+							'-------------------------------------------------
+							' Set the styles (depending on type of object)
+							'-------------------------------------------------
+							Dim sSymbol, sPen, sBrush As String
+							Dim stlSymbol As Symbol
+							Dim stlPen As Pen
+							Dim stlBrush As Brush
+
+							Do Case sObject
+								Case "Point"
+									sSymbol = GetSingleNodeValue(hXMLSymbolNode, "Symbol")
+									stlSymbol = STLText2Symbol(sSymbol)
+								Case "Line"
+									sPen = GetSingleNodeValue(hXMLSymbolNode, "Pen")
+									stlPen = STLText2Pen(sPen)
+								Case "Region"
+									sPen = GetSingleNodeValue(hXMLSymbolNode, "Pen")
+									stlPen = STLText2Pen(sPen)
+									sBrush = GetSingleNodeValue(hXMLSymbolNode, "Brush")
+									stlBrush = STLText2Brush(sBrush)
+								Case Else
+							End Case
+
+							'-------------------------------------------------
+							' Alter the object style depending on the object
+							' type and style type
+							'-------------------------------------------------
+							Do Case sObject
+								Case "Point"
+									Update NewStyle Set Obj = SetStylePoint(Obj, stlSymbol)
+								Case "Line"
+									Update NewStyle Set Obj = SetStyleLine(Obj, stlPen)
+								Case "Region"
+									Update NewStyle Set Obj = SetStylePolygon(Obj, stlPen, stlBrush)
+								Case Else
+							End Case
+
+						End If
+
+						'-------------------------------------------------
+						' Get a handle on the next attribute in the node list
+						'-------------------------------------------------
+						hXMLSymbolNode = MIXMLGetNextNode(hXMLSymbolNodeList)
+
+					Loop
+					
+					If i > 0 Then
+						Call MyPrint("Symbology complete.")
+					End If
+
+				End If
+
+			End If
+
+		Else
+
+			Call MyPrint("Error: " + MIGetErrorMessage() + " - updating symbology")
+
+		End If
+
+	End If
+
+CleanUp:
+	'-------------------------------------------------
+	' Destroy the handles
+	'-------------------------------------------------
+	If hXMLSymbolNode Then Call MIXmlNodeDestroy(hXMLSymbolNode) End If
+	If hXMLSymbolNodeList Then Call MIXmlNodeListDestroy(hXMLSymbolNodeList) End If
+	If hXMLSymbologyNode Then Call MIXmlNodeDestroy(hXMLSymbologyNode) End If
+	If hXMLTableNode Then Call MIXmlNodeDestroy(hXMLTableNode) End If
+
+	If hXMLNode Then Call MIXmlNodeDestroy(hXMLNode) End If
+	If hXMLRoot Then Call MIXmlNodeDestroy(hXMLRoot) End If
+	If hXMLDoc Then Call MIXmlDocumentDestroy(hXMLDoc) End If
+
+	Exit Sub
+
+GetSymbologyError:
+	Call MyPrint("Error: " + str$(Err()) + " - " + Error$())
+	Exit Sub
+
+End Sub
+
+Function SetStylePoint(ByVal oObj As Object, ByVal stlSymbol As Symbol) As Object
+
+	Alter Object oObj Info OBJ_INFO_SYMBOL, stlSymbol
+	SetStylePoint = oObj
+
+End Function
+
+Function SetStyleLine(ByVal oObj As Object, ByVal stlPen As Pen) As Object
+
+	Alter Object oObj Info OBJ_INFO_PEN, stlPen
+	SetStyleLine = oObj
+
+End Function
+
+Function SetStylePolygon(ByVal oObj As Object, ByVal stlPen As Pen, ByVal stlBrush As Brush) As Object
+
+	Alter Object oObj Info OBJ_INFO_PEN, stlPen
+	Alter Object oObj Info OBJ_INFO_BRUSH, stlBrush
+	SetStylePolygon = oObj
+
+End Function
 
 Sub AboutBox
 '***************************************************************

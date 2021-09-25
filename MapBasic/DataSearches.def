@@ -148,6 +148,9 @@ Declare Sub TranslateToShapefile
 	sLocalPath As String,
 	sLocalName As String,
 	sShortName As String)
+Declare Sub SetSymbology
+	(sNodeName As String,
+	sTableName As String)
 Declare Function GetFileList
 	(ByVal sFilePath As String,
 	ByVal sFileFilter As String,
@@ -205,11 +208,32 @@ Declare Function StringReplace
 	(ByVal sToBeSearched As String,
 	ByVal sSearchFor As String,
 	ByVal sReplaceWith As String) As String
+Declare Function StringSplit
+	(ByVal sText As String,
+	ByVal sSplitChar As String,
+	arrParts() As String) As Integer
 Declare Function ColumnExists
 	(ByVal sTableName As String,
 	ByVal sColName As String) As Logical
 	Declare Function CreatePath
 	(ByVal sPath As String) As Logical
+Declare Function SetStylePoint(
+	ByVal oObj As Object,
+	ByVal stlSymbol As Symbol) As Object
+Declare Function SetStyleLine(
+	ByVal oObj As Object,
+	ByVal stlPen As Pen) As Object
+Declare Function SetStylePolygon(
+	ByVal oObj As Object,
+	ByVal stlPen As Pen,
+	ByVal stlBrush As Brush) As Object
+Declare Function STLText2Symbol
+	(ByVal sSymbol As String) As Symbol
+Declare Function STLText2Pen
+	(ByVal sSymbol As String) As Pen
+Declare Function STLText2Brush
+	(ByVal sSymbol As String) As Brush
+
 Declare Function CloseHandle Lib "kernel32"
 	(hObject As Integer) As smallint
 Declare Function WaitForSingleObject Lib "kernel32"
@@ -221,7 +245,6 @@ Declare Function GetExitCodeProcess Lib "kernel32"
 Declare Function GetUserID() As String
 Declare Function ExecuteAndWait
 	(ByVal cmdLine as string) As Integer
-
 Declare Function CreateDirectory Lib "kernel32"
 	Alias "CreateDirectoryA"
 	(ByVal sPathName as String,
@@ -379,7 +402,7 @@ Global iCombinedSitesTable As SmallInt
 
 Global sCombinedSitesTable As String
 Global sCombinedSitesColumns As String
-Global sCombinedSitesTableName As String
+Global sCombinedSitesOutputName As String
 Global sCombinedSitesFormat As String
 
 Global sSearchValues As String
