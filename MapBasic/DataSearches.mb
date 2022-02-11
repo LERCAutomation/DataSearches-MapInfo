@@ -20,15 +20,23 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.39
+'* DataSearches v1.4.41
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
 '*
-'* Created:				Andy Foy - February 2013
-'* Last revised:		Andy Foy - September 2021
+'* Created: 			Andy Foy - February 2013
+'* Last revised:		Andy Foy - December 2021
+'*
+'* *****************  Version 1.4.41  **************
+'* A. Enable search ref to contain wildcard characters.
+'*
+'* *****************  Version 1.4.40  **************
+'* A. Enable search area columns to be included in the export
+'*    files and combined sites table.
+'* B. Increase width of form and map table list.
 '*
 '* *****************  Version 1.4.39  **************
 '* A. Set symbology for search area and buffer features.
@@ -277,7 +285,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.39"
+	sVersion = "1.4.41"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -440,6 +448,15 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 					' Load the default values from the child nodes
 					' under the DataSearches node
 					'-------------------------------------------------
+					' Whether to include debug messages in the logfile
+					Dim sDebug As String
+					sDebug = GetSingleNodeValue(hXMLNode, "Debug")
+					If UCase$(sDebug) = "YES" OR UCase$(sDebug) = "Y" Then
+						bDebug = True
+					Else
+						bDebug = False
+					End If
+
 					' The database where all the data search details are stored
 					sDatabase = GetSingleNodeValue(hXMLNode, "Database")
 
@@ -834,7 +851,7 @@ Sub DataSearches
 	'-------------------------------------------------
 	Dialog
 		Title "Data Searches " + sVersion
-		Width 235
+		Width 300
 		Height 300
 		Position 50, 70
 		Calling DialogSetup
@@ -869,7 +886,7 @@ Sub DataSearches
 	Control EditText
 		ID 2
 		Position 10,50
-		Width 210
+		Width 275
 		Disable
 		'Into sSiteName
 
@@ -883,18 +900,18 @@ Sub DataSearches
 		Title ""
 		Position 10,80
 		Height 185
-		Width 95
+		Width 160
 
 	'-------------------------------------------------
 	' Add an edit text box for the buffer size
 	'-------------------------------------------------
 	Control StaticText Title "Buffer Size:  "
 		ID 14
-		Position 120,70
+		Position 185,70
 	Control EditText
 		ID 4
 		Value sDefaultBufferSize
-		Position 120,80
+		Position 185,80
 		Width 60
 		'Into sBufferSize
 
@@ -903,12 +920,12 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Buffer Units:  "
 		ID 15
-		Position 120,100
+		Position 185,100
 	Control PopupMenu
 		ID 5
 		Value iDefaultBufferUnit
 		Title From Variable aBufferUnits
-		Position 120,110
+		Position 185,110
 		Width 60
 		'Into iBufferInt
 
@@ -918,11 +935,11 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Add Selected Tables to Map:  "
 		ID 19
-		Position 120,135
+		Position 185,135
 	Control PopupMenu
 		ID 9
 		Title sAddSelectedTablesOptions
-		Position 120,145
+		Position 185,145
 		Width 100
 		'Into iAddSelectedTables
 
@@ -931,11 +948,11 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Keep Selected Tables:  "
 		ID 22
-		Position 120,170
+		Position 185,170
 	Control PopupMenu
 		ID 12
 		Title sKeepSelectedTablesOptions
-		Position 120,180
+		Position 185,180
 		Width 100
 		'Into iKeepSelectedTables
 
@@ -944,11 +961,11 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Overwrite Map Labels:  "
 		ID 20
-		Position 120,205
+		Position 185,205
 	Control PopupMenu
 		ID 10
 		Title sOverwriteLabelOptions
-		Position 120,215
+		Position 185,215
 		Width 100
 		'Into iOverwriteLabels
 
@@ -957,11 +974,11 @@ Sub DataSearches
 	'-------------------------------------------------
 	Control StaticText Title "Create Combined Sites Table:  "
 		ID 21
-		Position 120,240
+		Position 185,240
 	Control PopupMenu
 		ID 11
 		Title sCombinedSitesOptions
-		Position 120,250
+		Position 185,250
 		Width 100
 		'Into iCombinedSitesTable
 
@@ -979,12 +996,12 @@ Sub DataSearches
 	' Add Ok and cancel buttons
 	'-------------------------------------------------
 	Control CancelButton
-		Position 140,280
+		Position 205,280
 		Width 40
 	Control Button
 		ID 99
 		Title "Ok"
-		Position 185,280
+		Position 250,280
 		Width 40
 		Calling CheckSelection
 
@@ -1357,7 +1374,9 @@ RegisterTable:
 		'-------------------------------------------------
 		If TableIsOpen("Enquiries") = False Then
 
-			'Call MyPrint("Registering table '" + sEnquiries + "' ...")
+			If bDebug Then
+				Call MyPrint("Registering table '" + sEnquiries + "' ...")
+			End If
 
 			'-------------------------------------------------
 			' Register the 'Enquiries' table from the database
@@ -1402,12 +1421,14 @@ RegisterTable:
 			sPartnerCol = sPartnerColumn
 		End If
 
-		'Call MyPrint("Getting details from '" + sEnquiries + "' ...")
+		If bDebug Then
+			Call MyPrint("Getting details from '" + sEnquiries + "' ...")
+		End If
 
 		If ColumnInfo("Enquiries", sRefColumn, 3) = 3 And Str$(Val(sRef)) = sRef Then
 			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + sRef + " Into Enquiry NoSelect"
 		Else
-			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " = " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
+			sCmd = "Select " + sSiteCol + ", " + sOrgCol + ", " + sPartnerCol + " From Enquiries Where " + sRefColumn + " LIKE " + Chr$(34) + sRef + Chr$(34) + " Into Enquiry NoSelect"
 		End If
 		Run Command (sCmd)
 
@@ -1638,6 +1659,7 @@ SetSubRef:
     sSaveFolder = StringReplace(sSaveFolder, "%organisation%", sOrganisation)
     sSaveFolder = StringReplace(sSaveFolder, "%partner%", sPartner)
     sSaveFolder = StringReplace(sSaveFolder, "%radius%", sRadius)
+    sSaveFolder = StringReplace(sSaveFolder, "%", "")
     
     sGISFolder = StringReplace(sDefaultGISFolder, "%ref%", sSearchRef)
     sGISFolder = StringReplace(sGISFolder, "%shortref%", sShortRefNo)
@@ -1646,6 +1668,7 @@ SetSubRef:
     sGISFolder = StringReplace(sGISFolder, "%organisation%", sOrganisation)
     sGISFolder = StringReplace(sGISFolder, "%partner%", sPartner)
     sGISFolder = StringReplace(sGISFolder, "%radius%", sRadius)
+    sGISFolder = StringReplace(sGISFolder, "%", "")
     
     sLogFileName = StringReplace(sDefaultLogFileName, "%ref%", sSearchRef)
     sLogFileName = StringReplace(sLogFileName, "%shortref%", sShortRefNo)
@@ -1654,6 +1677,7 @@ SetSubRef:
     sLogFileName = StringReplace(sLogFileName, "%organisation%", sOrganisation)
     sLogFileName = StringReplace(sLogFileName, "%partner%", sPartner)
     sLogFileName = StringReplace(sLogFileName, "%radius%", sRadius)
+    sLogFileName = StringReplace(sLogFileName, "%", "")
     
     sBufferSaveName = StringReplace(sDefaultBufferSaveName, "%ref%", sSearchRef)
     sBufferSaveName = StringReplace(sBufferSaveName, "%shortref%", sShortRefNo)
@@ -1663,6 +1687,7 @@ SetSubRef:
     sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
     sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
    	sBufferSaveName = StringReplace(sBufferSaveName, " ", "_")
+    sBufferSaveName = StringReplace(sBufferSaveName, "%", "")
     
     sGroupLayerName = StringReplace(sDefaultGroupLayerName, "%ref%", sSearchRef)
     sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
@@ -1672,6 +1697,7 @@ SetSubRef:
     sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
     sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
    	sGroupLayerName = StringReplace(sGroupLayerName, " ", "_")
+    sGroupLayerName = StringReplace(sGroupLayerName, "%", "")
     
     sSearchFeatureName = StringReplace(sDefaultSearchFeatureName, "%ref%", sSearchRef)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
@@ -1681,6 +1707,7 @@ SetSubRef:
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%partner%", sPartner)
     sSearchFeatureName = StringReplace(sSearchFeatureName, "%radius%", sRadius)
    	sSearchFeatureName = StringReplace(sSearchFeatureName, " ", "_")
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%", "")
     
 	'-------------------------------------------------
     ' Remove any invalid characters from file/folder names
@@ -1689,6 +1716,7 @@ SetSubRef:
     sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar, True)))
     sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar, False)))
     sBufferSaveName = LTrim$(RTrim$(ReplaceSpecialChars(sBufferSaveName, sRepChar, False)))
+    sGroupLayerName = LTrim$(RTrim$(ReplaceSpecialChars(sGroupLayerName, sRepChar, False)))
     sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar, False)))
 
 	'-------------------------------------------------
@@ -1742,7 +1770,9 @@ SetSubRef:
 
 	iSuccess = SetCurrentDirectory(sRootPath)
 	if iSuccess = 0 Then
-		'Call MyPrint("Creating output file path '" + sRootPath + "'")
+		If bDebug Then
+			Call MyPrint("Creating output file path '" + sRootPath + "'")
+		End If
 		'iSuccess = CreateDirectory(sRootPath , iSecurity)
 		iSuccess = SHCreateDirectoryEx(0, sRootPath, iSecurity)
 		if iSuccess <> 0 Then
@@ -1764,7 +1794,9 @@ SetSubRef:
 	
 	iSuccess = SetCurrentDirectory(sLocalPath)
 	if iSuccess = 0 Then
-		'Call MyPrint("Creating output file path '" + sLocalPath + "'")
+		If bDebug Then
+			Call MyPrint("Creating output file path '" + sLocalPath + "'")
+		End If
 		'iSuccess = CreateDirectory(sLocalPath , iSecurity)
 		iSuccess = SHCreateDirectoryEx(0, sLocalPath, iSecurity)
 		if iSuccess <> 0 Then
@@ -1808,6 +1840,12 @@ SetSubRef:
 	'-------------------------------------------------
 	' Log the selected options
 	'-------------------------------------------------
+	If bDebug Then
+		Call MyPrint("Debug mode = 'Yes'")
+	End If
+	Call MyPrint("Version = '" + sVersion + "'")
+	Call MyPrint("XML profile = '" + sXMLFile + "'")
+
 	Call MyPrint("Buffer size = '" + sBufferSize + sBufferUnit + "'")
 
 	Do Case iAddSelectedTables
@@ -1913,7 +1951,9 @@ SetSubRef:
 					' If the window contains the group layer then store
 					' the group layer name in the array of map windows
 					If bGroupFound = True Then
-						Call MyPrint("Group layer '" + sGroupLayer + "' found in map window " + iNumWindows + ".")
+						If bDebug Then
+							Call MyPrint("Group layer '" + sGroupLayer + "' found in map window " + iNumWindows + ".")
+						End If
 						aWindowGroup(iNumWindows) = sGroupLayer
 					Else
 						aWindowGroup(iNumWindows) = ""
@@ -1933,7 +1973,9 @@ SetSubRef:
 	' Open a new map window using the search table
 	'-------------------------------------------------
 	If iNumWindows = 0 Then
-		Call MyPrint("Mapping table " + sSearchTable + " ...")
+		If bDebug Then
+			Call MyPrint("Mapping table " + sSearchTable + " ...")
+		End If
 		Map from sSearchTable
 	
 		' Store the window ID and group layer name
@@ -1967,7 +2009,9 @@ SetSubRef:
 	'-------------------------------------------------
 	If iWindowNum > iNumWindows Then
 		iWindowNum = 1
-		Call MyPrint("Adding table " + sSearchTable + " to map ...")
+		If bDebug Then
+			Call MyPrint("Adding table " + sSearchTable + " to map ...")
+		End If
 		Dim sCmd as String
 		sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchTable
 		Run Command (sCmd)
@@ -2003,7 +2047,7 @@ EditLayer:
 	Dim sTempTable As String
 	sTempTable = "SearchTemp"
 
-	sCmd = "Select * From " + sSearchTable + " Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable + " NoSelect"
+	sCmd = "Select * From " + sSearchTable + " Where " + sRefColumn + " LIKE " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sTempTable + " NoSelect"
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2126,6 +2170,7 @@ HideLayer:
 	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%organisation%", sOrganisation)
 	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%partner%", sPartner)
 	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%radius%", sRadius)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%", "")
 	    sCombinedSitesOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesOutputName, sRepChar, False)))
    		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, " ", "_")
 	    
@@ -2156,7 +2201,6 @@ HideLayer:
 		' (or doesn't exist) ...
 		'-------------------------------------------------
 		If iCombinedSitesTable = 3 Or TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
-		
 
 			'-------------------------------------------------
 			' Create a new combined sites table.
@@ -2232,8 +2276,10 @@ HideLayer:
 			'-------------------------------------------------
 			' Save the combined sites table changes
 			'-------------------------------------------------
-			Call MyPrint("Saving combined sites table ...")
-			Call MyPrint(iSitesTotal + " records saved.")
+			If bDebug Then
+				Call MyPrint("Saving combined sites table ...")
+				Call MyPrint(iSitesTotal + " records saved.")
+			End If
 			Commit Table sCombinedSitesTable
 		End If
 
@@ -2247,7 +2293,9 @@ HideLayer:
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "DBF" Then
 			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".dbf"
-			Call MyPrint("Creating combined sites table as a DBF file ...")
+			If bDebug Then
+				Call MyPrint("Creating combined sites table as a DBF file ...")
+			End If
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "DBF"
@@ -2260,7 +2308,9 @@ HideLayer:
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "TXT" Then
 			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".txt"
-			Call MyPrint("Creating combined sites table as a TXT file ...")
+			If bDebug Then
+				Call MyPrint("Creating combined sites table as a TXT file ...")
+			End If
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "ASCII"
@@ -2274,7 +2324,9 @@ HideLayer:
 		'-------------------------------------------------
 		If UCase$(sCombinedSitesFormat) = "CSV" Then
 			sCombinedSitesOutput = sLocalPath + "\" + sCombinedSitesOutputName + ".csv"
-			Call MyPrint("Creating combined sites table as a CSV file ...")
+			If bDebug Then
+				Call MyPrint("Creating combined sites table as a CSV file ...")
+			End If
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "CSV"
@@ -2291,7 +2343,9 @@ HideLayer:
 		'-------------------------------------------------
 		' Close the combined sites table
 		'-------------------------------------------------
-		Call MyPrint("Closing combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Closing combined sites table ...")
+		End If
 		Close Table sCombinedSitesTable
 
  		'-------------------------------------------------
@@ -2302,7 +2356,9 @@ HideLayer:
 			' Delete the empty combined sites table
 			'-------------------------------------------------
 			If FileExists(sCombinedSitesOutput) Then
-				Call MyPrint("Deleting empty combined sites table ...")
+				If bDebug Then
+					Call MyPrint("Deleting empty combined sites table ...")
+				End If
 				Kill sCombinedSitesOutput
 			End If
 		End If
@@ -2313,10 +2369,14 @@ HideLayer:
 	' Keep/Remove the buffer table
 	'-------------------------------------------------
 	If bKeepBufferArea = False Then
-		Call MyPrint("Deleting buffer table ...")
+		If bDebug Then
+			Call MyPrint("Deleting buffer table ...")
+		End If
 		Drop Table sBufferTable
 	Else
-		Call MyPrint("Renaming buffer table ...")
+		If bDebug Then
+			Call MyPrint("Renaming buffer table ...")
+		End If
 		Close Table sBufferTable
 		
 		sBufferTable = sBufferSaveName
@@ -2329,7 +2389,9 @@ HideLayer:
 	' Keep/Remove the search area table
 	'-------------------------------------------------
 	If bKeepSearchFeature = False Then
-		Call MyPrint("Deleting search area table ...")
+		If bDebug Then
+			Call MyPrint("Deleting search area table ...")
+		End If
 		Drop Table sSearchAreaTable
 	End If
 
@@ -2349,7 +2411,9 @@ HideLayer:
 		' Add a group layer if it doesn't already exist
 		'-------------------------------------------------
 		If aWindowGroup(iWindowNum) <> sGroupLayer Then
-			Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+			If bDebug Then
+				Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+			End If
 
 			sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
 			Run Command (sCmd)
@@ -2363,7 +2427,9 @@ HideLayer:
 			'-------------------------------------------------
 			' Add the search area table to the map window
 			'-------------------------------------------------
-			Call MyPrint("Adding search area layer '" + sSearchAreaTable + "' to map window " + iWindowNum + " ...")
+			If bDebug Then
+				Call MyPrint("Adding search area layer '" + sSearchAreaTable + "' to map window " + iWindowNum + " ...")
+			End If
 	
 			If aWindowGroup(iWindowNum) = sGroupLayer Then
 				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sSearchAreaTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
@@ -2402,7 +2468,9 @@ HideLayer:
 			'-------------------------------------------------
 			' Add the buffer table to the map window
 			'-------------------------------------------------
-			Call MyPrint("Adding buffer area layer '" + sBufferTable + "' to map window " + iWindowNum + " ...")
+			If bDebug Then
+				Call MyPrint("Adding buffer area layer '" + sBufferTable + "' to map window " + iWindowNum + " ...")
+			End If
 	
 			If aWindowGroup(iWindowNum) = sGroupLayer Then
 				sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sBufferTable + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
@@ -2551,7 +2619,9 @@ EditLayer:
 	' unsaved edits)
 	'-------------------------------------------------
 	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
-		Call MyPrint("Saving table " + sSearchTable + " ...")
+		If bDebug Then
+			Call MyPrint("Saving table " + sSearchTable + " ...")
+		End If
 		Commit Table sSearchTable
 	End If
 
@@ -2560,7 +2630,9 @@ EditLayer:
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sSearchAreaTable) Then
-		Call MyPrint("Closing existing search area table ...")
+		If bDebug Then
+			Call MyPrint("Closing existing search area table ...")
+		End If
 		Close Table sSearchAreaTable
 	End If
 
@@ -2569,12 +2641,16 @@ EditLayer:
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sBufferSaveName) Then
-		Call MyPrint("Closing existing buffer table ...")
+		If bDebug Then
+			Call MyPrint("Closing existing buffer table ...")
+		End If
 		Close Table sBufferSaveName
 	End If
 
 	If TableIsOpen(sBufferTable) Then
-		Call MyPrint("Closing existing buffer table ...")
+		If bDebug Then
+			Call MyPrint("Closing existing buffer table ...")
+		End If
 		Close Table sBufferTable
 	End If
 
@@ -2584,7 +2660,7 @@ EditLayer:
 	'-------------------------------------------------
 	Call MyPrint("Selecting reference feature(s) ...")
 	Dim sCmd As String
-	sCmd = "Select * from " + sSearchTable + " Where " + sRefColumn + " = " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
+	sCmd = "Select * from " + sSearchTable + " Where " + sRefColumn + " LIKE " + Chr$(34) + sSearchRef + Chr$(34) + " Into " + sSearchAreaTable
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -2598,7 +2674,7 @@ EditLayer:
 	' Check if any records were selected
 	'-------------------------------------------------
 	If iRecTotal = 0 Then
-		Call MyPrint("Reference '" + sSearchRef + "' not found in '" + sSearchTable + "' table.")
+		Call MyPrint("Error: Reference '" + sSearchRef + "' not found in '" + sSearchTable + "' table.")
 		Note "Error: Reference '" + sSearchRef + "' not found in '" + sSearchTable + "' table."
 		sBufferTable = ""
 		Exit Sub
@@ -2630,16 +2706,20 @@ EditLayer:
 	Dim t As SmallInt
 	For t = NumTables() to 1 Step -1
 		If TableInfo(t, TAB_INFO_TEMP) = True Then
-			Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
+			If bDebug Then
+				Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
+			End If
 			Close Table TableInfo(t, TAB_INFO_NAME)
 			Exit For
 		End If
 	Next
 
 	'-------------------------------------------------
-	' Open the new buffered table
+	' Open the new search area table
 	'-------------------------------------------------
-	Call MyPrint("Opening search area table ...")
+	If bDebug Then
+		Call MyPrint("Opening search area table ...")
+	End If
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " As " + sSearchAreaTable
 	Run Command (sCmd)
 
@@ -2658,7 +2738,9 @@ EditLayer:
 	'-------------------------------------------------
 	' Save the buffer table
 	'-------------------------------------------------
-	Call MyPrint("Saving buffer table ...")
+	If bDebug Then
+		Call MyPrint("Saving buffer table ...")
+	End If
 	sCmd = "Commit Table Selection As " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
@@ -2672,7 +2754,9 @@ EditLayer:
 	'-------------------------------------------------
 	For t = NumTables() to 1 Step -1
 		If TableInfo(t, TAB_INFO_TEMP) = True Then
-			Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
+			If bDebug Then
+				Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
+			End If
 			Close Table TableInfo(t, TAB_INFO_NAME)
 			Exit For
 		End If
@@ -2681,7 +2765,9 @@ EditLayer:
 	'-------------------------------------------------
 	' Open the new buffered table
 	'-------------------------------------------------
-	Call MyPrint("Opening buffer table ...")
+	If bDebug Then
+		Call MyPrint("Opening buffer table ...")
+	End If
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " As " + sBufferTable
 	Run Command (sCmd)
 
@@ -2732,21 +2818,27 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sSitesTable) Then
-		Call MyPrint("Closing existing combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Closing existing combined sites table ...")
+		End If
 		Close Table sSitesTable
 	End If
 	
 	'-------------------------------------------------
 	' Create a temporary combined sites table.
 	'-------------------------------------------------
-	Call MyPrint("Creating combined sites table ...")
+	If bDebug Then
+		Call MyPrint("Creating combined sites table ...")
+	End If
 	
 	Dim sCmd As String
 	sCmd = "Create Table " + Chr$(34) + sSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
-	Call MyPrint("Creation complete.")
-	Call MyPrint("")
+	If bDebug Then
+		Call MyPrint("Creation complete.")
+		Call MyPrint("")
+	End If
 	
 	CreateCombinedSitesTable = True
 	Exit Function
@@ -2771,11 +2863,17 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sSitesTable) Then
-		Call MyPrint("Closing existing combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Closing existing combined sites table ...")
+		End If
 		Close Table sSitesTable
-		Call MyPrint("Re-opening existing combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Re-opening existing combined sites table ...")
+		End If
 	Else
-		Call MyPrint("Opening existing combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Opening existing combined sites table ...")
+		End If
 	End If
 
 	'-------------------------------------------------
@@ -2790,8 +2888,10 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	sCmd = "Open Table " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " As " + sSitesTable
 	Run Command (sCmd)
 	
-	Call MyPrint("Open complete.")
-	Call MyPrint("")
+	If bDebug Then
+		Call MyPrint("Open complete.")
+		Call MyPrint("")
+	End If
 	
 	OpenCombinedSitesTable = True
 	Exit Function
@@ -2892,6 +2992,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sOutputName = StringReplace(sOutputName, "%organisation%", sOrganisation)
     sOutputName = StringReplace(sOutputName, "%partner%", sPartner)
     sOutputName = StringReplace(sOutputName, "%radius%", sRadius)
+    sOutputName = StringReplace(sOutputName, "%", "")
     sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar, False)))
     sOutputName = StringReplace(sOutputName, " ", "_")
     
@@ -2909,6 +3010,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
     sExportName = StringReplace(sExportName, "%organisation%", sOrganisation)
     sExportName = StringReplace(sExportName, "%partner%", sPartner)
     sExportName = StringReplace(sExportName, "%radius%", sRadius)
+    sExportName = StringReplace(sExportName, "%", "")
     sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar, False)))
     sExportName = StringReplace(sExportName, " ", "_")
     
@@ -2929,17 +3031,23 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sLocalName) Then
-		Call MyPrint("Closing local table ...")
+		If bDebug Then
+			Call MyPrint("Closing local table ...")
+		End If
 		Close Table sLocalName
 	End If
 
 	If TableIsOpen(sSelectName) Then
-		Call MyPrint("Closing select table ...")
+		If bDebug Then
+			Call MyPrint("Closing select table ...")
+		End If
 		Close Table sSelectName
 	End If
 
 	If TableIsOpen(sExportTemp) Then
-		Call MyPrint("Closing export table ...")
+		If bDebug Then
+			Call MyPrint("Closing export table ...")
+		End If
 		Close Table sExportTemp
 	End If
 
@@ -2956,7 +3064,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	'-------------------------------------------------
 	' Execute the SQL statement to select the table
 	' records intersecting with the required
-	' partner boundary
+	' buffer area
 	'-------------------------------------------------
 	Call MyPrint("Executing spatial selection ...")
 	Dim sCmd as String
@@ -2999,7 +3107,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	'-------------------------------------------------
 	' Save the local table
 	'-------------------------------------------------
-	Call MyPrint("Saving local table ...")
+	If bDebug Then
+		Call MyPrint("Saving local table ...")
+	End If
 	sCmd = "Commit Table " + sSelectName + " As " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
 
@@ -3035,7 +3145,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			'-------------------------------------------------
 			' Add the column to the combined sites table
 			'-------------------------------------------------
-			Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
+			If bDebug Then
+				Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
+			End If
 			sCmd = "Alter Table " + sSelectName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
 			Run Command (sCmd)
 		
@@ -3096,31 +3208,45 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	sColumns = SelectedMap.Columns
 
 	If Instr(1, sColumns, "%ref%") > 0 Then
-		Call MyPrint("Including search ref in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search ref in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%ref%", """" + sSearchRef + """")
 	End If
 	If Instr(1, sColumns, "%shortref%") > 0 Then
-		Call MyPrint("Including search shortref in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search shortref in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%shortref%", """" + sShortRefNo + """")
 	End If
 	If Instr(1, sColumns, "%subref%") > 0 Then
-		Call MyPrint("Including search subref in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search subref in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%subref%", """" + sSubRefNo + """")
 	End If
 	If Instr(1, sColumns, "%sitename%") > 0 Then
-		Call MyPrint("Including search sitename in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search sitename in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%sitename%", """" + sSiteName + """")
 	End If
 	If Instr(1, sColumns, "%organisation%") > 0 Then
-		Call MyPrint("Including search organisation in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search organisation in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%organisation%", """" + sOrganisation + """")
 	End If
 	If Instr(1, sColumns, "%partner%") > 0 Then
-		Call MyPrint("Including search partner in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search partner in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%partner%", """" + sPartner + """")
 	End If
 	If Instr(1, sColumns, "%radius%") > 0 Then
-		Call MyPrint("Including search radius in table output ...")
+		If bDebug Then
+			Call MyPrint("Including search radius in table output ...")
+		End If
 		sColumns = StringReplace(sColumns, "%radius%", """" + sBufferSize + sBufferUnit + """")
 	End If
 
@@ -3129,18 +3255,22 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%overlap%") > 0 Then
-		Call MyPrint("Including overlap area in table output ...")
-		sColumns = StringReplace(sColumns, "%overlap%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including overlap area in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%overlap%", "Area(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
 	End If
-
 	If Instr(1, sColumns, "%overlaparea%") > 0 Then
-		Call MyPrint("Including overlap area in table output ...")
-		sColumns = StringReplace(sColumns, "%overlaparea%", "CartesianArea(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including overlap area in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%overlaparea%", "Area(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
 	End If
-
 	If Instr(1, sColumns, "%overlapLen%") > 0 Then
-		Call MyPrint("Including overlap length in table output ...")
-		sColumns = StringReplace(sColumns, "%overlapLen%", "CartesianObjectLen(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""m"")")
+		If bDebug Then
+			Call MyPrint("Including overlap length in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%overlapLen%", "ObjectLen(Overlap(" + sSelectName + ".Obj, " + sBufferTable + ".Obj), ""m"")")
 	End If
 
 	'-------------------------------------------------
@@ -3148,13 +3278,22 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%searcharea%") > 0 Then
-		Call MyPrint("Including search area in table output ...")
-		sColumns = StringReplace(sColumns, "%searcharea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including search area in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%searcharea%", "Area(" + sBufferTable + ".Obj, ""Hectare"")")
 	End If
-
 	If Instr(1, sColumns, "%searchlen%") > 0 Then
-		Call MyPrint("Including search area in table output ...")
-		sColumns = StringReplace(sColumns, "%searchlen%", "CartesianObjectLen(" + sBufferTable + ".Obj, ""m"")")
+		If bDebug Then
+			Call MyPrint("Including search area in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%searchlen%", "ObjectLen(" + sBufferTable + ".Obj, ""m"")")
+	End If
+	If Instr(1, sColumns, "%searchlayer%") > 0 Then
+		If bDebug Then
+			Call MyPrint("Including search area columns in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%searchlayer%", sBufferTable)
 	End If
 
 	'-------------------------------------------------
@@ -3162,13 +3301,16 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%inputarea%") > 0 Then
-		Call MyPrint("Including input area in table output ...")
-		sColumns = StringReplace(sColumns, "%inputarea%", "CartesianArea(" + sSelectName + ".Obj, ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including input area in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%inputarea%", "Area(" + sSelectName + ".Obj, ""Hectare"")")
 	End If
-
 	If Instr(1, sColumns, "%inputlen%") > 0 Then
-		Call MyPrint("Including input length in table output ...")
-		sColumns = StringReplace(sColumns, "%inputlen%", "CartesianObjectLen(" + sSelectName + ".Obj, ""m"")")
+		If bDebug Then
+			Call MyPrint("Including input length in table output ...")
+		End If
+		sColumns = StringReplace(sColumns, "%inputlen%", "ObjectLen(" + sSelectName + ".Obj, ""m"")")
 	End If
 
 	'-------------------------------------------------
@@ -3202,7 +3344,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Export the temporary table as a DBF file
 	'-------------------------------------------------
 	If UCase$(SelectedMap.Format) = "DBF" Then
-		Call MyPrint("Exporting as a DBF file ...")
+		If bDebug Then
+			Call MyPrint("Exporting as a DBF file ...")
+		End If
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".dbf"
 			Type "DBF"
@@ -3214,7 +3358,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Export the temporary table as a TXT file
 	'-------------------------------------------------
 	If UCase$(SelectedMap.Format) = "TXT" Then
-		Call MyPrint("Exporting as a TXT file ...")
+		If bDebug Then
+			Call MyPrint("Exporting as a TXT file ...")
+		End If
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".txt"
 			Type "ASCII"
@@ -3227,7 +3373,9 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	' Export the temporary table as a CSV file
 	'-------------------------------------------------
 	If UCase$(SelectedMap.Format) = "CSV" Then
-		Call MyPrint("Exporting as a CSV file ...")
+		If bDebug Then
+			Call MyPrint("Exporting as a CSV file ...")
+		End If
 		Export sExportTemp
 			Into sLocalPath + "\" + sExportName + ".csv"
 			Type "CSV"
@@ -3266,8 +3414,10 @@ TranslateTable:
 			Dim sLogFileShp As String
 			sLogFileShp = "TabToShp" + "_" + sUserID
 
-			'Call MyPrint("Log File Path = '" + sLocalPath + "'")
-			'Call MyPrint("Log File Name = '" + sLogFileShp + "'")
+			If bDebug Then
+				Call MyPrint("Log File Path = '" + sLocalPath + "'")
+				Call MyPrint("Log File Name = '" + sLogFileShp + "'")
+			End If
 
 			Call TranslateToShapefile(sUTPath, sUTCommand, sLocalPath, sLogFileShp, sLocalPath, sOutputName)
 
@@ -3278,10 +3428,14 @@ TranslateTable:
 		' close the local file
 		'-------------------------------------------------
 		If iKeepSelectedTables = 2 or iKeepSelectedTables = 4 Or iAddSelectedTables > 1 Then
-			Call MyPrint("Keeping local file ...")
+			If bDebug Then
+				Call MyPrint("Keeping local file ...")
+			End If
 			Close Table sSelectName
 		Else
-			Call MyPrint("Deleting local file ...")
+			If bDebug Then
+				Call MyPrint("Deleting local file ...")
+			End If
 			Drop Table sSelectName
 		End If
 
@@ -3334,7 +3488,9 @@ AddToMap:
 					' Add a group layer if one doesn't already exist
 					'-------------------------------------------------
 					If aWindowGroup(iWindowNum) = "" Then
-						Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+						If bDebug Then
+							Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+						End If
 
 						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
 						Run Command (sCmd)
@@ -3346,7 +3502,9 @@ AddToMap:
 					'-------------------------------------------------
 					' Add the local table to the same map window
 					'-------------------------------------------------
-					Call MyPrint("Adding layer to map window " + iWindowNum + " ...")
+					If bDebug Then
+						Call MyPrint("Adding layer to map window " + iWindowNum + " ...")
+					End If
 
 					If aWindowGroup(iWindowNum) = sGroupLayer Then
 						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
@@ -3385,7 +3543,9 @@ AddToMap:
 						' Display the labels for the layer
 						'-------------------------------------------------
 						If SelectedMap.LabelClause <> "" Then
-							Call MyPrint("Setting labels for layer ...")
+							If bDebug Then
+								Call MyPrint("Setting labels for layer ...")
+							End If
 							sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 							Run Command (sCmd)
 						End If
@@ -3400,7 +3560,9 @@ AddToMap:
 						'-------------------------------------------------
 						' Set the symbology for the layer
 						'-------------------------------------------------
-						Call MyPrint("Setting symbology for layer ...")
+						If bDebug Then
+							Call MyPrint("Setting symbology for layer ...")
+						End If
 						
 						sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Display Global " + SelectedMap.Symbology
 						Run Command (sCmd)
@@ -3444,7 +3606,9 @@ AddToMap:
 							' Add a group layer if one doesn't already exist
 							'-------------------------------------------------
 							If aWindowGroup(iWindowNum) = "" Then
-								Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+								If bDebug Then
+									Call MyPrint("Adding group layer '" + sGroupLayer + "' to map window " + iWindowNum + " ...")
+								End If
 			
 								sCmd = "Add Map Window " + aWindowId(iWindowNum) + " GroupLayer(" + Chr$(34) + sGroupLayer + Chr$(34) + ")"
 								Run Command (sCmd)
@@ -3461,7 +3625,9 @@ AddToMap:
 					'-------------------------------------------------
 					' Add the local table to the map window
 					'-------------------------------------------------
-					Call MyPrint("Adding layer to active map window ...")
+					If bDebug Then
+						Call MyPrint("Adding layer to active map window ...")
+					End If
 
 					If aWindowGroup(iWindowNum) = sGroupLayer Then
 						sCmd = "Add Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " DestGroupLayer " + Chr$(34) + sGroupLayer + Chr$(34)
@@ -3500,7 +3666,9 @@ AddToMap:
 						' Display the labels for the layer
 						'-------------------------------------------------
 						If SelectedMap.LabelClause <> "" Then
-							Call MyPrint("Setting labels for layer ...")
+							If bDebug Then
+								Call MyPrint("Setting labels for layer ...")
+							End If
 							sCmd = "Set Map Window " + iWindowId + " Layer " + sLocalName + " Label " + SelectedMap.LabelClause
 							Run Command (sCmd)
 						End If
@@ -3513,7 +3681,9 @@ AddToMap:
 							'-------------------------------------------------
 							' Set the symbology for the layer
 							'-------------------------------------------------
-							Call MyPrint("Setting symbology for layer ...")
+							If bDebug Then
+								Call MyPrint("Setting symbology for layer ...")
+							End If
 				
 							sCmd = "Set Map Window " + aWindowId(iWindowNum) + " Layer " + sLocalName + " Display Global " + SelectedMap.Symbology
 							Run Command (sCmd)
@@ -3534,7 +3704,9 @@ AddToMap:
 		'-------------------------------------------------
 		' Delete the local file as it's not to be kept
 		'-------------------------------------------------
-		Call MyPrint("Deleting local file ...")
+		If bDebug Then
+			Call MyPrint("Deleting local file ...")
+		End If
 		Drop Table sSelectName
 	
 	End If
@@ -3590,7 +3762,9 @@ Sub OverwriteMapLabels
 	Dim iRows As Integer
 	iRows = TableInfo(MapLabels, TAB_INFO_NROWS)
 
-	Call MyPrint("Overwritting map labels for " + FormatNumber$(iRows) + " rows ...")
+	If bDebug Then
+		Call MyPrint("Overwritting map labels for " + FormatNumber$(iRows) + " rows ...")
+	End If
 
 	'-------------------------------------------------
 	' If any rows were selected then set the object
@@ -3715,31 +3889,45 @@ Sub AddToCombinedSitesTable
 	' in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%ref%") > 0 Then
-		Call MyPrint("Including search ref in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search ref in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%ref%", """" + sSearchRef + """")
 	End If
 	If Instr(1, sSitesColumns, "%shortref%") > 0 Then
-		Call MyPrint("Including search shortref in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search shortref in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%shortref%", """" + sShortRefNo + """")
 	End If
 	If Instr(1, sSitesColumns, "%subref%") > 0 Then
-		Call MyPrint("Including search subref in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search subref in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%subref%", """" + sSubRefNo + """")
 	End If
 	If Instr(1, sSitesColumns, "%sitename%") > 0 Then
-		Call MyPrint("Including search sitename in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search sitename in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%sitename%", """" + sSiteName + """")
 	End If
 	If Instr(1, sSitesColumns, "%organisation%") > 0 Then
-		Call MyPrint("Including search organisation in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search organisation in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%organisation%", """" + sOrganisation + """")
 	End If
 	If Instr(1, sSitesColumns, "%partner%") > 0 Then
-		Call MyPrint("Including search partner in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search partner in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%partner%", """" + sPartner + """")
 	End If
 	If Instr(1, sSitesColumns, "%radius%") > 0 Then
-		Call MyPrint("Including search radius in combined sites table ...")
+		If bDebug Then
+			Call MyPrint("Including search radius in combined sites table ...")
+		End If
 		sSitesColumns = StringReplace(sSitesColumns, "%radius%", """" + sBufferSize + sBufferUnit + """")
 	End If
 
@@ -3748,18 +3936,22 @@ Sub AddToCombinedSitesTable
 	' be included in the combined sites table
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%overlap%") > 0 Then
-		Call MyPrint("Including overlap area in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%overlap%", "CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including overlap area in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%overlap%", "Area(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
 	End If
-
 	If Instr(1, sSitesColumns, "%overlaparea%") > 0 Then
-		Call MyPrint("Including overlap area in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%overlaparea%", "CartesianArea(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including overlap area in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%overlaparea%", "Area(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""Hectare"")")
 	End If
-
 	If Instr(1, sSitesColumns, "%overlaplen%") > 0 Then
-		Call MyPrint("Including overlap length in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%overlaplen%", "CartesianObjectLen(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""m"")")
+		If bDebug Then
+			Call MyPrint("Including overlap length in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%overlaplen%", "ObjectLen(Overlap(" + sTableName + ".Obj, " + sBufferTable + ".Obj), ""m"")")
 	End If
 
 	'-------------------------------------------------
@@ -3767,13 +3959,22 @@ Sub AddToCombinedSitesTable
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%searcharea%") > 0 Then
-		Call MyPrint("Including search area in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%searcharea%", "CartesianArea(" + sBufferTable + ".Obj, ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including search area in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%searcharea%", "Area(" + sBufferTable + ".Obj, ""Hectare"")")
 	End If
-
 	If Instr(1, sSitesColumns, "%searchlen%") > 0 Then
-		Call MyPrint("Including search length in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%searchlen%", "CartesianObjectLen(" + sBufferTable + ".Obj, ""m"")")
+		If bDebug Then
+			Call MyPrint("Including search length in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%searchlen%", "ObjectLen(" + sBufferTable + ".Obj, ""m"")")
+	End If
+	If Instr(1, sSitesColumns, "%searchlayer%") > 0 Then
+		If bDebug Then
+			Call MyPrint("Including search area columns in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%searchlayer%", sBufferTable)
 	End If
 
 	'-------------------------------------------------
@@ -3781,13 +3982,16 @@ Sub AddToCombinedSitesTable
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%inputarea%") > 0 Then
-		Call MyPrint("Including input area in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%inputarea%", "CartesianArea(" + sTableName + ".Obj, ""Hectare"")")
+		If bDebug Then
+			Call MyPrint("Including input area in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%inputarea%", "Area(" + sTableName + ".Obj, ""Hectare"")")
 	End If
-
 	If Instr(1, sSitesColumns, "%inputlen%") > 0 Then
-		Call MyPrint("Including input length in combined sites table ...")
-		sSitesColumns = StringReplace(sSitesColumns, "%inputlen%", "CartesianObjectLen(" + sTableName + ".Obj, ""m"")")
+		If bDebug Then
+			Call MyPrint("Including input length in combined sites table ...")
+		End If
+		sSitesColumns = StringReplace(sSitesColumns, "%inputlen%", "ObjectLen(" + sTableName + ".Obj, ""m"")")
 	End If
 
 	'-------------------------------------------------
@@ -3795,7 +3999,9 @@ Sub AddToCombinedSitesTable
 	' combined sites table
 	'-------------------------------------------------
 	sCmd = "Select " + sSitesColumns + " From " + sTableName + ", " + sBufferTable + " Where (" + sTableName + ".obj Intersects " + sBufferTable + ".obj) " + sSitesCriteria + " Into TempSites NoSelect"
-	'Call MyPrint(sCmd)
+	If bDebug Then
+		Call MyPrint(sCmd)
+	End If
 	Run Command (sCmd)
 
 	'-------------------------------------------------
@@ -3974,9 +4180,9 @@ Sub SetSymbology(sNodeName as String, sTableName As String)
 						Dim iRows As Integer
 						iRows = TableInfo(NewStyle, TAB_INFO_NROWS)
 
-						'If bDebug Then
-						'	Call MyPrint("Setting " + sObject + " style for " + FormatNumber$(iRows) + " rows where ... " + sClause)
-						'End If
+						If bDebug Then
+							Call MyPrint("Setting " + sObject + " style for " + FormatNumber$(iRows) + " rows where ... " + sClause)
+						End If
 
 						'-------------------------------------------------
 						' If any rows were selected then set the styles

@@ -327,6 +327,7 @@ Declare Function MIGetErrorCode Lib MIWEBSERVICES_LIB_NAME
 Global sVersion As String
 Global sUserId As String
 Global sToolTitle As String
+Global bDebug As Logical
 
 Global iXMLFile As Integer
 Global sXMLFile As String

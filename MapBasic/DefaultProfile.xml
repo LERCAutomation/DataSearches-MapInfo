@@ -23,6 +23,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 <configuration>
 <DataSearches>
 
+	<!-- Whether to include debug messages in the logfile -->
+	<Debug>
+		<value>No</value>
+	</Debug>
+
 	<!-- The database where all the data search details are stored. -->
 	<Database>
 		<value>I:\Delivery\Customers\DataSearches\Access\GiGL Data Searches.mdb</value>
@@ -108,20 +113,104 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>3</value>
 	</DefaultBufferUnit>
 
-	<!-- The symbology for the buffer features. -->
+	<!-- The symbology to display for the buffer features. -->
 	<BufferSymbology>
 		<value>Global Pen (2,2,16711680) Global Brush (1,16777215,16777215)</value>
 	</BufferSymbology>
+
+	<!-- The symbology to set for the buffer features. -->
+	<Buffer>
+		<Symbology>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Region</Value>
+				</Object>
+				<Pen>
+					<Value>2,2,128</Value>
+				</Pen>
+				<Brush>
+					<Value>1,16777215,16777215</Value>
+				</Brush>
+			</Symbol>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Line</Value>
+				</Object>
+				<Pen>
+					<Value>2,2,2128</Value>
+				</Pen>
+			</Symbol>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Point</Value>
+				</Object>
+				<Symbol>
+					<Value>35,255,12</Value>
+				</Symbol>
+			</Symbol>
+		</Symbology>
+	</Buffer>
 
 	<!-- The coordinate system for mapping tables. -->
 	<CoordinateSystem>
 		<value>Earth Projection 8, 79, "m", -2, 49, 0.9996012717, 400000, -100000</value>
 	</CoordinateSystem>
 
-	<!-- The symbology for the search area features. -->
+	<!-- The symbology to display for the search area features. -->
 	<SearchAreaSymbology>
 		<value>Global Pen (2,2,0)   Global Brush (15,32896)   Global Line (2,2,16711935)   Global Symbol (35,16711935,12)</value>
 	</SearchAreaSymbology>
+
+	<!-- The symbology to set for the search area features. -->
+	<SearchArea>
+		<Symbology>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Region</Value>
+				</Object>
+				<Pen>
+					<Value>2,2,0</Value>
+				</Pen>
+				<Brush>
+					<Value>15,32896</Value>
+				</Brush>
+			</Symbol>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Line</Value>
+				</Object>
+				<Pen>
+					<Value>2,2,0</Value>
+				</Pen>
+			</Symbol>
+			<Symbol>
+				<Clause>
+					<Value></Value>
+				</Clause>
+				<Object>
+					<Value>Point</Value>
+				</Object>
+				<Symbol>
+					<Value>35,16711935,12</Value>
+				</Symbol>
+			</Symbol>
+		</Symbology>
+	</SearchArea>
 
 	<!-- The maximum number of records what will be extracted in any one search extract. -->
 	<RecMax>
