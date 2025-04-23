@@ -20,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.41
+'* DataSearches v1.4.42
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -28,7 +28,10 @@
 '*
 '*
 '* Created: 			Andy Foy - February 2013
-'* Last revised:		Andy Foy - December 2021
+'* Last revised:		Andy Foy - April 2025
+'*
+'* *****************  Version 1.4.42  **************
+'* A. Improved error handling when writing to log file.
 '*
 '* *****************  Version 1.4.41  **************
 '* A. Enable search ref to contain wildcard characters.
@@ -285,7 +288,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.41"
+	sVersion = "1.4.42"
 
 	'-------------------------------------------------
 	' Get the title for the Tool menu
@@ -1832,6 +1835,9 @@ SetSubRef:
 		End If
 	End If
 
+	' Initialise if the message window has been shown already
+	bMessageWinShown = False
+
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Processing search '" + sSearchRef + "' ...")
 	Call MyPrint("----------------------------------------------------------------------")
@@ -1976,6 +1982,9 @@ SetSubRef:
 		If bDebug Then
 			Call MyPrint("Mapping table " + sSearchTable + " ...")
 		End If
+
+
+
 		Map from sSearchTable
 	
 		' Store the window ID and group layer name
@@ -4348,22 +4357,41 @@ Sub MyPrint(ByVal sMsg As String)
 '***************************************************************
 
 	If bLogMessages = True Then
+		' Get a new file handler
+		Dim nRand As Integer
+		nRand = Int(Rnd * 10000) + 1
+
+		OnError GoTo HandleFileError
+        
 		'-------------------------------------------------
 		' Open the log file for output
 		'-------------------------------------------------
-		Open File sLogFile For Append As #1
+		Open File sLogFile For Append As #nRand
 	
 		'-------------------------------------------------
 		' Write the message passed to the output file
 		'-------------------------------------------------
-		Print #1, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
+		Print #nRand, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
 	
 		'-------------------------------------------------
 		' Close the output file
 		'-------------------------------------------------
-		Close File #1
+		Close File #nRand
+		
+		OnError GoTo 0
+	End If
+	
+	Exit Sub
+
+HandleFileError:
+	If Not bMessageWinShown Then
+		Open Window Message
+		Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : ERROR: Could not write to log file: " + sLogFile
+		bMessageWinShown = True
 	End If
 
+	Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
+	OnError GoTo 0
 End Sub
 
 Sub PrintLogFile()

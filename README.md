@@ -3,25 +3,29 @@ DataSearches
 
 DataSearches tool
 
-Copyright © 2013-2019 TVERC, GiGL, SBIC. Andy Foy Consulting 2020-2021.
+Copyright © 2013-2019 TVERC, GiGL, SBIC. Andy Foy Consulting 2020-2025.
 
 Overview
 --------
+
 DataSearches is a MapInfo tool which lists a set of available GIS layers and allows the user to select which layers to extract for the current data search, specifying a radius from a feature of interest. The output files are created as MapInfo TAB format (.tab) files, Comma Separated Value (.csv) files or Text (.txt) files.
 
 Requirements
 ------------
+
 The DataSearches tool requires the following:
 
- - MapInfo 10.0 or higher
+- MapInfo 10.0 or higher
 
 Source Code
 -----------
+
 The source code for the DataSearches tool is open source and can be downloaded from:
 <https://github.com/LERCAutomation/DataSearches-MapInfo>
 
 License Information
 -------------------
+
 The DataSearches tool is free software. You can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option) any
@@ -34,6 +38,7 @@ License.
 
 Funding
 -------
+
 The DataSearches tool was developed with funding from:
 
 * Thames Valley Environmental Records Centre
