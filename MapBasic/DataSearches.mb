@@ -1838,6 +1838,9 @@ SetSubRef:
 	' Initialise if the message window has been shown already
 	bMessageWinShown = False
 
+	' Initialise the random number function
+	Randomize
+
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Processing search '" + sSearchRef + "' ...")
 	Call MyPrint("----------------------------------------------------------------------")
@@ -1982,6 +1985,7 @@ SetSubRef:
 		If bDebug Then
 			Call MyPrint("Mapping table " + sSearchTable + " ...")
 		End If
+
 
 
 
@@ -4359,7 +4363,7 @@ Sub MyPrint(ByVal sMsg As String)
 	If bLogMessages = True Then
 		' Get a new file handler
 		Dim nRand As Integer
-		nRand = Int(Rnd * 10000) + 1
+		nRand = Int(Rnd(1) * 10000) + 1
 
 		OnError GoTo HandleFileError
         
