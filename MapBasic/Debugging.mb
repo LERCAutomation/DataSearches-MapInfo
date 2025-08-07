@@ -1,0 +1,117 @@
+'* DataSearches is a MapInfo tool to lists all the available MapInfo
+'* habitat, species and other layers and allows the user to select
+'* which layers to extract for the current data search.
+'*
+'* Copyright © 2025 Andy Foy Consulting
+'* 
+'* This file is part of the MapInfo tool 'DataSearches'.
+'* 
+'* DataSearches is free software: you can redistribute it and/or modify
+'* it under the terms of the GNU General Public License as published by
+'* the Free Software Foundation, either version 3 of the License, or
+'* (at your option) any later version.
+'* 
+'* DataSearches is distributed in the hope that it will be useful,
+'* but WITHOUT ANY WARRANTY; without even the implied warranty of
+'* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'* GNU General Public License for more details.
+'* 
+'* You should have received a copy of the GNU General Public License
+'* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
+'*
+'***************************************************************
+'* Debugging v1.00
+'*
+'* Adds version logging, retry logic and error logging support.
+'*
+'*
+'* Created:			Andy Foy - July 2025
+'* Last revised:	Andy Foy - July 2025
+'*
+'* *****************  Version 1.00  *****************
+'* Author: Andy Foy		Date: 31/07/2025
+'* A. Original version.
+'*
+'***************************************************************
+Include "DataSearches.def"
+
+'-------------------------------------------------
+' Constants and Globals
+'-------------------------------------------------
+Define MAX_RETRIES 3
+Define RETRY_DELAY_MS 1000
+
+'-------------------------------------------------
+' Function and Sub Declarations
+'-------------------------------------------------
+Declare Sub LogErrorContext(ByVal sContext As String)
+Declare Function TryOpenTable(ByVal sTable As String) As Logical
+Declare Function TryOpenTableFromPath(ByVal sPath As String, ByVal sAlias As String) As Logical
+
+'-------------------------------------------------
+' Error Logging Helper
+'-------------------------------------------------
+Sub LogErrorContext(ByVal sContext As String)
+	If bDebug Then
+		Dim sErrCode As String
+		Dim sErrMsg As String
+		sErrCode = "Error Code: " + Str$(MIGetErrorCode())
+		sErrMsg = "Error Message: " + MIGetErrorMessage()
+		Call MyPrint("[" + sContext + "] " + sErrCode + ", " + sErrMsg)
+	End If
+End Sub
+
+'-------------------------------------------------
+' Retry Table Open
+'-------------------------------------------------
+Function TryOpenTable(ByVal sTable As String) As Logical
+	Dim i As Integer
+
+	For i = 1 To MAX_RETRIES
+		OnError Goto HandleError
+
+		Open Table sTable As sTable
+		If TableInfo(sTable, TAB_INFO_NAME) <> "" Then
+			TryOpenTable = True
+			Exit Function
+		End If
+
+HandleError:
+		Call LogErrorContext("TryOpenTable - Attempt " + Str$(i) + " for table: " + sTable)
+		If i < MAX_RETRIES Then
+			Call WAPISleep(iRetryDelay)
+		End If
+	Next
+
+	TryOpenTable = False
+End Function
+
+'-------------------------------------------------
+' Attempts to open a table using a full path and assigns an alias.
+' Retries on failure, logs error messages.
+'-------------------------------------------------
+Function TryOpenTableFromPath(ByVal sPath As String, ByVal sAlias As String) As Logical
+	Dim i As Integer
+	Dim sCmd As String
+	TryOpenTableFromPath = False
+
+	For i = 1 To MAX_RETRIES
+		OnError Goto HandleError
+
+		sCmd = "Open Table " + Chr$(34) + sPath + Chr$(34) + " As " + sAlias
+		Run Command sCmd
+
+		If TableInfo(sAlias, TAB_INFO_NAME) <> "" Then
+			Call WAPISleep(iRetryDelay)
+			TryOpenTableFromPath = True
+			Exit Function
+		End If
+
+HandleError:
+		Call MyPrint("TryOpenTableFromPath retry " + Str$(i) + " failed opening: '" + sPath + "'")
+		Call WAPISleep(iRetryDelay)
+		Resume Next
+	Next
+
+	Call MyPrint("ERROR: Failed to open table after " + Str$(MAX_RETRIES) + " attempts: " + sPath)
+End Function

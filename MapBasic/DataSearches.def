@@ -20,13 +20,13 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
 '***************************************************************
-'* DataSearches.def v1.08
+'* DataSearches.def v1.09
 '*
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - December 2019
+'* Last revised:	Andy Foy - August 2025
 '***************************************************************
 
 Include "MapBasic.def"
@@ -123,6 +123,7 @@ Declare Sub AboutBox
 Declare Sub egsit
 Declare Sub MyPrint
 	(ByVal sMsg As String)
+Declare Sub CommitLogMessages
 Declare Sub PrintLogFile
 Declare Sub BufferSearch
 Declare Sub ProcessExtracts
@@ -167,6 +168,8 @@ Declare Sub MIXmlNodeListDestroy Lib MIXML_LIB_NAME Alias "MIXmlNodeListDestroy"
 	ByVal hXMLNodeList As MIXmlNodeList)
 Declare Sub MIXmlAttributeListDestroy Lib MIXML_LIB_NAME Alias "MIXmlAttributeListDestroy" (
 	ByVal hXMLAttributeList As MIXmlNamedNodeMap)
+Declare Sub WAPISleep Lib "kernel32.dll" Alias "Sleep" (
+	ByVal dwMilliseconds As Integer)
 
 '-------------------------------------------------
 ' Declare the functions
@@ -328,6 +331,7 @@ Global sVersion As String
 Global sUserId As String
 Global sToolTitle As String
 Global bDebug As Logical
+Global iRetryDelay As Integer
 
 Global iXMLFile As Integer
 Global sXMLFile As String
@@ -335,6 +339,9 @@ Global sDefaultXMLFile As String
 Global iDefaultXMLFile As Integer
 
 Global bLogMessages As Logical
+Global iLogFileNum As Integer
+Global sLogMessages() As String
+Global iLogCount As Integer
 
 Global sDatabase As String
 Global sEnquiriesDir As String

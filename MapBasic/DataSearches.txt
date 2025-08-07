@@ -3,7 +3,6 @@
 '* which layers to extract for the current data search.
 '*
 '* Copyright © 2013 - 2021 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
-'* Copyright © 2025 Andy Foy Consulting
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -21,18 +20,15 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.44
+'* DataSearches v1.4.43
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
 '*
-'* Created:			 Andy Foy - February 2013
-'* Last revised:		Andy Foy - August 2025
-'*
-'* *****************  Version 1.4.44  **************
-'* A. Further changes to avoid errors in file access steps.
+'* Created: 			Andy Foy - February 2013
+'* Last revised:		Andy Foy - July 2025
 '*
 '* *****************  Version 1.4.43  **************
 '* A. Improved error handling for all file access steps.
@@ -45,7 +41,7 @@
 '*
 '* *****************  Version 1.4.40  **************
 '* A. Enable search area columns to be included in the export
-'*	files and combined sites table.
+'*    files and combined sites table.
 '* B. Increase width of form and map table list.
 '*
 '* *****************  Version 1.4.39  **************
@@ -57,17 +53,17 @@
 '* *****************  Version 1.4.37  **************
 '* A. Fix bug including area outputs in combined sites table.
 '* B. Enable search variables to be included in the export
-'*	files and combined sites table.
+'*    files and combined sites table.
 '* C. Hide buffer size and units when default values are
-'*	blank.
+'*    blank.
 '* D. Remove spaces in search ref when used in table names.
 '*
 '* *****************  Version 1.4.36  **************
 '* Author: Andy Foy		Date: 29/01/2021
 '* A. Enable the total area of the search area/buffer to be
-'*	included in the export files and combined sites table.
+'*    included in the export files and combined sites table.
 '* B. Enable the total area of the input polygon(s) to be
-'*	included in the export files and combined sites table.
+'*    included in the export files and combined sites table.
 '*
 '* *****************  Version 1.4.35  **************
 '* Author: Andy Foy		Date: 24/07/2020
@@ -80,7 +76,7 @@
 '* *****************  Version 1.4.33  **************
 '* Author: Andy Foy		Date: 31/10/2019
 '* A. Fix bug where map labels are being added when
-'*	the label clause is blank.
+'*    the label clause is blank.
 '* B. Fix bug when there is no map window open.
 '* C. Trap error when exporting combined sites table.
 '* D. Ensure local tables are added into group layer.
@@ -120,7 +116,7 @@
 '* *****************  Version 1.4.25  **************
 '* Author: Andy Foy		Date: 21/09/2018
 '* A. Reverse out use of cosmetic layer to create search
-'*	area buffer - use search layer instead.
+'*    area buffer - use search layer instead.
 '*
 '* *****************  Version 1.4.24  **************
 '* Author: Andy Foy		Date: 30/07/2018
@@ -131,7 +127,7 @@
 '* E. Add "SearchFeatureName" option to XML.
 '* F. Change how labels are set/reset by layers/groups.
 '* G. Add "OutputType" option in XML for copy/clip/overlap
-'*	or intersect.
+'*    or intersect.
 '* H. Update search radius in search layer if required.
 '* I. Enable %radius% to be used as a variable in the XML.
 '*
@@ -146,23 +142,23 @@
 '* *****************  Version 1.4.21  **************
 '* Author: Andy Foy		Date: 24/01/2018
 '* A. Update XML node names to make them clearer and
-'*	match ArcGIS version.
+'*    match ArcGIS version.
 '*
 '* *****************  Version 1.4.20  **************
 '* Author: Andy Foy		Date: 15/06/2017
 '* A. Enable variables to be used within file name
-'*	suffixes and prefixes in the XML file.
+'*    suffixes and prefixes in the XML file.
 '* B. Enable site name to be required or optional.
 '*
 '* *****************  Version 1.4.19  **************
 '* Author: Andy Foy		Date: 17/05/2017
 '* A. Only update site name and/or organisation in
-'*	search layer if required.
+'*    search layer if required.
 '* B. Remove hard-coded site name and organisation
-'*	column names.
+'*    column names.
 '* C. Add option to keep buffer and search areas.
 '* D. Add option to trigger macro/script to format
-'*	outputs.
+'*    outputs.
 '*
 '* *****************  Version 1.4.18  **************
 '* Author: Andy Foy		Date: 15/03/2017
@@ -183,16 +179,16 @@
 '* *****************  Version 1.4.14  **************
 '* Author: Andy Foy		Date: 01/11/2016
 '* A. Use cosmetic layer to create search area buffer
-'*	instead of search layer.
+'*    instead of search layer.
 '*
 '* *****************  Version 1.4.13  **************
 '* Author: Andy Foy		Date: 24/10/2016
 '* A. Pre-select layers if specified on layer in XML.
 '* B. Reset label numbers to 1 if specified on layer
-'*	in XML.
+'*    in XML.
 '* C. Hide search layer before searching.
 '* D. Enable option to suppress warning for layers
-'*	missing on tool load.
+'*    missing on tool load.
 '*
 '* *****************  Version 1.4.12  **************
 '* Author: Andy Foy		Date: 20/10/2016
@@ -200,15 +196,14 @@
 '*
 '* *****************  Version 1.4.11  **************
 '* Author: Andy Foy		Date: 16/08/2016
-
 '* A. Remove need for 'Where' in select criteria.
 '* B. Group layers when adding to map windows.
 '* C. Enable overlap area to be included in export
-'*	files.
+'*    files.
 '* D. Enable overlap area to be included in the
-'*	combined sites table.
+'*    combined sites table.
 '* E. Save search feature(s) as local layer and apply
-'*	symbology.
+'*    symbology.
 '*
 '* *****************  Version 1.4.10  **************
 '* Author: Andy Foy		Date: 14/08/2016
@@ -217,21 +212,21 @@
 '* *****************  Version 1.4.9  ***************
 '* Author: Andy Foy		Date: 14/07/2016
 '* A. Enable separate instances for tool to run under
-'*	different names in Tool menu.
+'*    different names in Tool menu.
 '*
 '* *****************  Version 1.4.8  ****************
 '* Author: Andy Foy		Date: 27/06/2016
 '* A. Enable search radius to be included in export
-'*	files.
+'*    files.
 '* B. Enable search radius to be included in the
-'*	combined sites table.
+'*    combined sites table.
 '* C. Enable combined sites table to be appended to
-'*	or over-written as required.
+'*    or over-written as required.
 '*
 '* *****************  Version 1.4.7  ****************
 '* Author: Andy Foy		Date: 30/05/2016
 '* A. Convert underscores to spaces when displaying
-'*	node names.
+'*    node names.
 '* B. Add XML attribute for saved GIS layer prefixes.
 '* C. Change version number to 3 parts.
 '*
@@ -242,21 +237,21 @@
 '* *****************  Version 1.45  *****************
 '* Author: Andy Foy		Date: 11/04/2016
 '* A. Add button to lookup Site Name from database
-'*	using search reference.
+'*    using search reference.
 '* B. Hide controls if default value is blank.
 '*
 '* *****************  Version 1.44  *****************
 '* Author: Andy Foy		Date: 24/03/2016
 '* A. Split SQL criteria into separate selection and
-'*	export criteria.
+'*    export criteria.
 '* B. Logging separate record counts for selection
-'*	and export.
+'*    and export.
 '* C. Delete layers no kept for map display.
 '*
 '* *****************  Version 1.43  *****************
 '* Author: Andy Foy		Date: 14/03/2016
 '* A. Enable export of tables in either CSV, DBF or TXT
-'*	format.
+'*    format.
 '* 
 '* *****************  Version 1.42  *****************
 '* Author: Andy Foy		Date: 09/03/2016
@@ -270,18 +265,18 @@
 '* *****************  Version 1.40  *****************
 '* Author: Andy Foy		Date: 19/10/2015
 '* A. Added lookup of site name from access database, or input
-'*	by user.
+'*    by user.
 '* B. Changed buffer units to a popup menu.
 '* C. Enable selected tables to be kept and added to the
-'*	active map window (with/without labels)
+'*    active map window (with/without labels)
 '* D. Enable map labels to be overwritten with sequential
-'*	number either within each table or across all tables.
+'*    number either within each table or across all tables.
 '* E. Optionally create a combined sites table containing
-'*	details of all selected sites within search area.
+'*    details of all selected sites within search area.
 '* F. Enable variables to be used within some file paths
-'*	and file name variables in the XML file.
+'*    and file name variables in the XML file.
 '* G. Set the buffer search area symbology from an XML
-'*	variable.
+'*    variable.
 '*
 '***************************************************************
 'Include "DataSearches.def"
@@ -369,7 +364,7 @@ Sub GetToolTitle
 				' Get a handle on the DataSearches node
 				'-------------------------------------------------
 				hXMLNode = MIXmlSelectSingleNode(hXMLRoot, "DataSearches")
-				  If hXMLNode Then
+	          	If hXMLNode Then
 	
 					'-------------------------------------------------
 					' Load the default values from the child nodes
@@ -833,7 +828,7 @@ Sub DataSearches
 	'-------------------------------------------------
 	' Trap errors
 	'-------------------------------------------------
-	OnError Goto ErrorTrap
+    OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Get the current user ID
@@ -1041,7 +1036,7 @@ Sub GetXMLProfile()
 	'-------------------------------------------------
 	' Trap errors
 	'-------------------------------------------------
-	OnError Goto ErrorTrap
+    OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Get an array of all the XML profiles in the
@@ -1377,8 +1372,8 @@ Sub GetSiteName
 		Dim sEnquiries As String
 		sEnquiries = sEnquiriesDir + "\Enquiries.tab"
 		If Not TryOpenTableFromPath(sEnquiries, "Enquiries") Then
-			Note "Failed to open the enquiries table."
-			Exit Sub
+    		Note "Failed to open the enquiries table."
+    		Exit Sub
 		End If
 	
 RegisterTable:
@@ -1408,8 +1403,8 @@ RegisterTable:
 			' Open the 'Enquiries' table
 			'-------------------------------------------------
 			If Not TryOpenTableFromPath(sEnquiries, "Enquiries") Then
-				Note "Failed to open the enquiries table."
-				Exit Sub
+	    		Note "Failed to open the enquiries table."
+    			Exit Sub
 			End If
 		
 		End If
@@ -1640,12 +1635,12 @@ Sub CheckSelection
 	sRadius = sBufferString + sBufferUnit
 
 	'-------------------------------------------------
-	' Remove all characters except numbers, internal spaces
-	' and the replacement character from Reference Number
+    ' Remove all characters except numbers, internal spaces
+    ' and the replacement character from Reference Number
 	'-------------------------------------------------
-	sShortRefNo = StringReplace(sSearchRef, "/", sRepChar)
-	sShortRefNo = LTrim$(RTrim$(KeepNumbersAndSpaces(sShortRefNo, sRepChar)))
-	sShortRefNo = StringReplace(sShortRefNo, " ", "_")
+    sShortRefNo = StringReplace(sSearchRef, "/", sRepChar)
+    sShortRefNo = LTrim$(RTrim$(KeepNumbersAndSpaces(sShortRefNo, sRepChar)))
+    sShortRefNo = StringReplace(sShortRefNo, " ", "_")
 
 	Dim iLastPos As Integer, iNextPos As Integer
 	iLastPos = 1
@@ -1659,90 +1654,90 @@ Sub CheckSelection
 
 FindNextPos:
 	iNextPos = Instr(iLastPos, sShortRefNo, sRepChar)
-	If iNextPos > 0 Then
-		iLastPos = iNextPos + 1
-		Goto FindNextPos
-	End If
+    If iNextPos > 0 Then
+    	iLastPos = iNextPos + 1
+    	Goto FindNextPos
+    End If
 
 SetSubRef:
 	If iLastPos > 1 Then
-		sSubRefNo = Mid$(sShortRefNo, iLastPos, 99)
-	Else
-		sSubRefNo = sShortRefNo
-	End If
-	
+	    sSubRefNo = Mid$(sShortRefNo, iLastPos, 99)
+    Else
+    	sSubRefNo = sShortRefNo
+    End If
+    
 	'-------------------------------------------------
-	' Replace any variables
+    ' Replace any variables
 	'-------------------------------------------------
-	sSaveFolder = StringReplace(sDefaultSaveFolder, "%ref%", sSearchRef)
-	sSaveFolder = StringReplace(sSaveFolder, "%shortref%", sShortRefNo)
-	sSaveFolder = StringReplace(sSaveFolder, "%subref%", sSubRefNo)
-	sSaveFolder = StringReplace(sSaveFolder, "%sitename%", sSiteName)
-	sSaveFolder = StringReplace(sSaveFolder, "%organisation%", sOrganisation)
-	sSaveFolder = StringReplace(sSaveFolder, "%partner%", sPartner)
-	sSaveFolder = StringReplace(sSaveFolder, "%radius%", sRadius)
-	sSaveFolder = StringReplace(sSaveFolder, "%", "")
-	
-	sGISFolder = StringReplace(sDefaultGISFolder, "%ref%", sSearchRef)
-	sGISFolder = StringReplace(sGISFolder, "%shortref%", sShortRefNo)
-	sGISFolder = StringReplace(sGISFolder, "%subref%", sSubRefNo)
-	sGISFolder = StringReplace(sGISFolder, "%sitename%", sSiteName)
-	sGISFolder = StringReplace(sGISFolder, "%organisation%", sOrganisation)
-	sGISFolder = StringReplace(sGISFolder, "%partner%", sPartner)
-	sGISFolder = StringReplace(sGISFolder, "%radius%", sRadius)
-	sGISFolder = StringReplace(sGISFolder, "%", "")
-	
-	sLogFileName = StringReplace(sDefaultLogFileName, "%ref%", sSearchRef)
-	sLogFileName = StringReplace(sLogFileName, "%shortref%", sShortRefNo)
-	sLogFileName = StringReplace(sLogFileName, "%subref%", sSubRefNo)
-	sLogFileName = StringReplace(sLogFileName, "%sitename%", sSiteName)
-	sLogFileName = StringReplace(sLogFileName, "%organisation%", sOrganisation)
-	sLogFileName = StringReplace(sLogFileName, "%partner%", sPartner)
-	sLogFileName = StringReplace(sLogFileName, "%radius%", sRadius)
-	sLogFileName = StringReplace(sLogFileName, "%", "")
-	
-	sBufferSaveName = StringReplace(sDefaultBufferSaveName, "%ref%", sSearchRef)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%shortref%", sShortRefNo)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%subref%", sSubRefNo)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%sitename%", sSiteName)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%organisation%", sOrganisation)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
-	sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
-	   sBufferSaveName = StringReplace(sBufferSaveName, " ", "_")
-	sBufferSaveName = StringReplace(sBufferSaveName, "%", "")
-	
-	sGroupLayerName = StringReplace(sDefaultGroupLayerName, "%ref%", sSearchRef)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%subref%", sSubRefNo)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%sitename%", sSiteName)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%organisation%", sOrganisation)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
-	sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
-	   sGroupLayerName = StringReplace(sGroupLayerName, " ", "_")
-	sGroupLayerName = StringReplace(sGroupLayerName, "%", "")
-	
-	sSearchFeatureName = StringReplace(sDefaultSearchFeatureName, "%ref%", sSearchRef)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%subref%", sSubRefNo)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%sitename%", sSiteName)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%organisation%", sOrganisation)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%partner%", sPartner)
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%radius%", sRadius)
-	   sSearchFeatureName = StringReplace(sSearchFeatureName, " ", "_")
-	sSearchFeatureName = StringReplace(sSearchFeatureName, "%", "")
-	
+    sSaveFolder = StringReplace(sDefaultSaveFolder, "%ref%", sSearchRef)
+    sSaveFolder = StringReplace(sSaveFolder, "%shortref%", sShortRefNo)
+    sSaveFolder = StringReplace(sSaveFolder, "%subref%", sSubRefNo)
+    sSaveFolder = StringReplace(sSaveFolder, "%sitename%", sSiteName)
+    sSaveFolder = StringReplace(sSaveFolder, "%organisation%", sOrganisation)
+    sSaveFolder = StringReplace(sSaveFolder, "%partner%", sPartner)
+    sSaveFolder = StringReplace(sSaveFolder, "%radius%", sRadius)
+    sSaveFolder = StringReplace(sSaveFolder, "%", "")
+    
+    sGISFolder = StringReplace(sDefaultGISFolder, "%ref%", sSearchRef)
+    sGISFolder = StringReplace(sGISFolder, "%shortref%", sShortRefNo)
+    sGISFolder = StringReplace(sGISFolder, "%subref%", sSubRefNo)
+    sGISFolder = StringReplace(sGISFolder, "%sitename%", sSiteName)
+    sGISFolder = StringReplace(sGISFolder, "%organisation%", sOrganisation)
+    sGISFolder = StringReplace(sGISFolder, "%partner%", sPartner)
+    sGISFolder = StringReplace(sGISFolder, "%radius%", sRadius)
+    sGISFolder = StringReplace(sGISFolder, "%", "")
+    
+    sLogFileName = StringReplace(sDefaultLogFileName, "%ref%", sSearchRef)
+    sLogFileName = StringReplace(sLogFileName, "%shortref%", sShortRefNo)
+    sLogFileName = StringReplace(sLogFileName, "%subref%", sSubRefNo)
+    sLogFileName = StringReplace(sLogFileName, "%sitename%", sSiteName)
+    sLogFileName = StringReplace(sLogFileName, "%organisation%", sOrganisation)
+    sLogFileName = StringReplace(sLogFileName, "%partner%", sPartner)
+    sLogFileName = StringReplace(sLogFileName, "%radius%", sRadius)
+    sLogFileName = StringReplace(sLogFileName, "%", "")
+    
+    sBufferSaveName = StringReplace(sDefaultBufferSaveName, "%ref%", sSearchRef)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%shortref%", sShortRefNo)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%subref%", sSubRefNo)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%sitename%", sSiteName)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%organisation%", sOrganisation)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%partner%", sPartner)
+    sBufferSaveName = StringReplace(sBufferSaveName, "%radius%", sRadius)
+   	sBufferSaveName = StringReplace(sBufferSaveName, " ", "_")
+    sBufferSaveName = StringReplace(sBufferSaveName, "%", "")
+    
+    sGroupLayerName = StringReplace(sDefaultGroupLayerName, "%ref%", sSearchRef)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%shortref%", sShortRefNo)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%subref%", sSubRefNo)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%sitename%", sSiteName)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%organisation%", sOrganisation)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%partner%", sPartner)
+    sGroupLayerName = StringReplace(sGroupLayerName, "%radius%", sRadius)
+   	sGroupLayerName = StringReplace(sGroupLayerName, " ", "_")
+    sGroupLayerName = StringReplace(sGroupLayerName, "%", "")
+    
+    sSearchFeatureName = StringReplace(sDefaultSearchFeatureName, "%ref%", sSearchRef)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%shortref%", sShortRefNo)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%subref%", sSubRefNo)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%sitename%", sSiteName)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%organisation%", sOrganisation)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%partner%", sPartner)
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%radius%", sRadius)
+   	sSearchFeatureName = StringReplace(sSearchFeatureName, " ", "_")
+    sSearchFeatureName = StringReplace(sSearchFeatureName, "%", "")
+    
 	'-------------------------------------------------
-	' Remove any invalid characters from file/folder names
+    ' Remove any invalid characters from file/folder names
 	'-------------------------------------------------
-	sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar, True)))
-	sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar, True)))
-	sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar, False)))
-	sBufferSaveName = LTrim$(RTrim$(ReplaceSpecialChars(sBufferSaveName, sRepChar, False)))
-	sGroupLayerName = LTrim$(RTrim$(ReplaceSpecialChars(sGroupLayerName, sRepChar, False)))
-	sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar, False)))
+    sSaveFolder = LTrim$(RTrim$(ReplaceSpecialChars(sSaveFolder, sRepChar, True)))
+    sGISFolder = LTrim$(RTrim$(ReplaceSpecialChars(sGISFolder, sRepChar, True)))
+    sLogFileName = LTrim$(RTrim$(ReplaceSpecialChars(sLogFileName, sRepChar, False)))
+    sBufferSaveName = LTrim$(RTrim$(ReplaceSpecialChars(sBufferSaveName, sRepChar, False)))
+    sGroupLayerName = LTrim$(RTrim$(ReplaceSpecialChars(sGroupLayerName, sRepChar, False)))
+    sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar, False)))
 
 	'-------------------------------------------------
-	' Check if folder names contain only/excess backslashes
+    ' Check if folder names contain only/excess backslashes
 	'-------------------------------------------------
 	sSaveFolder = LTrim$(RTrim$(StringReplace(sSaveFolder, "\\", "\")))
 	If Left$(sSaveFolder, 1) = "\" Then
@@ -1767,12 +1762,12 @@ SetSubRef:
 	End If
 
 	'-------------------------------------------------
-	' Set the layer names to use
+    ' Set the layer names to use
 	'-------------------------------------------------
 	If Right$(sGroupLayerName,1) = "_" Then
-		sGroupLayer = Left$(sGroupLayerName, Len(sGroupLayerName) - 1)
+	    sGroupLayer = Left$(sGroupLayerName, Len(sGroupLayerName) - 1)
 	Else
-		sGroupLayer = sGroupLayerName
+	    sGroupLayer = sGroupLayerName
 	   End If
 	sSearchAreaTable = sSearchFeatureName
 	
@@ -2124,8 +2119,6 @@ EditLayer:
 
 	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
 		Commit Table sSearchTable
-		Call WAPISleep(iRetryDelay)
-
 		Call MyPrint("Table " + sSearchTable + " updated.")
 		Call MyPrint("")
 	End If
@@ -2210,17 +2203,17 @@ HideLayer:
 	'-------------------------------------------------
 	If iCombinedSitesTable > 1 Then
 
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%ref%", sSearchRef)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%shortref%", sShortRefNo)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%subref%", sSubRefNo)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%sitename%", sSiteName)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%organisation%", sOrganisation)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%partner%", sPartner)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%radius%", sRadius)
-		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%", "")
-		sCombinedSitesOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesOutputName, sRepChar, False)))
-		   sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, " ", "_")
-		
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%ref%", sSearchRef)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%shortref%", sShortRefNo)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%subref%", sSubRefNo)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%sitename%", sSiteName)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%organisation%", sOrganisation)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%partner%", sPartner)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%radius%", sRadius)
+	    sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, "%", "")
+	    sCombinedSitesOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sCombinedSitesOutputName, sRepChar, False)))
+   		sCombinedSitesOutputName = StringReplace(sCombinedSitesOutputName, " ", "_")
+	    
 		'-------------------------------------------------
 		' If a combined sites table is to be appended to
 		' (and already exists) ...
@@ -2327,9 +2320,7 @@ HideLayer:
 				Call MyPrint("Saving combined sites table ...")
 				Call MyPrint(iSitesTotal + " records saved.")
 			End If
-			
 			Commit Table sCombinedSitesTable
-		Call WAPISleep(iRetryDelay)
 		End If
 
 		'-------------------------------------------------
@@ -2345,13 +2336,11 @@ HideLayer:
 			If bDebug Then
 				Call MyPrint("Creating combined sites table as a DBF file ...")
 			End If
-			
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "DBF"
 				CharSet "WindowsLatin1"
 				Overwrite
-			Call WAPISleep(iRetryDelay)
 		End If
 	
 		'-------------------------------------------------
@@ -2362,14 +2351,12 @@ HideLayer:
 			If bDebug Then
 				Call MyPrint("Creating combined sites table as a TXT file ...")
 			End If
-			
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "ASCII"
 				Delimiter ","
 				CharSet "WindowsLatin1"
 				Overwrite
-			Call WAPISleep(iRetryDelay)
 		End If
 		
 		'-------------------------------------------------
@@ -2380,14 +2367,12 @@ HideLayer:
 			If bDebug Then
 				Call MyPrint("Creating combined sites table as a CSV file ...")
 			End If
-			
 			Export sCombinedSitesTable
 				Into sCombinedSitesOutput
 				Type "CSV"
 				CharSet "WindowsLatin1"
 				Titles
 				Overwrite
-			Call WAPISleep(iRetryDelay)
 		End If
 		
 		'-------------------------------------------------
@@ -2401,11 +2386,9 @@ HideLayer:
 		If bDebug Then
 			Call MyPrint("Closing combined sites table ...")
 		End If
-		
 		Close Table sCombinedSitesTable
-		Call WAPISleep(iRetryDelay)
 
-		 '-------------------------------------------------
+ 		'-------------------------------------------------
 		' Delete the combined sites table if empty
 		'-------------------------------------------------
 		If iSitesTotal = 0 Then
@@ -2429,20 +2412,19 @@ HideLayer:
 		If bDebug Then
 			Call MyPrint("Deleting buffer table ...")
 		End If
-		
 		Drop Table sBufferTable
 	Else
 
 		If bDebug Then
 			Call MyPrint("Renaming buffer table ...")
 		End If
-		
 		Close Table sBufferTable
 		
 		sBufferTable = sBufferSaveName
+	
 		If Not TryOpenTableFromPath(sLocalPath + "\" + sBufferTable + ".tab", sBufferTable) Then
-			Note "Failed to open the buffer table."
-			   Exit Sub
+    		Note "Failed to open the buffer table."
+   			Exit Sub
 		End If
 	End If
 	
@@ -2453,7 +2435,6 @@ HideLayer:
 		If bDebug Then
 			Call MyPrint("Deleting search area table ...")
 		End If
-		
 		Drop Table sSearchAreaTable
 	End If
 
@@ -2597,11 +2578,6 @@ Response:
 	End If
 
 	'-------------------------------------------------
-	' Commit the accumulated log messages to file
-	'-------------------------------------------------
-	'Call CommitLogMessages
-
-	'-------------------------------------------------
 	' Display the log file in the message window
 	'-------------------------------------------------
 	Call PrintLogFile
@@ -2689,9 +2665,7 @@ EditLayer:
 		If bDebug Then
 			Call MyPrint("Saving table " + sSearchTable + " ...")
 		End If
-		
 		Commit Table sSearchTable
-		Call WAPISleep(iRetryDelay)
 	End If
 
 	'-------------------------------------------------
@@ -2702,9 +2676,7 @@ EditLayer:
 		If bDebug Then
 			Call MyPrint("Closing existing search area table ...")
 		End If
-		
 		Close Table sSearchAreaTable
-		Call WAPISleep(iRetryDelay)
 	End If
 
 	'-------------------------------------------------
@@ -2715,18 +2687,14 @@ EditLayer:
 		If bDebug Then
 			Call MyPrint("Closing existing buffer table ...")
 		End If
-		
 		Close Table sBufferSaveName
-		Call WAPISleep(iRetryDelay)
 	End If
 
 	If TableIsOpen(sBufferTable) Then
 		If bDebug Then
 			Call MyPrint("Closing existing buffer table ...")
 		End If
-		
 		Close Table sBufferTable
-		Call WAPISleep(iRetryDelay)
 	End If
 
 	'-------------------------------------------------
@@ -2743,21 +2711,16 @@ EditLayer:
 	'-------------------------------------------------
 	Set ProgressBars Off
 
-	If bDebug Then
-		Call MyPrint("Saving search area table ...")
-	End If
-	
+	Call MyPrint("Saving search area table ...")
 	sCmd = "Commit Table " + sSearchAreaTable + " As " + Chr$(34) + sLocalPath + "\" + sSearchAreaTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
-	Call WAPISleep(iRetryDelay)
 
 	Set ProgressBars On
 
 	'-------------------------------------------------
-	' Close the search area table
+	' Close the selection table
 	'-------------------------------------------------
 	Close Table sSearchAreaTable
-	Call WAPISleep(iRetryDelay)
 
 	'-------------------------------------------------
 	' Close the latest query tables
@@ -2768,22 +2731,21 @@ EditLayer:
 			If bDebug Then
 				Call MyPrint("Closing temporary table '" + TableInfo(t, TAB_INFO_NAME) + "'")
 			End If
-			
 			Close Table TableInfo(t, TAB_INFO_NAME)
 			Exit For
 		End If
 	Next
 
 	'-------------------------------------------------
-	' Reopen the search area table
+	' Open the new search area table
 	'-------------------------------------------------
 	If bDebug Then
 		Call MyPrint("Opening search area table ...")
 	End If
 
 	If Not TryOpenTableFromPath(sLocalPath + "\" + sSearchAreaTable + ".tab", sSearchAreaTable) Then
-		   Note "Failed to open new search area table."
-		  Exit Sub
+   		Note "Failed to open new search area table."
+  		Exit Sub
 	End If
 
 	'-------------------------------------------------
@@ -2817,7 +2779,6 @@ EditLayer:
 	Call MyPrint("Setting search area symbology ...")
 	Dim sNodeName As String
 	sNodeName = "SearchArea"
-	
 	Call SetSymbology(sNodeName, sSearchAreaTable)
 
 	'-------------------------------------------------
@@ -2827,10 +2788,8 @@ EditLayer:
 
 	If TableInfo(sSearchAreaTable, TAB_INFO_EDITED) Then
 		Commit Table sSearchAreaTable
-		Call WAPISleep(iRetryDelay)
-		
 		Call MyPrint("Table " + sSearchTable + " symbology updated.")
-	End If
+		End If
 
 	Set ProgressBars On
 
@@ -2844,14 +2803,12 @@ EditLayer:
 	' search area table)
 	'-------------------------------------------------
 	Call MyPrint("Buffering the search reference ...")
-	
 	If Int(sBufferSize) = 0 Then
 		sCmd = "Insert Into " + sSearchTable + " Select * from " + sSearchAreaTable
 	Else
 		sCmd = "Create Object As Buffer From " + sSearchAreaTable + " Width " + sBufferSize + " Units " + Chr$(34) + sBufferUnit + Chr$(34) + " Type Spherical Resolution 100 Into Table " + sSearchTable + " Data " + sAggregateColumns
 	End If
 	Run Command (sCmd)
-	Call WAPISleep(iRetryDelay)
 
 	'-------------------------------------------------
 	' Save the buffer table
@@ -2859,10 +2816,8 @@ EditLayer:
 	If bDebug Then
 		Call MyPrint("Saving buffer table ...")
 	End If
-	
 	sCmd = "Commit Table Selection As " + Chr$(34) + sLocalPath + "\" + sBufferSaveName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
-	Call WAPISleep(iRetryDelay)
 
 	'-------------------------------------------------
 	' Close the selection table
@@ -2888,10 +2843,9 @@ EditLayer:
 	If bDebug Then
 		Call MyPrint("Opening buffer table ...")
 	End If
-	
 	If Not TryOpenTableFromPath(sLocalPath + "\" + sBufferSaveName + ".tab", sBufferTable) Then
-		   Note "Failed to open new buffer table."
-		  Exit Sub
+   		Note "Failed to open new buffer table."
+  		Exit Sub
 	End If
 
 	'-------------------------------------------------
@@ -2904,7 +2858,6 @@ EditLayer:
 	'-------------------------------------------------
 	Call MyPrint("Setting buffer symbology ...")
 	sNodeName = "Buffer"
-	
 	Call SetSymbology(sNodeName, sBufferTable)
 
 	'-------------------------------------------------
@@ -2914,8 +2867,6 @@ EditLayer:
 
 	If TableInfo(sBufferTable, TAB_INFO_EDITED) Then
 		Commit Table sBufferTable
-		Call WAPISleep(iRetryDelay)
-		
 		Call MyPrint("Table " + sBufferTable + " symbology updated.")
 	End If
 
@@ -2930,7 +2881,6 @@ EditLayer:
 	' Undo the updates to the search table to remove the temporary buffered object
 	'-------------------------------------------------
 	Rollback Table sSearchTable
-	Call WAPISleep(iRetryDelay)
 
 	'-------------------------------------------------
 	' Make the search area table non-editable
@@ -2955,69 +2905,67 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 '* Includes retry logic and debug/error logging.
 '*************************************************
 
-	CreateCombinedSitesTable = False
-	Dim iRetry As Integer
+    CreateCombinedSitesTable = False
+    Dim iRetry As Integer
 
-	OnError Goto ErrorTrap
+    OnError Goto ErrorTrap
 
-	'-------------------------------------------------
-	' Check if an old combined sites table is
-	' already/still open and close it if it is
-	'-------------------------------------------------
-	If TableIsOpen(sSitesTable) Then
-		If bDebug Then
-			Call MyPrint("Closing existing combined sites table ...")
-		End If
-		
-		Close Table sSitesTable
-		Call WAPISleep(iRetryDelay)
-	End If
+    '-------------------------------------------------
+    ' Check if an old combined sites table is
+    ' already/still open and close it if it is
+    '-------------------------------------------------
+    If TableIsOpen(sSitesTable) Then
+        If bDebug Then
+            Call MyPrint("Closing existing combined sites table ...")
+        End If
+        Close Table sSitesTable
+    End If
 
-	If bDebug Then
-		Call MyPrint("Creating combined sites table ...")
-	End If
+    If bDebug Then
+        Call MyPrint("Creating combined sites table ...")
+    End If
 
-	'-------------------------------------------------
-	' Build the create table command
-	'-------------------------------------------------
-	Dim sCmd As String
-	sCmd = "Create Table " + Chr$(34) + sSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
+    '-------------------------------------------------
+    ' Build the create table command
+    '-------------------------------------------------
+    Dim sCmd As String
+    sCmd = "Create Table " + Chr$(34) + sSitesTable + Chr$(34) + " (" + sCombinedSitesColumns + ") file " + Chr$(34) + sLocalPath + "\" + sSitesTable + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 
-	'-------------------------------------------------
-	' Attempt creation with retry logic
-	'-------------------------------------------------
-	For iRetry = 1 To MAX_RETRIES
-		OnError Goto ErrorTrap
-		Run Command (sCmd)
+    '-------------------------------------------------
+    ' Attempt creation with retry logic
+    '-------------------------------------------------
+    For iRetry = 1 To MAX_RETRIES
+        OnError Goto ErrorTrap
+        Run Command (sCmd)
 
-		' Confirm table was created
-		If TableInfo(sSitesTable, TAB_INFO_NAME) <> "" Then
-			If bDebug Then
-				Call MyPrint("Creation complete.")
-				Call MyPrint("")
-			End If
+        ' Confirm table was created
+        If TableInfo(sSitesTable, TAB_INFO_NAME) <> "" Then
+            If bDebug Then
+                Call MyPrint("Creation complete.")
+                Call MyPrint("")
+            End If
 
-			CreateCombinedSitesTable = True
-			Exit Function
-		End If
+            CreateCombinedSitesTable = True
+            Exit Function
+        End If
 
-		' Retry if table not found
-		If bDebug Then
-			Call MyPrint("Retry " + Str$(iRetry) + ": Table creation not confirmed.")
-		End If
-		Call WAPISleep(iRetryDelay)
-	Next
+        ' Retry if table not found
+        If bDebug Then
+            Call MyPrint("Retry " + Str$(iRetry) + ": Table creation not confirmed.")
+        End If
+        Run Command "Sleep " + Str$(RETRY_DELAY_MS)
+    Next
 
-	' Final fallback
-	Call MyPrint("ERROR: Failed to create combined sites table after " + Str$(MAX_RETRIES) + " attempts.")
-	Call LogErrorContext("CreateCombinedSitesTable")
-	Exit Function
+    ' Final fallback
+    Call MyPrint("ERROR: Failed to create combined sites table after " + Str$(MAX_RETRIES) + " attempts.")
+    Call LogErrorContext("CreateCombinedSitesTable")
+    Exit Function
 
 ErrorTrap:
-	Note "Error: " + Str$(Err()) + ": " + Error$()
-	Call MyPrint("ERROR: " + Str$(Err()) + ": " + Error$())
-	Call LogErrorContext("CreateCombinedSitesTable")
-	Resume Next
+    Note "Error: " + Str$(Err()) + ": " + Error$()
+    Call MyPrint("ERROR: " + Str$(Err()) + ": " + Error$())
+    Call LogErrorContext("CreateCombinedSitesTable")
+    Resume Next
 
 End Function
 
@@ -3037,11 +2985,7 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 		If bDebug Then
 			Call MyPrint("Closing existing combined sites table ...")
 		End If
-		
 		Close Table sSitesTable
-		Call WAPISleep(iRetryDelay)
-		
-
 		If bDebug Then
 			Call MyPrint("Re-opening existing combined sites table ...")
 		End If
@@ -3060,8 +3004,8 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	' Try and open the combined sites table
 	'-------------------------------------------------
 	If Not TryOpenTableFromPath(sLocalPath + "\" + sSitesTable + ".tab", sSitesTable) Then
-		   Note "Failed to open the combined sites table."
-		  Exit Sub
+   		Note "Failed to open the combined sites table."
+  		Exit Sub
 	End If
 	
 	If bDebug Then
@@ -3161,38 +3105,38 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	'-------------------------------------------------
 	Dim sLocalName As String, sOutputName as String, sExportName As String, sExportTemp As String
 	sOutputName = SelectedMap.GISOutputName
-	sOutputName = StringReplace(sOutputName, "%ref%", sSearchRef)
-	sOutputName = StringReplace(sOutputName, "%shortref%", sShortRefNo)
-	sOutputName = StringReplace(sOutputName, "%subref%", sSubRefNo)
-	sOutputName = StringReplace(sOutputName, "%sitename%", sSiteName)
-	sOutputName = StringReplace(sOutputName, "%organisation%", sOrganisation)
-	sOutputName = StringReplace(sOutputName, "%partner%", sPartner)
-	sOutputName = StringReplace(sOutputName, "%radius%", sRadius)
-	sOutputName = StringReplace(sOutputName, "%", "")
-	sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar, False)))
-	sOutputName = StringReplace(sOutputName, " ", "_")
-	
-	If Len(SelectedMap.TableName + "_" + sSubRefNo) > 30 Then
-		sLocalName = Left$(SelectedMap.TableName, 29 - Len(sSubRefNo)) + "_" + sSubRefNo
-	Else
-		sLocalName = SelectedMap.TableName + "_" + sSubRefNo
-	End If
+    sOutputName = StringReplace(sOutputName, "%ref%", sSearchRef)
+    sOutputName = StringReplace(sOutputName, "%shortref%", sShortRefNo)
+    sOutputName = StringReplace(sOutputName, "%subref%", sSubRefNo)
+    sOutputName = StringReplace(sOutputName, "%sitename%", sSiteName)
+    sOutputName = StringReplace(sOutputName, "%organisation%", sOrganisation)
+    sOutputName = StringReplace(sOutputName, "%partner%", sPartner)
+    sOutputName = StringReplace(sOutputName, "%radius%", sRadius)
+    sOutputName = StringReplace(sOutputName, "%", "")
+    sOutputName = LTrim$(RTrim$(ReplaceSpecialChars(sOutputName, sRepChar, False)))
+    sOutputName = StringReplace(sOutputName, " ", "_")
+    
+    If Len(SelectedMap.TableName + "_" + sSubRefNo) > 30 Then
+	    sLocalName = Left$(SelectedMap.TableName, 29 - Len(sSubRefNo)) + "_" + sSubRefNo
+    Else
+    	sLocalName = SelectedMap.TableName + "_" + sSubRefNo
+    End If
 
 	sExportName = SelectedMap.TableOutputName
-	sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
-	sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
-	sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
-	sExportName = StringReplace(sExportName, "%sitename%", sSiteName)
-	sExportName = StringReplace(sExportName, "%organisation%", sOrganisation)
-	sExportName = StringReplace(sExportName, "%partner%", sPartner)
-	sExportName = StringReplace(sExportName, "%radius%", sRadius)
-	sExportName = StringReplace(sExportName, "%", "")
-	sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar, False)))
-	sExportName = StringReplace(sExportName, " ", "_")
-	
-	'If sExportName = SelectedMap.TableOutputName Then
-	'	sExportName = sSubRefNo + SelectedMap.TableOutputName
-	'End If
+    sExportName = StringReplace(sExportName, "%ref%", sSearchRef)
+    sExportName = StringReplace(sExportName, "%shortref%", sShortRefNo)
+    sExportName = StringReplace(sExportName, "%subref%", sSubRefNo)
+    sExportName = StringReplace(sExportName, "%sitename%", sSiteName)
+    sExportName = StringReplace(sExportName, "%organisation%", sOrganisation)
+    sExportName = StringReplace(sExportName, "%partner%", sPartner)
+    sExportName = StringReplace(sExportName, "%radius%", sRadius)
+    sExportName = StringReplace(sExportName, "%", "")
+    sExportName = LTrim$(RTrim$(ReplaceSpecialChars(sExportName, sRepChar, False)))
+    sExportName = StringReplace(sExportName, " ", "_")
+    
+    'If sExportName = SelectedMap.TableOutputName Then
+    '	sExportName = sSubRefNo + SelectedMap.TableOutputName
+    'End If
 
 	sExportTemp = "X" + sExportName
 
@@ -3289,7 +3233,6 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 	sCmd = "Commit Table " + sSelectName + " As " + Chr$(34) + sLocalPath + "\" + sOutputName + ".tab" + Chr$(34) + " TYPE NATIVE Charset " + Chr$(34) + "WindowsLatin1" + Chr$(34)
 	Run Command (sCmd)
-	Call WAPISleep(iRetryDelay)
 
 	'-------------------------------------------------
 	' Close the selection table
@@ -3303,8 +3246,8 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	Close Table sSelectName
 
 	If Not TryOpenTableFromPath(sLocalPath + "\" + sOutputName + ".tab", sSelectName) Then
-		   Note "Failed to open the local selection table."
-			  Exit Sub
+   		Note "Failed to open the local selection table."
+  			Exit Sub
 	End If
 
 	'-------------------------------------------------
@@ -3329,7 +3272,6 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			If bDebug Then
 				Call MyPrint("Adding column " + SelectedMap.LabelColumn + "...")
 			End If
-			
 			sCmd = "Alter Table " + sSelectName + " ( Add " + SelectedMap.LabelColumn + " Char(10) )"
 			Run Command (sCmd)
 		
@@ -3632,8 +3574,8 @@ AddToMap:
 			' name
 			'-------------------------------------------------
 			If Not TryOpenTableFromPath(sLocalPath + "\" + sOutputName + ".tab", sLocalName) Then
-				   Note "Failed to open the local selection table."
-				  Exit Sub
+   				Note "Failed to open the local selection table."
+  				Exit Sub
 			End If
 		
 			'-------------------------------------------------
@@ -3927,95 +3869,94 @@ Sub OverwriteMapLabels
 	'-------------------------------------------------
 	' Trap errors
 	'-------------------------------------------------
-	OnError Goto ErrorTrap
+    OnError Goto ErrorTrap
 
 	'-------------------------------------------------
 	' Set a default column name
 	'-------------------------------------------------
-	If sKeyColumn = "" Then
-		sKeyColumn = "Col1"
-	End If
+    If sKeyColumn = "" Then
+        sKeyColumn = "Col1"
+    End If
 
-	Set ProgressBars Off
+    Set ProgressBars Off
 
-	'-------------------------------------------------
-	' Select the rows to update
-	'-------------------------------------------------
-	Dim sCmd As String
-	sCmd = "Select * From " + sTableName + " Into MapLabels NoSelect"
-	Run Command sCmd
+    '-------------------------------------------------
+    ' Select the rows to update
+    '-------------------------------------------------
+    Dim sCmd As String
+    sCmd = "Select * From " + sTableName + " Into MapLabels NoSelect"
+    Run Command sCmd
 
 	'-------------------------------------------------
 	' Count the number of rows selected
 	'-------------------------------------------------
-	Dim iRows As Integer
-	iRows = TableInfo(MapLabels, TAB_INFO_NROWS)
-	If bDebug Then
-		Call MyPrint("Overwriting map labels for " + FormatNumber$(iRows) + " rows ...")
-	End If
+    Dim iRows As Integer
+    iRows = TableInfo(MapLabels, TAB_INFO_NROWS)
+    If bDebug Then
+        Call MyPrint("Overwriting map labels for " + FormatNumber$(iRows) + " rows ...")
+    End If
 
 	'-------------------------------------------------
 	' If no rows were selected then clean up
 	'-------------------------------------------------
-	If iRows = 0 Then Goto CleanUp End If
+    If iRows = 0 Then Goto CleanUp End If
 
 	'-------------------------------------------------
 	' Fetch the first of the selected rows
 	'-------------------------------------------------
-	Fetch First From MapLabels
+    Fetch First From MapLabels
 
-	Dim sKeyValue As String, sPrevKey As String
-	Dim iCounter As Integer
-	iCounter = iMapLabelCounter
-	sPrevKey = ""
+    Dim sKeyValue As String, sPrevKey As String
+    Dim iCounter As Integer
+    iCounter = iMapLabelCounter
+    sPrevKey = ""
 
 	'-------------------------------------------------
 	' Turn on FastEdit to speed up the updates
 	'-------------------------------------------------
 	Set Table sTableName FastEdit On
 
-	'-------------------------------------------------
-	' Loop through rows and update label column
-	'-------------------------------------------------
-	Dim iRow As Integer
-	For iRow = 1 To iRows
+    '-------------------------------------------------
+    ' Loop through rows and update label column
+    '-------------------------------------------------
+    Dim iRow As Integer
+    For iRow = 1 To iRows
 
 		'-------------------------------------------------
 		' Get the row key value
 		'-------------------------------------------------
-		sKeyValue = MapLabels.sKeyColumn
+        sKeyValue = MapLabels.sKeyColumn
 
-		If sKeyValue <> sPrevKey Then
-			iCounter = iCounter + 1
-			sPrevKey = sKeyValue
-		End If
+        If sKeyValue <> sPrevKey Then
+            iCounter = iCounter + 1
+            sPrevKey = sKeyValue
+        End If
 
 		'-------------------------------------------------
 		' Update the row in the table
 		'-------------------------------------------------
-		sCmd = "Update " + sTableName + " Set " + sLabelColumn + " = " + Str$(iCounter) + " Where " + sKeyColumn + " = " + Chr$(34) + sKeyValue + Chr$(34)
-		Run Command sCmd
+        sCmd = "Update " + sTableName + " Set " + sLabelColumn + " = " + Str$(iCounter) + " Where " + sKeyColumn + " = " + Chr$(34) + sKeyValue + Chr$(34)
+        Run Command sCmd
 
 		'-------------------------------------------------
 		' Fetch the next of the selected rows
 		'-------------------------------------------------
-		If iRow < iRows Then
-			Fetch Next From MapLabels
-		End If
-	Next
+        If iRow < iRows Then
+            Fetch Next From MapLabels
+        End If
+    Next
 
 	'-------------------------------------------------
 	' Increment the label counter if the row
 	' key value has changed
 	'-------------------------------------------------
-	iMapLabelCounter = iCounter
+    iMapLabelCounter = iCounter
 
 	'-------------------------------------------------
 	' Save the updates
 	'-------------------------------------------------
 	If TableInfo(sTableName, TAB_INFO_EDITED) Then
 		Commit Table sTableName
-		Call WAPISleep(iRetryDelay)
 		
 		If bDebug Then
 			Call MyPrint("Table " + sTableName + " updated.")
@@ -4028,15 +3969,15 @@ Sub OverwriteMapLabels
 	Set Table sTableName FastEdit Off
 
 CleanUp:
-	Set ProgressBars On
+    Set ProgressBars On
 
 	'-------------------------------------------------
 	' Close the temporary MapLabels table if it is
 	' already/still open in the current MapInfo session
 	'-------------------------------------------------
-	If TableIsOpen("MapLabels") Then
-		Close Table MapLabels
-	End If
+    If TableIsOpen("MapLabels") Then
+        Close Table MapLabels
+    End If
 
 	'-------------------------------------------------
 	' Close the the Selection table if it is
@@ -4050,12 +3991,12 @@ CleanUp:
 	' Unselect all records
 	'-------------------------------------------------
 	Run Menu Command M_QUERY_UNSELECT
-	Exit Sub
+    Exit Sub
 
 ErrorTrap:
-	Note "Error: " + Str$(Err()) + ": " + Error$()
-	Call MyPrint("Error in OverwriteMapLabels: " + Error$())
-	Goto CleanUp
+    Note "Error: " + Str$(Err()) + ": " + Error$()
+    Call MyPrint("Error in OverwriteMapLabels: " + Error$())
+    Goto CleanUp
 
 End Sub
 
@@ -4216,7 +4157,6 @@ Sub AddToCombinedSitesTable
 	'-------------------------------------------------
 	sCmd = "Commit Table " + sCombinedSitesTable
 	Run Command (sCmd)
-	Call WAPISleep(iRetryDelay)
 
 CleanUp:
 
@@ -4298,7 +4238,7 @@ Sub SetSymbology(sNodeName as String, sTableName As String)
 				' Get a handle on the DataExtractor node
 				'-------------------------------------------------
 				hXMLNode = MIXmlSelectSingleNode(hXMLRoot, "DataSearches")
-				  If hXMLNode Then
+	          	If hXMLNode Then
 	
 					'-------------------------------------------------
 					' Get a handle on the table node
@@ -4366,7 +4306,7 @@ Sub SetSymbology(sNodeName as String, sTableName As String)
 						'-------------------------------------------------
 						Dim sCmd As String
 						sCmd = "Select * From " + sTableName + " Where Str$(obj) = " + Chr$(34) + sObject + Chr$(34) + sSQLClause + " Into NewStyle NoSelect"
-						Run Command sCmd
+					    Run Command sCmd
 
 						'-------------------------------------------------
 						' Count the number of rows selected
@@ -4399,7 +4339,7 @@ Sub SetSymbology(sNodeName as String, sTableName As String)
 								Case "Point"
 									sSymbol = GetSingleNodeValue(hXMLSymbolNode, "Symbol")
 									stlSymbol = STLText2Symbol(sSymbol)
-									Update NewStyle Set Obj = SetStylePoint(Obj, stlSymbol)
+								    Update NewStyle Set Obj = SetStylePoint(Obj, stlSymbol)
 								Case "Line"
 									sPen = GetSingleNodeValue(hXMLSymbolNode, "Pen")
 									stlPen = STLText2Pen(sPen)
@@ -4510,7 +4450,7 @@ Sub AboutBox
 		Title "Copyright© 2012-2013 GiGL, 2015-2019 TVERC, GiGL."
 		Position 10,70
 	Control StaticText
-		Title "Copyright© 2020-21, 2025 Andy Foy Consulting."
+		Title "Copyright© 2020-21 Andy Foy Consulting."
 		Position 10,80
 	Control StaticText
 		Title "This tool was developed with initial funding from:"
@@ -4531,99 +4471,67 @@ End Sub
 
 Sub MyPrint(ByVal sMsg As String)
 '***************************************************************
-'* Bespoke print function
+'* Bespoke print function with retry logic for robustness
 '***************************************************************
 
-	If bLogMessages = False Then Exit Sub End If
-
+    If bLogMessages = False Then
+		Exit Sub
+    End If
+    
+	Dim iRetry As Integer
+	Dim bSuccess As Logical
+	bSuccess = False
+	
 	' Set a default log file handler, just in case
 	If iLogFileNum < 1 Then
 		iLogFileNum = 99
 	End If
-	
-	OnError GoTo HandleFileError
-	
-	'-------------------------------------------------
-	' Open the log file for output
-	'-------------------------------------------------
-	Open File sLogFile For Append As #iLogFileNum 
+
+	OnError Goto HandleFileError
 	
 	'-------------------------------------------------
-	' Write the message passed to the output file
+	' Retry opening the log file for output
 	'-------------------------------------------------
-	Print #iLogFileNum , FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
-	
-	'-------------------------------------------------
-	' Close the output file
-	'-------------------------------------------------
-	Close File #iLogFileNum 
-	
-	OnError GoTo 0
-	
-	Exit Sub
+	For iRetry = 1 To MAX_RETRIES
+		Open File sLogFile For Append As #iLogFileNum
+
+		' If we get here, the file opened successfully
+		bSuccess = True
+		Exit For
 
 HandleFileError:
-	If Not bMessageWinShown Then
-		Open Window Message
-		Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : ERROR: Could not write to log file: " + sLogFile
-		bMessageWinShown = True
-	End If
-
-	Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
-	OnError GoTo 0
-End Sub
-
-'Sub MyPrint(ByVal sMsg As String)
-''***************************************************************
-''* Modified print function to store messages in memory instead
-''***************************************************************
-'
-'	If Not bLogMessages Then Exit Sub End If
-'
-'	' Format timestamp
-'	Dim sTimestampedMsg As String
-'	sTimestampedMsg = FormatDate$(CurDate()) + " " + FormatTime$(CurTime(), "HH:mm:ss") + " : " + sMsg
-'
-'	' Increase the array size and store message
-'	iLogCount = iLogCount + 1
-'	ReDim sLogMessages(iLogCount)
-'	sLogMessages(iLogCount) = sTimestampedMsg
-'
-'End Sub
-
-Sub CommitLogMessages()
-'***************************************************************
-'* Writes all stored log messages to the output log file
-'***************************************************************
-
-	If Not bLogMessages Or iLogCount = 0 Then Exit Sub End If
-
-	' Set a default log file handler, just in case
-	If iLogFileNum < 1 Then
-		iLogFileNum = 99
-	End If
-	
-	OnError Goto HandleFileError
-
-	Open File sLogFile For Append As #iLogFileNum
-
-	Dim i As Integer
-	For i = 1 To iLogCount
-		Print #iLogFileNum, sLogMessages(i)
+		' Wait and retry
+		Run Command "Sleep " + Str$(RETRY_DELAY_MS)
+		Resume Next
 	Next
 
-	Close File #iLogFileNum
+	'-------------------------------------------------
+	' If file opened successfully, write the log entry
+	'-------------------------------------------------
+	If bSuccess Then
+		' Write the message passed to the output file
+		Print #iLogFileNum, FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
 
-	' Reset the log array
-	iLogCount = 0
-	ReDim sLogMessages(0)
-	
-	Exit Sub
+		' Close the output file
+		Close File #iLogFileNum
+		OnError GoTo 0
+		Exit Sub
+	End If
 
-HandleFileError:
-	Note "ERROR: Could not write log to file: " + sLogFile
-	Resume Next
+    ' Fall through to message window fallback
 
+    '-------------------------------------------------
+    ' Fallback to message window if file write failed
+    '-------------------------------------------------
+    If Not bMessageWinShown Then
+        Open Window Message
+        bMessageWinShown = True
+    End If
+
+    Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : ERROR: Could not write to log file: '" + sLogFile + "'"
+    Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
+
+    OnError GoTo 0
 End Sub
 
 Sub PrintLogFile()
