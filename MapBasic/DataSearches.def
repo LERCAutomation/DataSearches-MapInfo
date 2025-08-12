@@ -25,7 +25,7 @@
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
-'* Created:			Andy Foy - February 2013
+'* Created:		Andy Foy - February 2013
 '* Last revised:	Andy Foy - August 2025
 '***************************************************************
 
@@ -122,6 +122,8 @@ Declare Sub GetXmlProfile
 Declare Sub AboutBox
 Declare Sub egsit
 Declare Sub MyPrint
+	(ByVal sMsg As String)
+Declare Sub PrintDirect
 	(ByVal sMsg As String)
 Declare Sub CommitLogMessages
 Declare Sub PrintLogFile
@@ -399,6 +401,10 @@ Global iAddSelectedTables As SmallInt
 Global sKeepSelectedTablesOptions As String
 Global iDefaultKeepSelectedTables As SmallInt
 Global iKeepSelectedTables As SmallInt
+
+Global sApplySymbologyOptions As String
+Global iDefaultApplySymbology As SmallInt
+Global iApplySymbology As SmallInt
 
 Global sOverwriteLabelOptions As String
 Global iDefaultOverwriteLabels As SmallInt

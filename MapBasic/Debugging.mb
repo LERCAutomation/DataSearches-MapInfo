@@ -25,7 +25,7 @@
 '* Adds version logging, retry logic and error logging support.
 '*
 '*
-'* Created:			Andy Foy - July 2025
+'* Created:		Andy Foy - July 2025
 '* Last revised:	Andy Foy - July 2025
 '*
 '* *****************  Version 1.00  *****************
@@ -39,7 +39,7 @@ Include "DataSearches.def"
 ' Constants and Globals
 '-------------------------------------------------
 Define MAX_RETRIES 3
-Define RETRY_DELAY_MS 1000
+Define RETRY_DELAY_MS 2000
 
 '-------------------------------------------------
 ' Function and Sub Declarations
