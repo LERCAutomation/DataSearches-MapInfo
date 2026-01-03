@@ -272,6 +272,16 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value>1</value>
 	</DefaultKeepSelectedTables>
 
+	<!-- The options for applying symbology to the layers and tables. -->
+	<ApplySymbologyOptions>
+		<value>None;Layers only;Layers and tables</value>
+	</ApplySymbologyOptions>
+
+	<!-- The default option (position in the list) for whether symbology should be applied to the layers and tables. Leave blank to hide option in dialog. -->
+	<DefaultApplySymbology>
+		<value>1</value>
+	</DefaultApplySymbology>
+
 	<!-- The name of the group layer that will be created in the table of contents -->
 	<GroupLayerName>
 		<value>%subref%_%sitename%</value>
