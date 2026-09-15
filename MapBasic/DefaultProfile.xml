@@ -73,6 +73,11 @@ used by the MapBasic tool to select and export MapInfo data for each data search
 		<value> </value>
 	</RepChar>
 
+	<!-- The file location where wrrking outputs will be temporarily stored. -->
+	<WorkingDir>
+		<value>C:\Users\Andy\Temp</value>
+	</WorkingDir>
+
 	<!-- The file location where all data search folders are stored. -->
 	<SaveRootDir>
 		<value>I:\Delivery\Customers\DataSearches\Reports</value>

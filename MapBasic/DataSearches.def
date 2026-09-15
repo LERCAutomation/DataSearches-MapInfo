@@ -25,7 +25,7 @@
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
-'* Created:		Andy Foy - February 2013
+'* Created:			Andy Foy - February 2013
 '* Last revised:	Andy Foy - August 2025
 '***************************************************************
 
@@ -116,8 +116,6 @@ Declare Sub DataSearches
 Declare Sub DialogSetup
 Declare Sub GetSiteName
 Declare Sub CheckSelection
-Declare Sub SelectMaps
-	(SelectedMap As MapDetails)
 Declare Sub GetXmlProfile
 Declare Sub AboutBox
 Declare Sub egsit
@@ -128,7 +126,12 @@ Declare Sub PrintDirect
 Declare Sub CommitLogMessages
 Declare Sub PrintLogFile
 Declare Sub BufferSearch
-Declare Sub ProcessExtracts
+Declare Sub ProcessTables
+Declare Sub SelectMaps
+	(SelectedMap As MapDetails)
+Declare Sub MapTables
+Declare Sub OutputMaps
+	(SelectedMap As MapDetails)
 Declare Sub OverwriteMapLabels
 	(sTableName As String,
 	sMapKeyColumn As String,
@@ -355,6 +358,7 @@ Global sPartnerColumn As String
 Global sRadiusColumn As String
 Global sRequireSiteName As String
 Global sRepChar As String
+Global sWorkingDir As String
 Global sSaveRootDir As String
 
 Global sDefaultSaveFolder As String
@@ -436,6 +440,8 @@ Global aOpenTables(99) As String
 
 Global iExtractTot As Integer
 Global iExtractCnt As Integer
+Global iMapTot As Integer
+Global iMapCnt As Integer
 Global iMapTable As Integer
 Global iRecMax As Integer
 Global bClearLog As Logical
@@ -461,3 +467,6 @@ Global sLastGroupName As String
 
 Global iNumSearchTable as Integer
 Global bMessageWinShown As Logical
+
+Global sQ As String
+Global sCmd As String
