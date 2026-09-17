@@ -78,7 +78,7 @@
 '*
 '* *****************  Version 1.4.35  **************
 '* Author: Andy Foy		Date: 24/07/2020
-'* A. Delete the combined sites output table If empty.
+'* A. Delete the combined sites output table if empty.
 '*
 '* *****************  Version 1.4.34  **************
 '* Author: Andy Foy		Date: 15/12/2019
@@ -98,12 +98,12 @@
 '*
 '* *****************  Version 1.4.31  **************
 '* Author: Andy Foy		Date: 05/08/2019
-'* A. Fix bug If Universal Translator mapping file is missing.
+'* A. Fix bug if Universal Translator mapping file is missing.
 '*
 '* *****************  Version 1.4.30  **************
 '* Author: Andy Foy		Date: 01/08/2019
 '* A. Enable loading XML profiles when running in 64bit.
-'* B. Create output file paths If missing.
+'* B. Create output file paths if missing.
 '* C. Add details of funding organisations to About box.
 '*
 '* *****************  Version 1.4.29  **************
@@ -121,7 +121,7 @@
 '* *****************  Version 1.4.26  **************
 '* Author: Andy Foy		Date: 04/10/2018
 '* A. Enable %partner% to be used as a variable in the XML.
-'* B. Update partner organisation in search layer If required.
+'* B. Update partner organisation in search layer if required.
 '* C. Log selection options in log file.
 '*
 '* *****************  Version 1.4.25  **************
@@ -139,7 +139,7 @@
 '* F. Change how labels are set/reset by layers/groups.
 '* G. Add "OutputType" option in XML for copy/clip/overlap
 '*	or intersect.
-'* H. Update search radius in search layer If required.
+'* H. Update search radius in search layer if required.
 '* I. Enable %radius% to be used as a variable in the XML.
 '*
 '* *****************  Version 1.4.23  **************
@@ -164,7 +164,7 @@
 '* *****************  Version 1.4.19  **************
 '* Author: Andy Foy		Date: 17/05/2017
 '* A. Only update site name and/or organisation in
-'*	search layer If required.
+'*	search layer if required.
 '* B. Remove hard-coded site name and organisation
 '*	column names.
 '* C. Add option to keep buffer and search areas.
@@ -194,8 +194,8 @@
 '*
 '* *****************  Version 1.4.13  **************
 '* Author: Andy Foy		Date: 24/10/2016
-'* A. Pre-select layers If specified on layer in XML.
-'* B. Reset label numbers to 1 If specified on layer
+'* A. Pre-select layers if specified on layer in XML.
+'* B. Reset label numbers to 1 if specified on layer
 '*	in XML.
 '* C. Hide search layer before searching.
 '* D. Enable option to suppress warning for layers
@@ -250,7 +250,7 @@
 '* Author: Andy Foy		Date: 11/04/2016
 '* A. Add button to lookup Site Name from database
 '*	using search reference.
-'* B. Hide controls If default value is blank.
+'* B. Hide controls if default value is blank.
 '*
 '* *****************  Version 1.4.4  ****************
 '* Author: Andy Foy		Date: 24/03/2016
@@ -267,7 +267,7 @@
 '* 
 '* *****************  Version 1.4.2  ****************
 '* Author: Andy Foy		Date: 09/03/2016
-'* A. Ask user If they want to keep the dialog open.
+'* A. Ask user if they want to keep the dialog open.
 '* B. Open log file using Notepad.exe.
 '*
 '* *****************  Version 1.4.1  ****************
@@ -518,7 +518,7 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 					' The character(s) used to replace any special characters in folder names
 					sRepChar = GetSingleNodeValue(hXMLNode, "RepChar")
 
-					' The file location where wrrking outputs will be temporarily stored
+					' The file location where working outputs will be temporarily stored
 					sWorkingDir = GetSingleNodeValue(hXMLNode, "WorkingDir")
 
 					' The file location where all data search folders are stored
@@ -760,7 +760,7 @@ Sub GetDefaultValues(ByVal sXMLFile As String)
 						' Whether the layer can be retained after exporting
 						AllMaps(i).Keep = GetSingleNodeValue(hXMLFilesNode, "KeepLayer")
 
-						' Whether a warning should appear If the layer is not already loaded
+						' Whether a warning should appear if the layer is not already loaded
 						AllMaps(i).Warning = GetSingleNodeValue(hXMLFilesNode, "LoadWarning")
 
 						' Whether the layer should be pre-selected
@@ -1213,7 +1213,7 @@ Sub DialogSetup
 	'-------------------------------------------------
 	' Loop through all the MapInfo tables listed in the
 	' config file and add them to the Map Tables list
-	' If they are open in MapInfo
+	' if they are open in MapInfo
 	'-------------------------------------------------
 	Dim j As Integer
 	j = 0
@@ -1251,7 +1251,7 @@ Sub DialogSetup
 			aOpenTables(j) = StringReplace(AllMaps(i).Node, "_", " ")
 		Else
 			'-------------------------------------------------
-			' Store the name of the closed table If the
+			' Store the name of the closed table if the
 			' warning is not to be suppressed.
 			'-------------------------------------------------
 			If UCase$(AllMaps(i).Warning) <> "NO" Then
@@ -1283,12 +1283,12 @@ Sub DialogSetup
 
 	'-------------------------------------------------
 	' Loop through all the open MapInfo tables and
-	' pre-select them If this is required.
+	' pre-select them if this is required.
 	'-------------------------------------------------
 	For i = 1 to UBound(OpenMaps)
 
 		'-------------------------------------------------
-		' Set the control value If this table is to
+		' Set the control value if this table is to
 		' be pre-selected.
 		'-------------------------------------------------
 		If UCase$(OpenMaps(i).Preselect) = "YES" Or UCase$(OpenMaps(i).Preselect) = "Y" Then
@@ -1333,7 +1333,7 @@ SetDefaults:
 	End If
 
 	'-------------------------------------------------
-	' Hide the controls If the defaults are blank
+	' Hide the controls if the defaults are blank
 	'-------------------------------------------------
 	If iDefaultBufferSize = 0 Then
 		Alter Control 14 Hide
@@ -1390,7 +1390,7 @@ Sub GetSiteName
 '***************************************************************
 
 	'-------------------------------------------------
-	' Get the site name from the database If it has
+	' Get the site name from the database if it has
 	' a path/name
 	'-------------------------------------------------
 	If sDatabase <> "" 
@@ -1409,8 +1409,8 @@ Sub GetSiteName
 		End If
 	
 		'-------------------------------------------------
-		' Check If the Enquiries table is
-		' already/still open and close it If it is
+		' Check if the Enquiries table is
+		' already/still open and close it if it is
 		'-------------------------------------------------
 		If TableIsOpen("Enquiries") Then
 			Close Table Enquiries
@@ -1578,7 +1578,7 @@ Sub CheckSelection
 	iCombinedSitesTable = ReadControlValue(11)
 
 	'-------------------------------------------------
-	' Check If the user has entered a search reference
+	' Check if the user has entered a search reference
 	'-------------------------------------------------
 	If sSearchRef = "" Then
 
@@ -1587,7 +1587,7 @@ Sub CheckSelection
 	End If
 
 	'-------------------------------------------------
-	' Check If the user has entered a site name, or
+	' Check if the user has entered a site name, or
 	' If it has been (or can be) found in the database
 	'-------------------------------------------------
 	If sSiteName = "" Then
@@ -1610,7 +1610,7 @@ Sub CheckSelection
 	End If
 
 	'-------------------------------------------------
-	' Check If the user has selected at least one table
+	' Check if the user has selected at least one table
 	'-------------------------------------------------
 	iMapTable = ReadControlValue(3)
 	If iMapTable = 0 Then
@@ -1661,7 +1661,7 @@ Sub CheckSelection
 	Redim SelectedMaps(iExtractTot)
 
 	'-------------------------------------------------
-	' Check If the user has entered a buffer size
+	' Check if the user has entered a buffer size
 	'-------------------------------------------------
 	If sBufferSize = "" And iDefaultBufferSize <> 0 Then
 		Note "Error: No buffer size has been entered!"
@@ -1673,7 +1673,7 @@ Sub CheckSelection
 	End If
 
 	'-------------------------------------------------
-	' Check If the user has selected a buffer unit
+	' Check if the user has selected a buffer unit
 	'-------------------------------------------------
 	If iBufferInt = 0 Then
 		Note "Error: No buffer unit has been selected!"
@@ -1702,7 +1702,7 @@ Sub CheckSelection
 	iLastPos = 1
 
 	'-------------------------------------------------
-	' Skip looking for the replacement character If it empty
+	' Skip looking for the replacement character if it empty
 	'-------------------------------------------------
 	If sRepChar = "" Then
 		Goto SetSubRef
@@ -1794,7 +1794,7 @@ SetSubRef:
 	sSearchFeatureName = LTrim$(RTrim$(ReplaceSpecialChars(sSearchFeatureName, sRepChar, False)))
 
 	'-------------------------------------------------
-	' Check If folder names contain only/excess backslashes
+	' Check if folder names contain only/excess backslashes
 	'-------------------------------------------------
 	sSaveFolder = LTrim$(RTrim$(StringReplace(sSaveFolder, "\\", "\")))
 	If Left$(sSaveFolder, 1) = "\" Then
@@ -1832,26 +1832,7 @@ SetSubRef:
 	iSecurity = 0
 
 	'-------------------------------------------------
-	' Create the working folder If it doesn't already exist
-	'-------------------------------------------------
-	If sWorkingDir <> "" Then
-		iSuccess = SetCurrentDirectory(sWorkingDir)
-		If iSuccess = 0 Then
-			If bDebug Then
-				Call MyPrint("Creating working folder path '" + sWorkingDir + "'")
-			End If
-
-			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
-			If iSuccess <> 0 Then
-				Call MyPrint("Error creating working folder path")
-				Call MyPrint("Process terminated.")
-				Exit Sub
-			End If
-		End If
-	End If
-	
-	'-------------------------------------------------
-	' Create the request folder If it doesn't already exist
+	' Create the request folder if it doesn't already exist
 	'-------------------------------------------------
 	Dim sRootPath As String
 	If sSaveFolder = "" Then
@@ -1875,7 +1856,7 @@ SetSubRef:
 	End If
 
 	'-------------------------------------------------
-	' Create the GIS sub-folder If it doesn't already exist
+	' Create the GIS sub-folder if it doesn't already exist
 	'-------------------------------------------------
 	If sGISFolder = "" Then
 		sLocalPath = sRootPath
@@ -1898,9 +1879,73 @@ SetSubRef:
 	End If
 
 	'-------------------------------------------------
+	' If a working directory is to be used ...
+	'-------------------------------------------------
+	If sWorkingDir <> "" Then
+
+		'-------------------------------------------------
+		' Create the working folder if it doesn't already exist
+		'-------------------------------------------------
+		iSuccess = SetCurrentDirectory(sWorkingDir)
+		If iSuccess = 0 Then
+			If bDebug Then
+				Call MyPrint("Creating working folder path '" + sWorkingDir + "'")
+			End If
+
+			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			If iSuccess <> 0 Then
+				Call MyPrint("Error creating working folder path")
+				Call MyPrint("Process terminated.")
+				Exit Sub
+			End If
+		End If
+
+		'-------------------------------------------------
+		' Create the request folder if it doesn't already exist
+		'-------------------------------------------------
+		If sSaveFolder <> "" Then
+			sWorkingDir = sWorkingDir + "\" + sSaveFolder
+		End If
+
+		iSuccess = SetCurrentDirectory(sWorkingDir)
+		If iSuccess = 0 Then
+			If bDebug Then
+				Call MyPrint("Creating working request folder path '" + sWorkingDir + "'")
+			End If
+
+			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			If iSuccess <> 0 Then
+				Call MyPrint("Error creating working request folder path")
+				Call MyPrint("Process terminated.")
+				Exit Sub
+			End If
+		End If
+
+		'-------------------------------------------------
+		' Create the GIS sub-folder if it doesn't already exist
+		'-------------------------------------------------
+		If sGISFolder <> "" Then
+			sWorkingDir = sWorkingDir + "\" + sGISFolder
+		End If
+	
+		iSuccess = SetCurrentDirectory(sLocalPath)
+		If iSuccess = 0 Then
+			If bDebug Then
+				Call MyPrint("Creating working sub-folder path '" + sWorkingDir + "'")
+			End If
+
+			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			If iSuccess <> 0 Then
+				Call MyPrint("Error creating working sub-folder path")
+				Call MyPrint("Process terminated.")
+				Exit Sub
+			End If
+		End If
+	End If
+	
+	'-------------------------------------------------
 	' Set the working folder
 	'-------------------------------------------------
-	Dim sWorkingPath As String
 	If sWorkingDir <> "" Then
 		sWorkingPath = sWorkingDir
 	Else
@@ -1935,7 +1980,7 @@ SetSubRef:
 		End If
 	End If
 
-	' Initialise If the message window has been shown already
+	' Initialise if the message window has been shown already
 	bMessageWinShown = False
 
 	' Initialise the random number function
@@ -2039,7 +2084,7 @@ SetSubRef:
 		' Loop through all the windows
 		For iWindowNum = 1 to NumWindows()
 		
-			' Check If the window is a map window
+			' Check if the window is a map window
 			If WindowInfo(WindowId(iWindowNum),WIN_INFO_TYPE) = WIN_MAPPER Then
 			
 				bMapWindow = False
@@ -2047,7 +2092,7 @@ SetSubRef:
 				' Loop through all the map layers in the map window
 				For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum),MAPPER_INFO_LAYERS)
 				
-					' Check If the layer is a normal layer
+					' Check if the layer is a normal layer
 					If LayerInfo(WindowId(iWindowNum), iLayerNum, LAYER_INFO_TYPE) = LAYER_INFO_TYPE_NORMAL Then
 						bMapWindow = True
 						Exit For
@@ -2070,7 +2115,7 @@ SetSubRef:
 					' Loop through all the group layers in the map window
 					For iLayerNum = 1 to MapperInfo(WindowId(iWindowNum), MAPPER_INFO_GROUPLAYERS)
 					
-						' Check If the layer is the group layer
+						' Check if the layer is the group layer
 						If GroupLayerInfo(WindowId(iWindowNum), iLayerNum, GROUPLAYER_INFO_NAME) = sGroupLayer Then
 							bGroupFound = True
 							Exit For
@@ -2151,7 +2196,7 @@ SetSubRef:
 		iNumSearchTable = 1
 	End If
 
-	' Something's gone wrong If the search table can't be
+	' Something's gone wrong if the search table can't be
 	' found so skip the layer editing
 	Goto HideLayer
 
@@ -2237,7 +2282,7 @@ EditError:
 	' Inform user of error editing layer
 	'-------------------------------------------------
 	If Err() = 448 Then
-		Note "Unable to update " + sSearchTable + ". Someone Else is currently editing the table."
+		Note "Unable to update " + sSearchTable + ". Someone else is currently editing the table."
 		Call MyPrint("Error: Unable to save updates to " + sSearchTable + ".")
 		Call MyPrint("")
 	Else
@@ -2290,7 +2335,7 @@ HideLayer:
 	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
 
 	'-------------------------------------------------
-	' Turn off the search table (If it is visible)
+	' Turn off the search table (if it is visible)
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) <> 0 Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
@@ -2527,7 +2572,7 @@ HideLayer:
 		Call WAPISleep(iRetryDelay)
 
 		 '-------------------------------------------------
-		' Delete the combined sites table If empty
+		' Delete the combined sites table if empty
 		'-------------------------------------------------
 		If iSitesTotal = 0 Then
 			'-------------------------------------------------
@@ -2622,7 +2667,7 @@ HideLayer:
 	For iWindowNum = 1 to iNumWindows
 
 		'-------------------------------------------------
-		' Add a group layer If it doesn't already exist
+		' Add a group layer if it doesn't already exist
 		'-------------------------------------------------
 		If aWindowGroup(iWindowNum) <> sGroupLayer Then
 			If bDebug Then
@@ -2735,7 +2780,7 @@ ProcessComplete:
 	Call MyPrint("----------------------------------------------------------------------")
 	
 	'-------------------------------------------------
-	' Ask the user If they want to close the form
+	' Ask the user if they want to close the form
 	'-------------------------------------------------
 	lResponse = Ask("Processing complete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
 
@@ -2820,14 +2865,14 @@ Sub BufferSearch
 
 EditLayer:
 	'-------------------------------------------------
-	' Make the search area table visible If it is not already
+	' Make the search area table visible if it is not already
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) = LAYER_INFO_DISPLAY_OFF Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Graphic
 	End If
 	
 	'-------------------------------------------------
-	' Make the search area table editable If it is not already
+	' Make the search area table editable if it is not already
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable ,LAYER_INFO_EDITABLE) = False Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable On
@@ -2847,8 +2892,8 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
-	' Check If the old search area table is
-	' already/still open and close it If it is
+	' Check if the old search area table is
+	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sSearchAreaTable) Then
 		If bDebug Then
@@ -2860,8 +2905,8 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
-	' Check If the old buffer table is
-	' already/still open and close it If it is
+	' Check if the old buffer table is
+	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sBufferSaveName) Then
 		If bDebug Then
@@ -2949,7 +2994,7 @@ EditLayer:
 	End If
 
 	'-------------------------------------------------
-	' Check If any records were selected
+	' Check if any records were selected
 	'-------------------------------------------------
 	If iRecTotal = 0 Then
 		Call MyPrint("Error: Reference '" + sSearchRef + "' not found in '" + sSearchTable + "' table.")
@@ -3099,7 +3144,7 @@ EditLayer:
 	Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Editable Off
 
 	'-------------------------------------------------
-	' Turn off the search area table If it is visible
+	' Turn off the search area table if it is visible
 	'-------------------------------------------------
 	If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_DISPLAY) <> 0 Then
 		Set Map Window aWindowId(iWindowNum) Layer iNumSearchTable Display Off
@@ -3122,8 +3167,8 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 	OnError Goto ErrorTrap
 
 	'-------------------------------------------------
-	' Check If an old combined sites table is
-	' already/still open and close it If it is
+	' Check if an old combined sites table is
+	' already/still open and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sSitesTable) Then
 		If bDebug Then
@@ -3162,7 +3207,7 @@ Function CreateCombinedSitesTable(sSitesTable As String) As Logical
 			Exit Function
 		End If
 
-		' Retry If table not found
+		' Retry if table not found
 		If bDebug Then
 			Call MyPrint("Retry " + Str$(iRetry) + ": Table creation not confirmed.")
 		End If
@@ -3192,8 +3237,8 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	OpenCombinedSitesTable = False
 
 	'-------------------------------------------------
-	' Check If the combined sites table is
-	' already/still open and close it If it is
+	' Check if the combined sites table is
+	' already/still open and close it if it is
 	'-------------------------------------------------
 
 	If TableIsOpen(sSitesTable) Then
@@ -3364,8 +3409,8 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	sGroupName = RTrim$(Left$(SelectedMap.Node, Instr(1, SelectedMap.Node, "-")))
 
 	'-------------------------------------------------
-	' Check If the local table is already/still open
-	' and close it If it is
+	' Check if the local table is already/still open
+	' and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sLocalName) Then
 		If bDebug Then
@@ -3423,7 +3468,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	iRecTotal = TableInfo(sSelectName, TAB_INFO_NROWS)
 
 	'-------------------------------------------------
-	' Check If the maximum number of records will be
+	' Check if the maximum number of records will be
 	' exceeded
 	'-------------------------------------------------
 	If iRecTotal > iRecMax Then
@@ -3433,7 +3478,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If any records were selected
+	' Check if any records were selected
 	'-------------------------------------------------
 	If iRecTotal = 0 Then
 		Call MyPrint("No records found - table skipped.")
@@ -3507,7 +3552,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	If iOverwriteLabels > 1	And (UCase$(SelectedMap.Overwrite) = "YES" Or UCase$(SelectedMap.Overwrite) = "Y") Then
 
 		'-------------------------------------------------
-		' Reset the map label counter If required
+		' Reset the map label counter if required
 		'-------------------------------------------------
 		If iOverwriteLabels = 2
 		Or (iOverwriteLabels = 3 And sGroupName = sLastGroupName) Then
@@ -3516,7 +3561,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 
 		'-------------------------------------------------
 		' Overwrite the map labels (adding the map
-		' label column If required)
+		' label column if required)
 		'-------------------------------------------------
 		Call OverwriteMapLabels(sSelectName, SelectedMap.KeyColumn, SelectedMap.LabelColumn)
 
@@ -3538,7 +3583,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Skip the export If there are no export columns
+	' Skip the export if there are no export columns
 	' or export format
 	'-------------------------------------------------
 	If SelectedMap.Columns = "" Or SelectedMap.Format = "" Then
@@ -3546,7 +3591,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If any search variables are to be included
+	' Check if any search variables are to be included
 	' in the export columns
 	'-------------------------------------------------
 	Dim sColumns As String
@@ -3603,7 +3648,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If the overlap area or length is to
+	' Check if the overlap area or length is to
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%overlap%") > 0 Then
@@ -3629,7 +3674,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If the search area or length is to
+	' Check if the search area or length is to
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%searcharea%") > 0 Then
@@ -3655,7 +3700,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If the input area or length is to
+	' Check if the input area or length is to
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sColumns, "%inputarea%") > 0 Then
@@ -3690,7 +3735,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	iRecTotal = TableInfo(sExportTemp, TAB_INFO_NROWS)
 
 	'-------------------------------------------------
-	' Check If any records were selected
+	' Check if any records were selected
 	'-------------------------------------------------
 	If iRecTotal = 0 Then
 		Call MyPrint("No records found for export - table skipped.")
@@ -3748,7 +3793,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Process the export file (If required)
+	' Process the export file (if required)
 	'-------------------------------------------------
 	If SelectedMap.Macro <> "" Then
 		Call MyPrint("Processing the export file ...")
@@ -3771,7 +3816,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	
 TranslateTable:
 		'-------------------------------------------------
-		' Translate the table to ESRI shapefile If required
+		' Translate the table to ESRI shapefile if required
 		'-------------------------------------------------
 		If iKeepSelectedTables > 2 Then
 			Dim sLogFileShp As String
@@ -3915,8 +3960,8 @@ Sub OutputMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Check If the working table is already/still open
-	' and close it If it is
+	' Check if the working table is already/still open
+	' and close it if it is
 	'-------------------------------------------------
 	If TableIsOpen(sLocalName) Then
 		If bDebug Then
@@ -3974,7 +4019,7 @@ Sub OutputMaps(SelectedMap As MapDetails)
 		If bMapFound = True Then
 
 			'-------------------------------------------------
-			' Add a group layer If one doesn't already exist
+			' Add a group layer if one doesn't already exist
 			'-------------------------------------------------
 			If aWindowGroup(iWindowNum) = "" Then
 				If bDebug Then
@@ -4019,7 +4064,7 @@ Sub OutputMaps(SelectedMap As MapDetails)
 				End If
 				
 				'-------------------------------------------------
-				' Set the map label clause If not already set
+				' Set the map label clause if not already set
 				'-------------------------------------------------
 				If SelectedMap.LabelClause = "" Then
 					If SelectedMap.LabelColumn = "" Then
@@ -4094,7 +4139,7 @@ Sub OutputMaps(SelectedMap As MapDetails)
 				If aWindowId(iWindowNum) = iWindowId Then
 
 					'-------------------------------------------------
-					' Add a group layer If one doesn't already exist
+					' Add a group layer if one doesn't already exist
 					'-------------------------------------------------
 					If aWindowGroup(iWindowNum) = "" Then
 						If bDebug Then
@@ -4141,9 +4186,9 @@ Sub OutputMaps(SelectedMap As MapDetails)
 					SelectedMap.LabelColumn = ""
 					SelectedMap.LabelClause = ""
 				End If
-					
+
 				'-------------------------------------------------
-				' Set the map label clause If not already set
+				' Set the map label clause if not already set
 				'-------------------------------------------------
 				If SelectedMap.LabelClause = "" Then
 					If SelectedMap.LabelColumn = "" Then
@@ -4291,7 +4336,7 @@ Sub OverwriteMapLabels
 	Next
 
 	'-------------------------------------------------
-	' Increment the label counter If the row
+	' Increment the label counter if the row
 	' key value has changed
 	'-------------------------------------------------
 	iMapLabelCounter = iCounter
@@ -4317,7 +4362,7 @@ CleanUp:
 	Set ProgressBars On
 
 	'-------------------------------------------------
-	' Close the temporary MapLabels table If it is
+	' Close the temporary MapLabels table if it is
 	' already/still open in the current MapInfo session
 	'-------------------------------------------------
 	If TableIsOpen("MapLabels") Then
@@ -4325,7 +4370,7 @@ CleanUp:
 	End If
 
 	'-------------------------------------------------
-	' Close the the Selection table If it is
+	' Close the the Selection table if it is
 	' already/still open in the current MapInfo session
 	'-------------------------------------------------
 	If TableIsOpen("Selection") Then
@@ -4364,7 +4409,7 @@ Sub AddToCombinedSitesTable
 	Set ProgressBars Off
 
 	'-------------------------------------------------
-	' Check If any search variables are to be included
+	' Check if any search variables are to be included
 	' in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%ref%") > 0 Then
@@ -4418,7 +4463,7 @@ Sub AddToCombinedSitesTable
 	End If
 
 	'-------------------------------------------------
-	' Check If the overlap area or length is to
+	' Check if the overlap area or length is to
 	' be included in the combined sites table
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%overlap%") > 0 Then
@@ -4444,7 +4489,7 @@ Sub AddToCombinedSitesTable
 	End If
 
 	'-------------------------------------------------
-	' Check If the search area or length is to
+	' Check if the search area or length is to
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%searcharea%") > 0 Then
@@ -4470,7 +4515,7 @@ Sub AddToCombinedSitesTable
 	End If
 
 	'-------------------------------------------------
-	' Check If the input area or length is to
+	' Check if the input area or length is to
 	' be included in the export columns
 	'-------------------------------------------------
 	If Instr(1, sSitesColumns, "%inputarea%") > 0 Then
@@ -4522,7 +4567,7 @@ CleanUp:
 	Set ProgressBars On
 
 	'-------------------------------------------------
-	' Close the temporary sites table If it is
+	' Close the temporary sites table if it is
 	' already/still open in the current MapInfo session
 	'-------------------------------------------------
 	If TableIsOpen("TempSites") Then
@@ -4530,7 +4575,7 @@ CleanUp:
 	End If
 
 	'-------------------------------------------------
-	' Close the the Selection table If it is
+	' Close the the Selection table if it is
 	' already/still open in the current MapInfo session
 	'-------------------------------------------------
 	If TableIsOpen("Selection") Then
@@ -4620,7 +4665,7 @@ Sub SetSymbology(sNodeName as String, sTableName As String)
 					hXMLSymbolNode = MIXMLGetNextNode(hXMLSymbolNodeList)
 
 					'-------------------------------------------------
-					' Close the temporary NewStyle table If it is
+					' Close the temporary NewStyle table if it is
 					' already/still open in the current MapInfo session
 					'-------------------------------------------------
 					If TableIsOpen("NewStyle") Then

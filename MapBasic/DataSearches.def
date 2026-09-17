@@ -359,6 +359,7 @@ Global sRadiusColumn As String
 Global sRequireSiteName As String
 Global sRepChar As String
 Global sWorkingDir As String
+Global sWorkingPath As String
 Global sSaveRootDir As String
 
 Global sDefaultSaveFolder As String
