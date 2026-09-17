@@ -2391,7 +2391,7 @@ HideLayer:
 				' Copy the existing combined sites table to the
 				' working folder.
 				'-------------------------------------------------
-				If Debug Then
+				If bDebug Then
 					Call MyPrint("Copying combined sites table to the working folder ...")
 				End If
 
@@ -2483,56 +2483,63 @@ HideLayer:
 		OnError Goto ErrorCreatingSitesTable
 	
 		'-------------------------------------------------
-		' Export the combined sites table as a DBF file
+		' Export the combined sites table if not empty
 		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "DBF" Then
-			sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".dbf"
-			If bDebug Then
-				Call MyPrint("Creating combined sites table as a DBF file ...")
-			End If
+		If iSitesTotal > 0 Then
+
+			'-------------------------------------------------
+			' Export the combined sites table as a DBF file
+			'-------------------------------------------------
+			If UCase$(sCombinedSitesFormat) = "DBF" Then
+				sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".dbf"
+				If bDebug Then
+					Call MyPrint("Creating combined sites table as a DBF file ...")
+				End If
 			
-			Export sCombinedSitesTable
-				Into sCombinedSitesOutput
-				Type "DBF"
-				CharSet "WindowsLatin1"
-				Overwrite
-			Call WAPISleep(iRetryDelay)
-		End If
+				Export sCombinedSitesTable
+					Into sCombinedSitesOutput
+					Type "DBF"
+					CharSet "WindowsLatin1"
+					Overwrite
+				Call WAPISleep(iRetryDelay)
+			End If
 	
-		'-------------------------------------------------
-		' Export the combined sites table as a TXT file
-		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "TXT" Then
-			sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".txt"
-			If bDebug Then
-				Call MyPrint("Creating combined sites table as a TXT file ...")
-			End If
+			'-------------------------------------------------
+			' Export the combined sites table as a TXT file
+			'-------------------------------------------------
+			If UCase$(sCombinedSitesFormat) = "TXT" Then
+				sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".txt"
+				If bDebug Then
+					Call MyPrint("Creating combined sites table as a TXT file ...")
+				End If
 			
-			Export sCombinedSitesTable
-				Into sCombinedSitesOutput
-				Type "ASCII"
-				Delimiter ","
-				CharSet "WindowsLatin1"
-				Overwrite
-			Call WAPISleep(iRetryDelay)
-		End If
+				Export sCombinedSitesTable
+					Into sCombinedSitesOutput
+					Type "ASCII"
+					Delimiter ","
+					CharSet "WindowsLatin1"
+					Overwrite
+				Call WAPISleep(iRetryDelay)
+			End If
 		
-		'-------------------------------------------------
-		' Export the combined sites table as a CSV file
-		'-------------------------------------------------
-		If UCase$(sCombinedSitesFormat) = "CSV" Then
-			sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".csv"
-			If bDebug Then
-				Call MyPrint("Creating combined sites table as a CSV file ...")
-			End If
+			'-------------------------------------------------
+			' Export the combined sites table as a CSV file
+			'-------------------------------------------------
+			If UCase$(sCombinedSitesFormat) = "CSV" Then
+				sCombinedSitesOutput = sWorkingPath + "\" + sCombinedSitesOutputName + ".csv"
+				If bDebug Then
+					Call MyPrint("Creating combined sites table as a CSV file ...")
+				End If
 			
-			Export sCombinedSitesTable
-				Into sCombinedSitesOutput
-				Type "CSV"
-				CharSet "WindowsLatin1"
-				Titles
-				Overwrite
-			Call WAPISleep(iRetryDelay)
+				Export sCombinedSitesTable
+					Into sCombinedSitesOutput
+					Type "CSV"
+					CharSet "WindowsLatin1"
+					Titles
+					Overwrite
+				Call WAPISleep(iRetryDelay)
+			End If
+
 		End If
 		
 		'-------------------------------------------------
@@ -2550,7 +2557,7 @@ HideLayer:
 		Close Table sCombinedSitesTable
 		Call WAPISleep(iRetryDelay)
 
-		 '-------------------------------------------------
+		'-------------------------------------------------
 		' Delete the combined sites table if empty
 		'-------------------------------------------------
 		If iSitesTotal = 0 Then
@@ -2596,8 +2603,10 @@ HideLayer:
 	'-------------------------------------------------
 	If sWorkingPath <> sLocalPath Then
 		Call MyPrint("Moving files from the working folder ...")
-		sCmd = "cmd.exe /c robocopy " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E"
+		sCmd = "cmd.exe robocopy " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E"
 		Run Program (sCmd)
+		Call MyPrint("Move complete.")
+		Call MyPrint("")
 	End If
 
 	'-------------------------------------------------
