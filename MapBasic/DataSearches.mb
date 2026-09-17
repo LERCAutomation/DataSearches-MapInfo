@@ -2431,47 +2431,6 @@ HideLayer:
 		Range iExtractTot
 
 	'-------------------------------------------------
-	' If the outputs are to be kept add them to the
-	' map, if required, one by one
-	'-------------------------------------------------
-	If iKeepSelectedTables > 1 Then
-		iMapCnt = 1
-		iMapLabelCounter = 1
-		'sLastGroupName = ""
-		ProgressBar "Mapping data search '" + sSearchRef + "' ..."
-			Calling MapTables
-			Range iMapTot
-	End If
-
-	'-------------------------------------------------
-	' Don't trap any errors
-	'-------------------------------------------------
-	OnError Goto IgnoreError
-	
-	If CommandInfo(CMD_INFO_STATUS) Then
-		If iExtractCnt <= iExtractTot Then
-			Call MyPrint("")
-			Call MyPrint("----------------------------------------------------------------------")
-			Call MyPrint("Process did not complete!")
-			Call MyPrint("----------------------------------------------------------------------")
-			lResponse = Ask("Processing incomplete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
-			Goto Response
-		End If
-	Else
-		Call MyPrint("")
-		Call MyPrint("----------------------------------------------------------------------")
-		Call MyPrint("Process interrupted by user!")
-		Call MyPrint("----------------------------------------------------------------------")
-		lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
-		Goto Response
-	End If
-
-	'-------------------------------------------------
-	' Trap errors
-	'-------------------------------------------------
-	OnError Goto ErrorTrap
-	
-	'-------------------------------------------------
 	' Export the combined sites table
 	'-------------------------------------------------
 	Dim sCombinedSitesOutput As String
@@ -2621,6 +2580,48 @@ HideLayer:
 		Run Program (sCmd)
 	End If
 
+	'-------------------------------------------------
+	' If the outputs are to be kept add them to the
+	' map, if required, one by one
+	'-------------------------------------------------
+	If iKeepSelectedTables > 1 Then
+		iMapCnt = 1
+		iMapTot = iExtractTot
+		iMapLabelCounter = 1
+		'sLastGroupName = ""
+		ProgressBar "Mapping data search '" + sSearchRef + "' ..."
+			Calling MapTables
+			Range iMapTot
+	End If
+
+	'-------------------------------------------------
+	' Don't trap any errors
+	'-------------------------------------------------
+	OnError Goto IgnoreError
+	
+	If CommandInfo(CMD_INFO_STATUS) Then
+		If iExtractCnt <= iExtractTot Then
+			Call MyPrint("")
+			Call MyPrint("----------------------------------------------------------------------")
+			Call MyPrint("Process did not complete!")
+			Call MyPrint("----------------------------------------------------------------------")
+			lResponse = Ask("Processing incomplete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+			Goto Response
+		End If
+	Else
+		Call MyPrint("")
+		Call MyPrint("----------------------------------------------------------------------")
+		Call MyPrint("Process interrupted by user!")
+		Call MyPrint("----------------------------------------------------------------------")
+		lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
+		Goto Response
+	End If
+
+	'-------------------------------------------------
+	' Trap errors
+	'-------------------------------------------------
+	OnError Goto ErrorTrap
+	
 	If bKeepBufferArea = False
 	And bKeepSearchFeature = False Then
 		Goto ProcessComplete
@@ -3891,6 +3892,22 @@ Sub MapTables
 
 	Dim SelectedMap As MapDetails
 	SelectedMap.Node = SelectedMaps(iMapCnt).Node
+	SelectedMap.TableName = SelectedMaps(iMapCnt).TableName
+	SelectedMap.GISOutputName = SelectedMaps(iMapCnt).GISOutputName
+	SelectedMap.TableOutputName = SelectedMaps(iMapCnt).TableOutputName
+	SelectedMap.Columns = SelectedMaps(iMapCnt).Columns
+	SelectedMap.SelectCriteria = SelectedMaps(iMapCnt).SelectCriteria
+	SelectedMap.ExportCriteria = SelectedMaps(iMapCnt).ExportCriteria
+	SelectedMap.KeyColumn = SelectedMaps(iMapCnt).KeyColumn
+	SelectedMap.Format = SelectedMaps(iMapCnt).Format
+	SelectedMap.Macro = SelectedMaps(iMapCnt).Macro
+	SelectedMap.Keep = SelectedMaps(iMapCnt).Keep
+	SelectedMap.Overwrite = SelectedMaps(iMapCnt).Overwrite
+	SelectedMap.LabelColumn = SelectedMaps(iMapCnt).LabelColumn
+	SelectedMap.LabelClause = SelectedMaps(iMapCnt).LabelClause
+	SelectedMap.Symbology = SelectedMaps(iMapCnt).Symbology
+	SelectedMap.SiteColumns = SelectedMaps(iMapCnt).SiteColumns
+	SelectedMap.SiteCriteria = SelectedMaps(iMapCnt).SiteCriteria
 
 	Call MyPrint("Mapping table = '" + SelectedMap.Node + "' (" + iMapCnt + " of " + iMapTot + ") ...")
 
