@@ -2930,6 +2930,7 @@ EditLayer:
 	' Select the required reference in the search table
 	' and put it into the search area table
 	'-------------------------------------------------
+
 	Call MyPrint("Selecting reference feature(s) ...")
 	Dim sCmd As String
 	sCmd = "Select * from " + sSearchTable + " Where " + sRefColumn + " LIKE " + sQ + sSearchRef + sQ + " Into " + sSearchAreaTable
@@ -4878,29 +4879,42 @@ Sub PrintDirect(ByVal sMsg As String)
 '* Bespoke print function
 '***************************************************************
 
-	Dim iLogFileNum2 As Integer
-	iLogFileNum2 = iLogFileNum + 1
+	Dim iLogFileTmpNum As Integer
+	iLogFileTmpNum = iLogFileNum + 1
 
 	OnError GoTo HandleFileError
 
-	Dim sLogFile2 As String
-	sLogFile2 = sLogFile + "2"
+	'-------------------------------------------------
+	' Set the temporary log file full path for output
+	'-------------------------------------------------
+	Dim iPos As Integer
+	iPos = Len(sLogFile)
+
+	While iPos > 0 And Mid$(sLogFile, iPos, 1) <> "."
+	    iPos = iPos - 1
+	Wend
+
+	Dim sLogFileTmp As String
+	If iPos > 0 Then
+	    sLogFileTmp = Left$(sLogFile, iPos - 1) + "_tmp" + Mid$(sLogFile, iPos, 99)
+	Else
+	    sLogFileTmp = sLogFile + "_tmp"
+	End If
 	
 	'-------------------------------------------------
 	' Open the log file for output
 	'-------------------------------------------------
-	Open File sLogFile2 For Append As #iLogFileNum2
+	Open File sLogFileTmp For Append As #iLogFileTmpNum
 	
 	'-------------------------------------------------
 	' Write the message passed to the output file
 	'-------------------------------------------------
-	'Print #iLogFileNum2 , FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : " + sMsg
-	Print #iLogFileNum2 , sMsg
+	Print #iLogFileTmpNum , sMsg
 	
 	'-------------------------------------------------
 	' Close the output file
 	'-------------------------------------------------
-	Close File #iLogFileNum2 
+	Close File #iLogFileTmpNum
 	
 	OnError GoTo 0
 	
@@ -4909,7 +4923,7 @@ Sub PrintDirect(ByVal sMsg As String)
 HandleFileError:
 	If Not bMessageWinShown Then
 		Open Window Message
-		Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : ERROR: Could not write to log file: " + sLogFile2
+		Print FormatDate$(CurDate()) + " " + FormatTime$(CurTime(),"HH:mm:ss") + " : ERROR: Could not write to log file: " + sLogFileTmp
 		bMessageWinShown = True
 	End If
 
@@ -4933,8 +4947,8 @@ Sub MyPrint(ByVal sMsg As String)
 	ReDim sLogMessages(iLogCount)
 	sLogMessages(iLogCount) = sTimestampedMsg
 
-	' No longer print the log entries directly
-	' Call PrintDirect(sTimestampedMsg)
+	' Print the log entries directly
+	Call PrintDirect(sTimestampedMsg)
 
 End Sub
 
