@@ -373,7 +373,9 @@ Global sSaveFolder As String
 Global sGISFolder As String
 Global sLocalPath As String
 Global sLogFileName As String
+Global sLogFileNameTmp As String
 Global sLogFile As String
+Global sLogFileTmp As String
 Global sDefaultClearLogFile As String
 Global sUTPath As String
 Global sUTCommand As String

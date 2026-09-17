@@ -1961,24 +1961,44 @@ SetSubRef:
 	End If
 
 	'-------------------------------------------------
-	' Set the log file name for the output messages
+	' Set the log file full path for the output messages
 	'-------------------------------------------------
-	sLogFile = sWorkingPath + "\" + sLogFileName
+	sLogFile = sLocalPath + "\" + sLogFileName
 	bLogMessages = True
 	
 	'-------------------------------------------------
-	' Copy the existing log file to the working folder
+	' Clear the existing log file if required
 	'-------------------------------------------------
-	If bClearLog = False Then
-		If FileExists(sLocalPath + "\" + sLogFileName) Then
+	If bClearLog = True Then
+		If FileExists(sLogFile) Then
 			If bDebug Then
-				Call MyPrint("Copying log file to the working folder ...")
+				Call MyPrint("Clearing log file ...")
 			End If
 			
-			sCmd = "cmd.exe /c robocopy " + sQ + sLocalPath + "\" + sLogFileName + sQ + " " + sQ + sLogFile + sQ
-			Run Program (sCmd)
+			Kill sLogFile
 		End If
 	End If
+
+	'-------------------------------------------------
+	' Set the temporary log file name for output messages
+	'-------------------------------------------------
+	Dim iPos As Integer
+	iPos = Len(sLogFileName)
+
+	While iPos > 0 And Mid$(sLogFileName, iPos, 1) <> "."
+	    iPos = iPos - 1
+	Wend
+
+	If iPos > 0 Then
+	    sLogFileNameTmp = Left$(sLogFileName, iPos - 1) + "_tmp" + Mid$(sLogFileName, iPos, 99)
+	Else
+	    sLogFileNameTmp = sLogFileName + "_tmp"
+	End If
+
+	'-------------------------------------------------
+	' Set the temporary log file full path for the output messages
+	'-------------------------------------------------
+	sLogFileTmp = sWorkingPath + "\" + sLogFileNameTmp
 
 	' Initialise if the message window has been shown already
 	bMessageWinShown = False
@@ -2581,11 +2601,16 @@ HideLayer:
 	End If
 
 	'-------------------------------------------------
+	' Reset the temporary log file full path for the output messages
+	'-------------------------------------------------
+	sLogFileTmp = sLocalPath + "\" + sLogFileNameTmp
+
+	'-------------------------------------------------
 	' If the outputs are to be kept add them to the
 	' map, if required, one by one
 	'-------------------------------------------------
 	If iKeepSelectedTables > 1 Then
-		iMapCnt = 1
+		iMapCnt = 0
 		iMapTot = iExtractTot
 		iMapLabelCounter = 1
 		'sLastGroupName = ""
@@ -3885,6 +3910,28 @@ Sub MapTables
 '* Add each output table to the map
 '***************************************************************
 
+NextSelection:
+
+	'-------------------------------------------------
+	' Increment the progress bar counter
+	'-------------------------------------------------
+	iMapCnt = iMapCnt + 1
+
+	'-------------------------------------------------
+	' If all the tables in the list have been processed
+	'-------------------------------------------------
+	If iMapCnt > iMapTot Then
+		'-------------------------------------------------
+		' Halt processing
+		'-------------------------------------------------
+		ProgressBar = -1
+	Else
+		'-------------------------------------------------
+		' Show progress
+		'-------------------------------------------------
+		ProgressBar = iMapCnt
+	End If
+
 	'-------------------------------------------------
 	' Trap errors by skipping to the next selection
 	'-------------------------------------------------
@@ -3918,29 +3965,6 @@ Sub MapTables
 	Call OutputMaps(SelectedMap)
 
 	Call MyPrint("Mapped table = '" + SelectedMap.Node + "'.")
-	Call MyPrint("")
-
-NextSelection:
-
-	'-------------------------------------------------
-	' Increment the progress bar counter
-	'-------------------------------------------------
-	iMapCnt = iMapCnt + 1
-
-	'-------------------------------------------------
-	' If all the tables in the list have been processed
-	'-------------------------------------------------
-	If iMapCnt > iMapTot Then
-		'-------------------------------------------------
-		' Halt processing
-		'-------------------------------------------------
-		ProgressBar = -1
-	Else
-		'-------------------------------------------------
-		' Show progress
-		'-------------------------------------------------
-		ProgressBar = iMapCnt
-	End If
 
 End Sub
 
@@ -3993,17 +4017,21 @@ Sub OutputMaps(SelectedMap As MapDetails)
 	' If this layer should not be kept then exit
 	'-------------------------------------------------
 	If (UCase$(SelectedMap.Keep) = "NO" Or UCase$(SelectedMap.Keep) = "N") Then
-          Exit Sub
+		Exit Sub
 	End If
 	
 	'-------------------------------------------------
-	' Re-open the local table
+	' If this layer does not exist then exit
 	'-------------------------------------------------
-	If Not TryOpenTableFromPath(sLocalPath + "\" + sOutputName + ".tab", sLocalName) Then
-		   Note "Failed to open the map table."
-		  Exit Sub
+	If TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
+		Exit Sub
 	End If
-		
+
+	If Not TryOpenTableFromPath(sLocalPath + "\" + sOutputName + ".tab", sLocalName) Then
+		OnError Goto ErrorTrap
+		Exit Sub
+	End If
+	
 	'-------------------------------------------------
 	' Add the local table to the same window that
 	' the original table is mapped in, otherwise
@@ -4901,23 +4929,6 @@ Sub PrintDirect(ByVal sMsg As String)
 
 	OnError GoTo HandleFileError
 
-	'-------------------------------------------------
-	' Set the temporary log file full path for output
-	'-------------------------------------------------
-	Dim iPos As Integer
-	iPos = Len(sLogFile)
-
-	While iPos > 0 And Mid$(sLogFile, iPos, 1) <> "."
-	    iPos = iPos - 1
-	Wend
-
-	Dim sLogFileTmp As String
-	If iPos > 0 Then
-	    sLogFileTmp = Left$(sLogFile, iPos - 1) + "_tmp" + Mid$(sLogFile, iPos, 99)
-	Else
-	    sLogFileTmp = sLogFile + "_tmp"
-	End If
-	
 	'-------------------------------------------------
 	' Open the log file for output
 	'-------------------------------------------------
