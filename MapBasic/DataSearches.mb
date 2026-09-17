@@ -1928,7 +1928,7 @@ SetSubRef:
 			sWorkingDir = sWorkingDir + "\" + sGISFolder
 		End If
 	
-		iSuccess = SetCurrentDirectory(sLocalPath)
+		iSuccess = SetCurrentDirectory(sWorkingDir)
 		If iSuccess = 0 Then
 			If bDebug Then
 				Call MyPrint("Creating working sub-folder path '" + sWorkingDir + "'")
@@ -4933,7 +4933,8 @@ Sub MyPrint(ByVal sMsg As String)
 	ReDim sLogMessages(iLogCount)
 	sLogMessages(iLogCount) = sTimestampedMsg
 
-	Call PrintDirect(sTimestampedMsg)
+	' No longer print the log entries directly
+	' Call PrintDirect(sTimestampedMsg)
 
 End Sub
 
