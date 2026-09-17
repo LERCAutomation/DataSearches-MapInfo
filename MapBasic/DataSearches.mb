@@ -2564,12 +2564,12 @@ HideLayer:
 			'-------------------------------------------------
 			' Delete the empty combined sites table
 			'-------------------------------------------------
-			If FileExists(sCombinedSitesOutput) Then
+			If FileExists(sCombinedSitesTable) Then
 				If bDebug Then
 					Call MyPrint("Deleting empty combined sites table ...")
 				End If
 
-				Kill sCombinedSitesOutput
+				Kill sCombinedSitesTable
 			End If
 		End If
 
