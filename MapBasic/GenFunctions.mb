@@ -443,6 +443,7 @@ Function ExecuteAndWait(ByVal cmdLine As String) As Integer
 	OnError Goto ErrorHandle
 
 	Dim nRetVal As Integer
+	Dim nResult As Integer
 	Dim nExitCode As Integer
 	Dim NameOfProc As PROCESS_INFORMATION
 	Dim NameStart As STARTUPINFO
@@ -455,17 +456,7 @@ Function ExecuteAndWait(ByVal cmdLine As String) As Integer
 	'-------------------------------------------------
 	' Start the application
 	'-------------------------------------------------
-	nRetVal = CreateProcessA( _
-		0, _
-		cmdLine, _
-		0, _
-		0, _
-		1, _
-		NORMAL_PRIORITY_CLASS, _
-		0, _
-		0, _
-		NameStart, _
-		NameOfProc)
+	nRetVal = CreateProcessA( 0, cmdLine, 0, 0, 1, NORMAL_PRIORITY_CLASS, 0, 0, NameStart, NameOfProc)
 
 	If nRetVal = 0 Then
 		ExecuteAndWait = -1
@@ -480,8 +471,8 @@ Function ExecuteAndWait(ByVal cmdLine As String) As Integer
 	nRetVal = WaitForSingleObject(hProc, INFINITE)
 
 	If nRetVal = -1 Then
-		Call CloseHandle(NameOfProc.hProcess)
-		Call CloseHandle(NameOfProc.hThread)
+		nResult = CloseHandle(NameOfProc.hProcess)
+		nResult = CloseHandle(NameOfProc.hThread)
 		ExecuteAndWait = -1
 		Exit Function
 	End If
@@ -492,8 +483,8 @@ Function ExecuteAndWait(ByVal cmdLine As String) As Integer
 	nRetVal = GetExitCodeProcess(hProc, nExitCode)
 
 	If nRetVal = 0 Then
-		Call CloseHandle(NameOfProc.hProcess)
-		Call CloseHandle(NameOfProc.hThread)
+		nResult = CloseHandle(NameOfProc.hProcess)
+		nResult = CloseHandle(NameOfProc.hThread)
 		ExecuteAndWait = -1
 		Exit Function
 	End If
@@ -501,8 +492,8 @@ Function ExecuteAndWait(ByVal cmdLine As String) As Integer
 	'-------------------------------------------------
 	' Close both handles returned by CreateProcess
 	'-------------------------------------------------
-	Call CloseHandle(NameOfProc.hProcess)
-	Call CloseHandle(NameOfProc.hThread)
+	nResult = CloseHandle(NameOfProc.hProcess)
+	nResult = CloseHandle(NameOfProc.hThread)
 
 	ExecuteAndWait = nExitCode
 	Exit Function

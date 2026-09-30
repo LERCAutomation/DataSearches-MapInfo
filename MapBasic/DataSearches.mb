@@ -1971,8 +1971,7 @@ SetSubRef:
 			Call MyPrint("Clearing working folder ...")
 		End If
 
-		sCmd = "cmd.exe /c del /F /Q " + _
-		       sQ + sWorkingPath + "\*.*" + sQ
+		sCmd = "cmd.exe /c del /F /Q " + sQ + sWorkingPath + "\*.*" + sQ
 
 		Dim iDelResult As Integer
 		iDelResult = ExecuteAndWait(sCmd)
@@ -1982,9 +1981,7 @@ SetSubRef:
 			Call MyPrint("ERROR: Unable to clear the working folder.")
 			Call MyPrint("Command exit code = " + Str$(iDelResult))
 
-			Note "Unable to clear the working folder:" + Chr$(10) + _
-			     sWorkingPath + Chr$(10) + Chr$(10) + _
-			     "Command exit code: " + Str$(iDelResult)
+			Note "Unable to clear the working folder:" + Chr$(10) + sWorkingPath + Chr$(10) + Chr$(10) + "Command exit code: " + Str$(iDelResult)
 
 			Exit Sub
 
@@ -2440,11 +2437,7 @@ HideLayer:
 					Call MyPrint("Copying combined sites table to the working folder ...")
 				End If
 
-				sCmd = "cmd.exe /c robocopy " + _
-				       sQ + sLocalPath + sQ + " " + _
-				       sQ + sWorkingPath + sQ + " " + _
-				       sQ + sCombinedSitesTable + ".*" + sQ + _
-				       " /R:3 /W:2"
+				sCmd = "cmd.exe /c robocopy " + sQ + sLocalPath + sQ + " " + sQ + sWorkingPath + sQ + " " + sQ + sCombinedSitesTable + ".*" + sQ + " /R:3 /W:2"
 
 				Dim iMoveResult As Integer
 				iMoveResult = ExecuteAndWait(sCmd)
@@ -2665,10 +2658,7 @@ HideLayer:
 
 	    Call MyPrint("Moving files from the working folder ...")
 
-	    sCmd = "cmd.exe /c robocopy " + _
-	           sQ + sWorkingPath + sQ + " " + _
-	           sQ + sLocalPath + sQ + _
-	           " /MOVE /E /R:3 /W:2"
+	    sCmd = "cmd.exe /c robocopy " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E /R:3 /W:2"
 
 	    iMoveResult = ExecuteAndWait(sCmd)
 
@@ -2721,8 +2711,7 @@ HideLayer:
 	
 	If CommandInfo(CMD_INFO_STATUS) Then
 
-		If iExtractCnt <= iExtractTot _
-		Or (iAddSelectedTables > 1 And iMapCnt <= iMapTot) Then
+		If iExtractCnt <= iExtractTot Or (iAddSelectedTables > 1 And iMapCnt <= iMapTot) Then
 
 			Call MyPrint("")
 			Call MyPrint("----------------------------------------------------------------------")
@@ -3963,11 +3952,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 
 		Call MyPrint("Processing the export file ...")
 
-		sCmd = "cmd.exe /c cscript.exe //nologo " + _
-		       sQ + SelectedMap.Macro + sQ + " " + _
-		       sQ + sWorkingPath + sQ + " " + _
-		       sQ + sExportName + "." + SelectedMap.Format + sQ + " " + _
-		       sQ + sExportName + ".xlsx" + sQ
+		sCmd = "cmd.exe /c cscript.exe //nologo " + sQ + SelectedMap.Macro + sQ + " " + sQ + sWorkingPath + sQ + " " + sQ + sExportName + "." + SelectedMap.Format + sQ + " " + sQ + sExportName + ".xlsx" + sQ
 
 		Dim iScriptResult As Integer
 		iScriptResult = ExecuteAndWait(sCmd)
@@ -3977,16 +3962,13 @@ Sub SelectMaps(SelectedMap As MapDetails)
 			Call MyPrint("ERROR: Export processing failed.")
 			Call MyPrint("Script exit code = " + Str$(iScriptResult))
 
-			Note "Error processing the export file." + Chr$(10) + _
-			     "Script exit code: " + Str$(iScriptResult)
+			Note "Error processing the export file." + Chr$(10) + "Script exit code: " + Str$(iScriptResult)
 
 		ElseIf FileExists(sWorkingPath + "\" + sExportName + ".xlsx") = False Then
 
 			Call MyPrint("ERROR: Export processing completed but the XLSX file was not created.")
 
-			Note "The export script completed but the expected XLSX file was not created:" + _
-			     Chr$(10) + _
-			     sWorkingPath + "\" + sExportName + ".xlsx"
+			Note "The export script completed but the expected XLSX file was not created:" + Chr$(10) + sWorkingPath + "\" + sExportName + ".xlsx"
 
 		End If
 
@@ -4202,8 +4184,7 @@ Sub OutputMaps(SelectedMap As MapDetails)
 	' it as a layer which wasn't meant to be produced.
 	'-------------------------------------------------
 	If TabFileExists(sLocalPath + "\" + sOutputName + ".tab") = False Then
-		Call MyPrint("ERROR: Expected GIS output not found: '" + _
-			sLocalPath + "\" + sOutputName + ".tab'.")
+		Call MyPrint("ERROR: Expected GIS output not found: '" + sLocalPath + "\" + sOutputName + ".tab'.")
 		Exit Sub
 	End If
 
