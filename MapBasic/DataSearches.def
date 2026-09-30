@@ -93,6 +93,7 @@ Type MapDetails
 	DisplayLabel As String
 	SiteColumns As String
 	SiteCriteria As String
+	OutputKept As Logical
 End Type
 
 '-------------------------------------------------

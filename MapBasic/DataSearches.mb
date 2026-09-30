@@ -29,7 +29,7 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:		Andy Foy - July 2026
+'* Last revised:		Andy Foy - September 2026
 '*
 '* *****************  Version 1.4.46  **************
 '* A. Enable outputs to be saved to temporary folder during
@@ -258,7 +258,7 @@
 '*	export criteria.
 '* B. Logging separate record counts for selection
 '*	and export.
-'* C. Delete layers no kept for map display.
+'* C. Delete layers not kept for map display.
 '*
 '* *****************  Version 1.4.3  ****************
 '* Author: Andy Foy		Date: 14/03/2016
@@ -1426,9 +1426,12 @@ Sub GetSiteName
 		'-------------------------------------------------
 		Dim sEnquiries As String
 		sEnquiries = sEnquiriesDir + "\Enquiries.tab"
+
 		If Not TryOpenTableFromPath(sEnquiries, "Enquiries") Then
+
 			Note "Failed to open the enquiries table."
 			Exit Sub
+
 		End If
 	
 RegisterTable:
@@ -1457,8 +1460,10 @@ RegisterTable:
 			' Open the 'Enquiries' table
 			'-------------------------------------------------
 			If Not TryOpenTableFromPath(sEnquiries, "Enquiries") Then
+
 				Note "Failed to open the enquiries table."
 				Exit Sub
+
 			End If
 		
 		End If
@@ -1558,6 +1563,9 @@ Sub CheckSelection
 '* Check the user's selections and process according
 '***************************************************************
 
+	Dim bProcessingStarted As Logical
+	bProcessingStarted = False
+
 	'-------------------------------------------------
 	' Trap errors
 	'-------------------------------------------------
@@ -1651,6 +1659,7 @@ Sub CheckSelection
 		SelectedMaps(iExtractTot).Symbology = OpenMaps(iMapTable).Symbology
 		SelectedMaps(iExtractTot).SiteColumns = OpenMaps(iMapTable).SiteColumns
 		SelectedMaps(iExtractTot).SiteCriteria = OpenMaps(iMapTable).SiteCriteria
+		SelectedMaps(iExtractTot).OutputKept = False
 
 		'-------------------------------------------------
 		' Read the next table selected in the list
@@ -1883,16 +1892,18 @@ SetSubRef:
 	'-------------------------------------------------
 	If sWorkingDir <> "" Then
 
+		sWorkingPath = sWorkingDir
+
 		'-------------------------------------------------
 		' Create the working folder if it doesn't already exist
 		'-------------------------------------------------
-		iSuccess = SetCurrentDirectory(sWorkingDir)
+		iSuccess = SetCurrentDirectory(sWorkingPath)
 		If iSuccess = 0 Then
 			If bDebug Then
-				Call MyPrint("Creating working folder path '" + sWorkingDir + "'")
+				Call MyPrint("Creating working folder path '" + sWorkingPath + "'")
 			End If
 
-			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
 			If iSuccess <> 0 Then
 				Call MyPrint("Error creating working folder path")
 				Call MyPrint("Process terminated.")
@@ -1904,16 +1915,16 @@ SetSubRef:
 		' Create the request folder if it doesn't already exist
 		'-------------------------------------------------
 		If sSaveFolder <> "" Then
-			sWorkingDir = sWorkingDir + "\" + sSaveFolder
+			sWorkingPath = sWorkingPath + "\" + sSaveFolder
 		End If
 
-		iSuccess = SetCurrentDirectory(sWorkingDir)
+		iSuccess = SetCurrentDirectory(sWorkingPath)
 		If iSuccess = 0 Then
 			If bDebug Then
-				Call MyPrint("Creating working request folder path '" + sWorkingDir + "'")
+				Call MyPrint("Creating working request folder path '" + sWorkingPath + "'")
 			End If
 
-			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
 			If iSuccess <> 0 Then
 				Call MyPrint("Error creating working request folder path")
 				Call MyPrint("Process terminated.")
@@ -1925,16 +1936,16 @@ SetSubRef:
 		' Create the GIS sub-folder if it doesn't already exist
 		'-------------------------------------------------
 		If sGISFolder <> "" Then
-			sWorkingDir = sWorkingDir + "\" + sGISFolder
+			sWorkingPath = sWorkingPath + "\" + sGISFolder
 		End If
 	
-		iSuccess = SetCurrentDirectory(sWorkingDir)
+		iSuccess = SetCurrentDirectory(sWorkingPath)
 		If iSuccess = 0 Then
 			If bDebug Then
-				Call MyPrint("Creating working sub-folder path '" + sWorkingDir + "'")
+				Call MyPrint("Creating working sub-folder path '" + sWorkingPath + "'")
 			End If
 
-			iSuccess = SHCreateDirectoryEx(0, sWorkingDir, iSecurity)
+			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
 			If iSuccess <> 0 Then
 				Call MyPrint("Error creating working sub-folder path")
 				Call MyPrint("Process terminated.")
@@ -1944,20 +1955,41 @@ SetSubRef:
 	End If
 	
 	'-------------------------------------------------
-	' Set the working folder
+	' Set the working folder to the local path if not set
 	'-------------------------------------------------
-	If sWorkingDir <> "" Then
-		sWorkingPath = sWorkingDir
-	Else
+	If sWorkingDir = "" Then
 		sWorkingPath = sLocalPath
 	End If
 
 	'-------------------------------------------------
-	' Clear the working folder
+	' Clear the working folder before creating any
+	' new output files
 	'-------------------------------------------------
 	If sWorkingPath <> sLocalPath Then
-		sCmd = "cmd.exe /c del /F /Q """ + sWorkingPath + "\*.*"""
-		Run Program (sCmd)
+
+		If bDebug Then
+			Call MyPrint("Clearing working folder ...")
+		End If
+
+		sCmd = "cmd.exe /c del /F /Q " + _
+		       sQ + sWorkingPath + "\*.*" + sQ
+
+		Dim iDelResult As Integer
+		iDelResult = ExecuteAndWait(sCmd)
+
+		If iDelResult <> 0 Then
+
+			Call MyPrint("ERROR: Unable to clear the working folder.")
+			Call MyPrint("Command exit code = " + Str$(iDelResult))
+
+			Note "Unable to clear the working folder:" + Chr$(10) + _
+			     sWorkingPath + Chr$(10) + Chr$(10) + _
+			     "Command exit code: " + Str$(iDelResult)
+
+			Exit Sub
+
+		End If
+
 	End If
 
 	'-------------------------------------------------
@@ -2005,6 +2037,8 @@ SetSubRef:
 
 	' Initialise the random number function
 	Randomize
+
+	bProcessingStarted = True
 
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Processing search '" + sSearchRef + "' ...")
@@ -2191,13 +2225,18 @@ SetSubRef:
 	' found
 	'-------------------------------------------------
 	For iWindowNum = 1 to iNumWindows
+
 		Dim iNumTables As Integer
 		iNumTables = MapperInfo(aWindowId(iWindowNum), MAPPER_INFO_LAYERS)
+
 		For iNumSearchTable = 1 to iNumTables
+
 			If LayerInfo(aWindowId(iWindowNum), iNumSearchTable, LAYER_INFO_NAME) = sSearchTable Then
 				Goto EditLayer
 			End If
+
 		Next
+
 	Next
 
 	'-------------------------------------------------
@@ -2205,6 +2244,7 @@ SetSubRef:
 	' it to the first window
 	'-------------------------------------------------
 	If iWindowNum > iNumWindows Then
+
 		iWindowNum = 1
 		If bDebug Then
 			Call MyPrint("Adding table " + sSearchTable + " to map ...")
@@ -2214,6 +2254,7 @@ SetSubRef:
 		Run Command (sCmd)
 
 		iNumSearchTable = 1
+
 	End If
 
 	' Something's gone wrong if the search table can't be
@@ -2280,11 +2321,13 @@ EditLayer:
 	Set ProgressBars Off
 
 	If TableInfo(sSearchTable, TAB_INFO_EDITED) Then
+
 		Commit Table sSearchTable
 		Call WAPISleep(iRetryDelay)
 
 		Call MyPrint("Table " + sSearchTable + " updated.")
 		Call MyPrint("")
+
 	End If
 
 	Set ProgressBars On
@@ -2382,11 +2425,13 @@ HideLayer:
 		' If a combined sites table is to be appended
 		'-------------------------------------------------
 		If iCombinedSitesTable = 2 Then
+
 			'-------------------------------------------------
 			' If a combined sites table exists in the local
 			' folder.
 			'-------------------------------------------------
 			If TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = True Then
+
 				'-------------------------------------------------
 				' Copy the existing combined sites table to the
 				' working folder.
@@ -2395,8 +2440,23 @@ HideLayer:
 					Call MyPrint("Copying combined sites table to the working folder ...")
 				End If
 
-				sCmd = "cmd.exe /c robocopy " + sQ + sLocalPath + "\" + sCombinedSitesTable + ".tab" + sQ + " " + sQ + sWorkingPath + "\" + sCombinedSitesTable + ".tab" + sQ
-				Run Program (sCmd)
+				sCmd = "cmd.exe /c robocopy " + _
+				       sQ + sLocalPath + sQ + " " + _
+				       sQ + sWorkingPath + sQ + " " + _
+				       sQ + sCombinedSitesTable + ".*" + sQ + _
+				       " /R:3 /W:2"
+
+				Dim iMoveResult As Integer
+				iMoveResult = ExecuteAndWait(sCmd)
+
+				If iMoveResult < 0 Or iMoveResult >= 8 Then
+
+					Call MyPrint("ERROR: Failed to copy the combined sites table to the working folder.")
+					Call MyPrint("Robocopy exit code = " + Str$(iMoveResult))
+					Note "Error copying the combined sites table." + Chr$(10) + "Robocopy exit code: " + Str$(iMoveResult)
+					Goto Response
+
+				End If
 
 				'-------------------------------------------------
 				' Open the existing combined sites table in the
@@ -2602,30 +2662,56 @@ HideLayer:
 	' output folder
 	'-------------------------------------------------
 	If sWorkingPath <> sLocalPath Then
-		Call MyPrint("Moving files from the working folder ...")
-		sCmd = "cmd.exe robocopy " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E"
-		Run Program (sCmd)
-		Call MyPrint("Move complete.")
-		Call MyPrint("")
+
+	    Call MyPrint("Moving files from the working folder ...")
+
+	    sCmd = "cmd.exe /c robocopy " + _
+	           sQ + sWorkingPath + sQ + " " + _
+	           sQ + sLocalPath + sQ + _
+	           " /MOVE /E /R:3 /W:2"
+
+	    iMoveResult = ExecuteAndWait(sCmd)
+
+	    If iMoveResult < 0 Or iMoveResult >= 8 Then
+
+	        Call MyPrint("ERROR: Robocopy failed moving files to the output folder.")
+		Call MyPrint("Robocopy exit code = " + Str$(iMoveResult))
+
+	        Note "Error moving files to the output folder. Robocopy exit code: " + Str$(iMoveResult)
+
+		lResponse = False
+		Goto Response
+
+	    End If
+
+	    '-------------------------------------------------
+	    ' Reset the temporary log file full path for the output messages
+	    '-------------------------------------------------
+	    sLogFileTmp = sLocalPath + "\" + sLogFileNameTmp
+
+	    Call MyPrint("Move complete.")
+	    Call MyPrint("")
+
 	End If
 
 	'-------------------------------------------------
-	' Reset the temporary log file full path for the output messages
+	' If the outputs are to be added to the map then
+	' add them one by one
 	'-------------------------------------------------
-	sLogFileTmp = sLocalPath + "\" + sLogFileNameTmp
+	If iAddSelectedTables > 1 Then
 
-	'-------------------------------------------------
-	' If the outputs are to be kept add them to the
-	' map, if required, one by one
-	'-------------------------------------------------
-	If iKeepSelectedTables > 1 Then
-		iMapCnt = 0
+		iMapCnt = 1
 		iMapTot = iExtractTot
 		iMapLabelCounter = 1
-		'sLastGroupName = ""
-		ProgressBar "Mapping data search '" + sSearchRef + "' ..."
-			Calling MapTables
-			Range iMapTot
+
+		If iMapTot > 0 Then
+
+			ProgressBar "Mapping data search '" + sSearchRef + "' ..."
+				Calling MapTables
+				Range iMapTot
+
+		End If
+
 	End If
 
 	'-------------------------------------------------
@@ -2634,21 +2720,27 @@ HideLayer:
 	OnError Goto IgnoreError
 	
 	If CommandInfo(CMD_INFO_STATUS) Then
-		If iExtractCnt <= iExtractTot Then
+
+		If iExtractCnt <= iExtractTot _
+		Or (iAddSelectedTables > 1 And iMapCnt <= iMapTot) Then
+
 			Call MyPrint("")
 			Call MyPrint("----------------------------------------------------------------------")
 			Call MyPrint("Process did not complete!")
 			Call MyPrint("----------------------------------------------------------------------")
 			lResponse = Ask("Processing incomplete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
 			Goto Response
+
 		End If
 	Else
+
 		Call MyPrint("")
 		Call MyPrint("----------------------------------------------------------------------")
 		Call MyPrint("Process interrupted by user!")
 		Call MyPrint("----------------------------------------------------------------------")
 		lResponse = Ask("Processing interrupted!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
 		Goto Response
+
 	End If
 
 	'-------------------------------------------------
@@ -2673,8 +2765,13 @@ HideLayer:
 		
 		sBufferTable = sBufferSaveName
 		If Not TryOpenTableFromPath(sLocalPath + "\" + sBufferTable + ".tab", sBufferTable) Then
+
+			Call MyPrint("Failed to open the buffer table.")
 			Note "Failed to open the buffer table."
-			   Exit Sub
+
+			lResponse = False
+			Goto Response
+
 		End If
 	End If
 	
@@ -2689,8 +2786,13 @@ HideLayer:
 		Close Table sSearchAreaTable
 		
 		If Not TryOpenTableFromPath(sLocalPath + "\" + sSearchAreaTable + ".tab", sSearchAreaTable) Then
+
+			Call MyPrint("Failed to open the search area table.")
 			Note "Failed to open the search area table."
-			   Exit Sub
+
+			lResponse = False
+			Goto Response
+
 		End If
 	End If
 
@@ -2841,24 +2943,43 @@ Response:
 	Exit Sub
 
 ErrorTrap:
-	Note "Error: " + str$(Err()) + ": " + Error$()
-	Call MyPrint(str$(Err()) + ": " + Error$())
-	Exit Sub
+
+	Note "Error: " + Str$(Err()) + ": " + Error$()
+
+	If bProcessingStarted Then
+
+		Call MyPrint("ERROR: " + Str$(Err()) + ": " + Error$())
+
+		lResponse = False
+		Goto Response
+
+	Else
+
+		Exit Sub
+
+	End If
 
 ErrorCreatingSitesTable:
 		'-------------------------------------------------
 		' Inform user of error creating table
 		'-------------------------------------------------
 		If Err() = 497 Then
+
 			Note "Unable to save combined sites table " + sCombinedSitesTable + ". The table may be open in another application."
 			Call MyPrint("Error: Unable to create combined sites table " + sCombinedSitesTable + ".")
 			Call MyPrint("")
 			Resume Next
+
 		Else
+
 			Note "Error: " + str$(Err()) + ": " + Error$()
+
 			Call MyPrint(str$(Err()) + ": " + Error$())
 			Call MyPrint("")
-			Exit Sub
+
+			lResponse = False
+			Goto Response
+
 		End If
 		
 IgnoreError:
@@ -3015,8 +3136,10 @@ EditLayer:
 	End If
 
 	If Not TryOpenTableFromPath(sWorkingPath + "\" + sSearchAreaTable + ".tab", sSearchAreaTable) Then
+
 		Note "Failed to open new search area table."
 		Exit Sub
+
 	End If
 
 	'-------------------------------------------------
@@ -3128,8 +3251,10 @@ EditLayer:
 	End If
 	
 	If Not TryOpenTableFromPath(sWorkingPath + "\" + sBufferSaveName + ".tab", sBufferTable) Then
+
 		   Note "Failed to open new buffer table."
 		  Exit Sub
+
 	End If
 
 	'-------------------------------------------------
@@ -3303,8 +3428,10 @@ Function OpenCombinedSitesTable(sSitesTable As String) As Logical
 	' Try and open the combined sites table
 	'-------------------------------------------------
 	If Not TryOpenTableFromPath(sWorkingPath + "\" + sSitesTable + ".tab", sSitesTable) Then
-		   Note "Failed to open the combined sites table."
-		  Exit Sub
+
+		Note "Failed to open the combined sites table."
+		Exit Sub
+
 	End If
 	
 	If bDebug Then
@@ -3377,6 +3504,7 @@ NextSelection:
 		' Halt processing
 		'-------------------------------------------------
 		ProgressBar = -1
+		Exit Sub
 	Else
 		'-------------------------------------------------
 		' Show progress
@@ -3776,7 +3904,7 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	If iRecTotal = 0 Then
 		Call MyPrint("No records found for export - table skipped.")
 		Close Table sExportTemp
-		Exit Sub
+		Goto TranslateTable
 	End If
 
 	Call MyPrint("" + iRecTotal + " records to be exported.")
@@ -3829,13 +3957,39 @@ Sub SelectMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' Process the export file (if required)
+	' Process the export file if required
 	'-------------------------------------------------
 	If SelectedMap.Macro <> "" Then
+
 		Call MyPrint("Processing the export file ...")
-		sCmd = "Run Program " + sQ + "cscript.exe " +  + sQ + sQ + SelectedMap.Macro + sQ + sQ + " " + sQ + sQ + sWorkingPath
-			+ sQ + sQ + " " + sQ + sQ + sExportName + "." + SelectedMap.Format + sQ + sQ + " " + sQ + sQ + sExportName + ".xlsx" + sQ + sQ + sQ
-		Run Command (sCmd)
+
+		sCmd = "cmd.exe /c cscript.exe //nologo " + _
+		       sQ + SelectedMap.Macro + sQ + " " + _
+		       sQ + sWorkingPath + sQ + " " + _
+		       sQ + sExportName + "." + SelectedMap.Format + sQ + " " + _
+		       sQ + sExportName + ".xlsx" + sQ
+
+		Dim iScriptResult As Integer
+		iScriptResult = ExecuteAndWait(sCmd)
+
+		If iScriptResult <> 0 Then
+
+			Call MyPrint("ERROR: Export processing failed.")
+			Call MyPrint("Script exit code = " + Str$(iScriptResult))
+
+			Note "Error processing the export file." + Chr$(10) + _
+			     "Script exit code: " + Str$(iScriptResult)
+
+		ElseIf FileExists(sWorkingPath + "\" + sExportName + ".xlsx") = False Then
+
+			Call MyPrint("ERROR: Export processing completed but the XLSX file was not created.")
+
+			Note "The export script completed but the expected XLSX file was not created:" + _
+			     Chr$(10) + _
+			     sWorkingPath + "\" + sExportName + ".xlsx"
+
+		End If
+
 	End If
 
 	'-------------------------------------------------
@@ -3845,12 +3999,12 @@ Sub SelectMaps(SelectedMap As MapDetails)
 		Close Table sExportTemp
 	End If
 	
+TranslateTable:
 	'-------------------------------------------------
 	' If this layer should be kept
 	'-------------------------------------------------
 	If (UCase$(SelectedMap.Keep) = "YES" Or UCase$(SelectedMap.Keep) = "Y") Then
 	
-TranslateTable:
 		'-------------------------------------------------
 		' Translate the table to ESRI shapefile if required
 		'-------------------------------------------------
@@ -3859,11 +4013,11 @@ TranslateTable:
 			sLogFileShp = "TabToShp" + "_" + sUserID
 
 			If bDebug Then
-				Call MyPrint("Log File Path = '" + sWorkingDir+ "'")
+				Call MyPrint("Log File Path = '" + sWorkingPath + "'")
 				Call MyPrint("Log File Name = '" + sLogFileShp + "'")
 			End If
 
-			Call TranslateToShapefile(sUTPath, sUTCommand, sWorkingDir, sLogFileShp, sWorkingDir, sOutputName)
+			Call TranslateToShapefile(sUTPath, sUTCommand, sWorkingPath, sLogFileShp, sWorkingPath, sOutputName)
 
 		End If
 	
@@ -3876,13 +4030,21 @@ TranslateTable:
 				Call MyPrint("Keeping local file ...")
 			End If
 
+			' Close the table
 			Close Table sSelectName
+
+			' Record that this output exists and is available for mapping
+			SelectedMaps(iExtractCnt).OutputKept = True
 		Else
 			If bDebug Then
 				Call MyPrint("Deleting local file ...")
 			End If
 
+			' Delete the table
 			Drop Table sSelectName
+
+			' Record that this output does not exist and is not available for mapping
+			SelectedMaps(iExtractCnt).OutputKept = False
 		End If
 	
 	Else
@@ -3894,7 +4056,11 @@ TranslateTable:
 			Call MyPrint("Deleting local file ...")
 		End If
 
+		' Delete the table
 		Drop Table sSelectName
+
+		' Record that this output does not exist and is not available for mapping
+		SelectedMaps(iExtractCnt).OutputKept = False
 	
 	End If
 
@@ -3919,26 +4085,12 @@ Sub MapTables
 '* Add each output table to the map
 '***************************************************************
 
-NextSelection:
-
 	'-------------------------------------------------
-	' Increment the progress bar counter
+	' Stop immediately if there is nothing left to map
 	'-------------------------------------------------
-	iMapCnt = iMapCnt + 1
-
-	'-------------------------------------------------
-	' If all the tables in the list have been processed
-	'-------------------------------------------------
-	If iMapCnt > iMapTot Then
-		'-------------------------------------------------
-		' Halt processing
-		'-------------------------------------------------
+	If iMapTot <= 0 Or iMapCnt < 1 Or iMapCnt > iMapTot Then
 		ProgressBar = -1
-	Else
-		'-------------------------------------------------
-		' Show progress
-		'-------------------------------------------------
-		ProgressBar = iMapCnt
+		Exit Sub
 	End If
 
 	'-------------------------------------------------
@@ -3964,16 +4116,42 @@ NextSelection:
 	SelectedMap.Symbology = SelectedMaps(iMapCnt).Symbology
 	SelectedMap.SiteColumns = SelectedMaps(iMapCnt).SiteColumns
 	SelectedMap.SiteCriteria = SelectedMaps(iMapCnt).SiteCriteria
-
-	Call MyPrint("Mapping table = '" + SelectedMap.Node + "' (" + iMapCnt + " of " + iMapTot + ") ...")
+	SelectedMap.OutputKept = SelectedMaps(iMapCnt).OutputKept
 
 	'-------------------------------------------------
-	' Call the subroutine to add the selected output
-	' to the map
+	' Only attempt to map an output which was retained
 	'-------------------------------------------------
-	Call OutputMaps(SelectedMap)
+	If SelectedMap.OutputKept Then
 
-	Call MyPrint("Mapped table = '" + SelectedMap.Node + "'.")
+		Call MyPrint("Mapping table = '" + SelectedMap.Node + "' (" + iMapCnt + " of " + iMapTot + ") ...")
+
+		Call OutputMaps(SelectedMap)
+
+	End If
+
+NextSelection:
+
+	'-------------------------------------------------
+	' Increment the progress bar counter
+	'-------------------------------------------------
+	iMapCnt = iMapCnt + 1
+
+	'-------------------------------------------------
+	' If all the tables in the list have been processed
+	'-------------------------------------------------
+	If iMapCnt > iMapTot Then
+		'-------------------------------------------------
+		' Halt processing
+		'-------------------------------------------------
+		ProgressBar = -1
+		Exit Sub
+	Else
+		'-------------------------------------------------
+		' Show progress
+		'-------------------------------------------------
+		ProgressBar = iMapCnt
+	End If
+
 
 End Sub
 
@@ -4011,6 +4189,25 @@ Sub OutputMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
+	' If no GIS output was retained for this layer
+	' then there is nothing to map
+	'-------------------------------------------------
+	If SelectedMap.OutputKept = False Then
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
+	' The output should exist. If it doesn't, this is
+	' unexpected, so log it rather than silently treating
+	' it as a layer which wasn't meant to be produced.
+	'-------------------------------------------------
+	If TabFileExists(sLocalPath + "\" + sOutputName + ".tab") = False Then
+		Call MyPrint("ERROR: Expected GIS output not found: '" + _
+			sLocalPath + "\" + sOutputName + ".tab'.")
+		Exit Sub
+	End If
+
+	'-------------------------------------------------
 	' Check if the working table is already/still open
 	' and close it if it is
 	'-------------------------------------------------
@@ -4023,19 +4220,8 @@ Sub OutputMaps(SelectedMap As MapDetails)
 	End If
 
 	'-------------------------------------------------
-	' If this layer should not be kept then exit
+	' Try and open the table
 	'-------------------------------------------------
-	If (UCase$(SelectedMap.Keep) = "NO" Or UCase$(SelectedMap.Keep) = "N") Then
-		Exit Sub
-	End If
-	
-	'-------------------------------------------------
-	' If this layer does not exist then exit
-	'-------------------------------------------------
-	If TabFileExists(sLocalPath + "\" + sCombinedSitesTable + ".tab") = False Then
-		Exit Sub
-	End If
-
 	If Not TryOpenTableFromPath(sLocalPath + "\" + sOutputName + ".tab", sLocalName) Then
 		OnError Goto ErrorTrap
 		Exit Sub
