@@ -3,12 +3,12 @@ DataSearches
 
 DataSearches tool
 
-Copyright © 2013-2019 TVERC, GiGL, SBIC. Andy Foy Consulting 2020-2025.
+Copyright © 2012 - 2026 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
 
 Overview
 --------
 
-DataSearches is a MapInfo tool which lists a set of available GIS layers and allows the user to select which layers to extract for the current data search, specifying a radius from a feature of interest. The output files are created as MapInfo TAB format (.tab) files, Comma Separated Value (.csv) files or Text (.txt) files.
+DataSearches is a MapBasic tool which lists a set of available GIS layers and allows the user to select which layers to extract for the current data search, specifying a radius from a feature of interest. The output files are created as MapInfo TAB format (.tab) files, Comma Separated Value (.csv) files or Text (.txt) files.
 
 Requirements
 ------------
@@ -44,3 +44,4 @@ The DataSearches tool was developed with funding from:
 * Thames Valley Environmental Records Centre
 * Greenspace Information for Greater London CIC
 * Surrey Biodiversity Information Centre
+* Dorset Environmental Records Centre

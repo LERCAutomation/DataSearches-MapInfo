@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 - 2019 GiGL, TVERC, SBIC
+'* Copyright © 2012 - 2026 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,13 +20,17 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* GenFunctions v1.44
+'* GenFunctions v1.45
 '*
 '* Contains general functions used by the DataSearches tool.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - July 2019
+'* Last revised:		Andy Foy - October 2026
+'*
+'* *****************  Version 1.45  *****************
+'* A. Detect failed process launches.
+'* B. Add directory creation and fresh-run helpers.
 '*
 '* *****************  Version 1.44  *****************
 '* Author: Andy Foy		Date: 02/07/2019
@@ -348,56 +352,43 @@ End Function
 
 Function CreatePath(ByVal sPath As String) As Logical
 '*************************************************
-'* Checks and creates all the folders in a path
+'* Create/check a complete local or UNC directory.
+'* Do not change the application's current directory.
 '*************************************************
-Dim i As Integer
-Dim sFolder As String
-Dim iSuccess, iSecurity As Integer
+    OnError Goto Failed
+    Dim iResult As Integer, iAttributes As Integer
+    CreatePath = False
+    sPath = FullPath(sPath)
+    If sPath = "" Then Exit Function End If
+    iResult = SHCreateDirectoryEx(0, sPath, 0)
+    If iResult <> 0 And iResult <> 183 Then Exit Function End If
+    iAttributes = GetFileAttributes(sPath)
+    If iAttributes = -1 Then Exit Function End If
+    CreatePath = (iAttributes Mod 32) >= 16
+Failed:
+End Function
 
-	OnError GoTo 0
-	
-	CreatePath = False
-	
-	' Find the first blackslash
-	i = InStr(1, sPath, "\")
-	Do While i > 0
-	   sFolder = Left$(sPath, i - 1)
-
-		' Check if the folder exists	   
-		iSecurity = 0
-		iSuccess = SetCurrentDirectory(sFolder)
-		
-		' If the folder doesn't exist
-		If iSuccess = 0 Then
-
-			' Create the folder
-			iSuccess = 0
-			iSuccess = CreateDirectory(sFolder, iSecurity)
-			
-			' If the folder couldn't be created
-			if iSuccess = 0 Then
-				GoTo ErrorOccured
-			End If
-		End If	   
-	   
-		' Find the next blackslash (or the end of the string)
-	    If i < Len(sPath) Then
-			i = InStr(i + 1, sPath, "\")
-			If i = 0 Then
-				i = Len(sPath) + 1
-			End If
-		Else
-			i = 0
-		End If
-	Loop
-	
-	CreatePath = True
-	
-	Exit Function
-
-ErrorOccured:
-	Note "Error: " + str$(Err()) + ": " + Error$()
-
+Function NewWorkingFolder(ByVal sRoot As String, ByVal sPrefix As String) As String
+'*************************************************
+'* Atomically reserve a fresh run directory.
+'*************************************************
+    OnError Goto Failed
+    Dim sCandidate As String, sStamp As String
+    Dim iAttempt As Integer, iResult As Integer
+    NewWorkingFolder = ""
+    sRoot = FullPath(sRoot)
+    If Not CreatePath(sRoot) Then Exit Function End If
+    sStamp = Format$(Year(CurDate()), "0000") + Format$(Month(CurDate()), "00") + Format$(Day(CurDate()), "00") + "_" + StringReplace(FormatTime$(CurTime(), "HH:mm:ss"), ":", "")
+    For iAttempt = 1 To 100
+        sCandidate = sRoot + "\" + sPrefix + "_" + sStamp + "_" + LTrim$(Str$(Int(Rnd(1) * 1000000))) + "_" + LTrim$(Str$(iAttempt))
+        iResult = SHCreateDirectoryEx(0, sCandidate, 0)
+        If iResult = 0 Then
+            NewWorkingFolder = sCandidate
+            Exit Function
+        End If
+        If iResult <> 183 And iResult <> 80 Then Exit Function End If
+    Next
+Failed:
 End Function
 
 Function GetUserID() As String
@@ -637,4 +628,35 @@ Exit Function
 '-------------------------
 ErrorOccured:
 	STLText2Brush = CurrentBrush()
+End Function
+
+Function FullPath(ByVal sPath As String) As String
+'*************************************************
+'* Resolve relative paths before changing directory.
+'*************************************************
+
+	Dim sBuffer As String, iLength As Integer
+	FullPath = ""
+	If sPath = "" Then Exit Function End If
+	sBuffer = Space$(1024)
+	iLength = GetFullPathName(sPath, 1024, sBuffer, 0)
+	If iLength = 0 Or iLength >= 1024 Then Exit Function End If
+	sPath = Left$(sBuffer, iLength)
+	Do While Len(sPath) > 3 And Right$(sPath, 1) = "\"
+		sPath = Left$(sPath, Len(sPath) - 1)
+	Loop
+	FullPath = sPath
+
+End Function
+
+Function PathIsWithin(ByVal sPath As String, ByVal sRoot As String) As Logical
+'*************************************************
+'* Require a child path, excluding the root itself.
+'*************************************************
+
+	PathIsWithin = False
+	If sPath = "" Or sRoot = "" Then Exit Function End If
+	If Right$(sRoot, 1) <> "\" Then sRoot = sRoot + "\" End If
+	PathIsWithin = Left$(UCase$(sPath), Len(sRoot)) = UCase$(sRoot)
+
 End Function

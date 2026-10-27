@@ -2,8 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013-2021 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
-'* Copyright © 2025-2026 Andy Foy Consulting
+'* Copyright © 2012 - 2026 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -21,7 +20,7 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 '*
 '***************************************************************
-'* DataSearches v1.4.46
+'* DataSearches v1.5.00
 '*
 '* Creates a dialog window which lists all the available MapInfo
 '* habitat, species and other layers and allows the user to select
@@ -29,9 +28,13 @@
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:		Andy Foy - September 2026
+'* Last revised:		Andy Foy - October 2026
 '*
-'* *****************  Version 1.4.46  **************
+'* *****************  Version 1.5.01  **************
+'* A. Use fresh working folders and preserve failed runs.
+'* B. Improve file transfer and process failure handling.
+'*
+'* *****************  Version 1.5.00  **************
 '* A. Enable outputs to be saved to temporary folder during
 '*    processing to reduce network traffic.
 '*
@@ -304,7 +307,7 @@ Sub Main
 	'-------------------------------------------------
 	' Set the version number
 	'-------------------------------------------------
-	sVersion = "1.4.46"
+	sVersion = "1.4.47"
 
 	' Set the retry delay
 	iRetryDelay = RETRY_DELAY_MS
@@ -1565,6 +1568,12 @@ Sub CheckSelection
 
 	Dim bProcessingStarted As Logical
 	bProcessingStarted = False
+    If iLogCount > 0 Then
+        Call CommitLogMessages
+        If iLogCount > 0 Then Exit Sub End If
+    End If
+    sWorkingRun = ""
+    bLogMessages = False
 
 	'-------------------------------------------------
 	' Trap errors
@@ -1844,6 +1853,11 @@ SetSubRef:
 	' Create the request folder if it doesn't already exist
 	'-------------------------------------------------
 	Dim sRootPath As String
+    sSaveRootDir = FullPath(sSaveRootDir)
+    If sSaveRootDir = "" Then
+        Note "Invalid final output root."
+        Exit Sub
+    End If
 	If sSaveFolder = "" Then
 		sRootPath = sSaveRootDir
 	Else
@@ -1887,107 +1901,20 @@ SetSubRef:
 		End If
 	End If
 
-	'-------------------------------------------------
-	' If a working directory is to be used ...
-	'-------------------------------------------------
-	If sWorkingDir <> "" Then
-
-		sWorkingPath = sWorkingDir
-
-		'-------------------------------------------------
-		' Create the working folder if it doesn't already exist
-		'-------------------------------------------------
-		iSuccess = SetCurrentDirectory(sWorkingPath)
-		If iSuccess = 0 Then
-			If bDebug Then
-				Call MyPrint("Creating working folder path '" + sWorkingPath + "'")
-			End If
-
-			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
-			If iSuccess <> 0 Then
-				Call MyPrint("Error creating working folder path")
-				Call MyPrint("Process terminated.")
-				Exit Sub
-			End If
-		End If
-
-		'-------------------------------------------------
-		' Create the request folder if it doesn't already exist
-		'-------------------------------------------------
-		If sSaveFolder <> "" Then
-			sWorkingPath = sWorkingPath + "\" + sSaveFolder
-		End If
-
-		iSuccess = SetCurrentDirectory(sWorkingPath)
-		If iSuccess = 0 Then
-			If bDebug Then
-				Call MyPrint("Creating working request folder path '" + sWorkingPath + "'")
-			End If
-
-			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
-			If iSuccess <> 0 Then
-				Call MyPrint("Error creating working request folder path")
-				Call MyPrint("Process terminated.")
-				Exit Sub
-			End If
-		End If
-
-		'-------------------------------------------------
-		' Create the GIS sub-folder if it doesn't already exist
-		'-------------------------------------------------
-		If sGISFolder <> "" Then
-			sWorkingPath = sWorkingPath + "\" + sGISFolder
-		End If
-	
-		iSuccess = SetCurrentDirectory(sWorkingPath)
-		If iSuccess = 0 Then
-			If bDebug Then
-				Call MyPrint("Creating working sub-folder path '" + sWorkingPath + "'")
-			End If
-
-			iSuccess = SHCreateDirectoryEx(0, sWorkingPath, iSecurity)
-			If iSuccess <> 0 Then
-				Call MyPrint("Error creating working sub-folder path")
-				Call MyPrint("Process terminated.")
-				Exit Sub
-			End If
-		End If
-	End If
-	
-	'-------------------------------------------------
-	' Set the working folder to the local path if not set
-	'-------------------------------------------------
-	If sWorkingDir = "" Then
-		sWorkingPath = sLocalPath
-	End If
-
-	'-------------------------------------------------
-	' Clear the working folder before creating any
-	' new output files
-	'-------------------------------------------------
-	If sWorkingPath <> sLocalPath Then
-
-		If bDebug Then
-			Call MyPrint("Clearing working folder ...")
-		End If
-
-		sCmd = "cmd.exe /c del /F /Q " + sQ + sWorkingPath + "\*.*" + sQ
-
-		Dim iDelResult As Integer
-		iDelResult = ExecuteAndWait(sCmd)
-
-		If iDelResult <> 0 Then
-
-			Call MyPrint("ERROR: Unable to clear the working folder.")
-			Call MyPrint("Command exit code = " + Str$(iDelResult))
-
-			Note "Unable to clear the working folder:" + Chr$(10) + sWorkingPath + Chr$(10) + Chr$(10) + "Command exit code: " + Str$(iDelResult)
-
-			Exit Sub
-
-		End If
-
-	End If
+    sLocalPath = FullPath(sLocalPath)
+    sWorkingPath = sLocalPath
+    If LTrim$(RTrim$(sWorkingDir)) <> "" Then
+        sWorkingRun = NewWorkingFolder(sWorkingDir, "DataSearches")
+        If sWorkingRun = "" Then
+            Note "Unable to create a fresh working folder under:" + Chr$(10) + sWorkingDir
+            Exit Sub
+        End If
+        sWorkingPath = sWorkingRun
+        If sWorkingPath = sLocalPath Or PathIsWithin(sWorkingPath, sLocalPath) Or PathIsWithin(sLocalPath, sWorkingPath) Then
+            Note "The working folder and final output folder must not overlap."
+            Exit Sub
+        End If
+    End If
 
 	'-------------------------------------------------
 	' Set the log file full path for the output messages
@@ -1995,19 +1922,6 @@ SetSubRef:
 	sLogFile = sLocalPath + "\" + sLogFileName
 	bLogMessages = True
 	
-	'-------------------------------------------------
-	' Clear the existing log file if required
-	'-------------------------------------------------
-	If bClearLog = True Then
-		If FileExists(sLogFile) Then
-			If bDebug Then
-				Call MyPrint("Clearing log file ...")
-			End If
-			
-			Kill sLogFile
-		End If
-	End If
-
 	'-------------------------------------------------
 	' Set the temporary log file name for output messages
 	'-------------------------------------------------
@@ -2032,10 +1946,28 @@ SetSubRef:
 	' Initialise if the message window has been shown already
 	bMessageWinShown = False
 
+	'-------------------------------------------------
+	' Clear the existing log file if required
+	'-------------------------------------------------
+	If bClearLog = True Then
+		If FileExists(sLogFile) Then
+			If bDebug Then
+				Call MyPrint("Clearing log file ...")
+			End If
+
+			Kill sLogFile
+		End If
+	End If
+
+
 	' Initialise the random number function
 	Randomize
 
 	bProcessingStarted = True
+    If sWorkingRun <> "" Then
+        Call MyPrint("Working folder = '" + sWorkingPath + "'.")
+        Call MyPrint("Final output folder = '" + sLocalPath + "'.")
+    End If
 
 	Call MyPrint("----------------------------------------------------------------------")
 	Call MyPrint("Processing search '" + sSearchRef + "' ...")
@@ -2437,7 +2369,7 @@ HideLayer:
 					Call MyPrint("Copying combined sites table to the working folder ...")
 				End If
 
-				sCmd = "cmd.exe /c robocopy " + sQ + sLocalPath + sQ + " " + sQ + sWorkingPath + sQ + " " + sQ + sCombinedSitesTable + ".*" + sQ + " /R:3 /W:2"
+				sCmd = "robocopy.exe " + sQ + sLocalPath + sQ + " " + sQ + sWorkingPath + sQ + " " + sQ + sCombinedSitesTable + ".*" + sQ + " /R:3 /W:2 /IS /IT /IM"
 
 				Dim iMoveResult As Integer
 				iMoveResult = ExecuteAndWait(sCmd)
@@ -2656,16 +2588,35 @@ HideLayer:
 	'-------------------------------------------------
 	If sWorkingPath <> sLocalPath Then
 
-	    Call MyPrint("Moving files from the working folder ...")
+        Dim iStagedTable As Integer, sStagedFile As String, sStagedName As String
+        For iStagedTable = NumTables() To 1 Step -1
+            sStagedFile = FullPath(TableInfo(iStagedTable, TAB_INFO_TABFILE))
+            If PathIsWithin(sStagedFile, sWorkingPath) Then
+                sStagedName = TableInfo(iStagedTable, TAB_INFO_NAME)
+                Commit Table sStagedName
+                Close Table sStagedName
+            End If
+        Next
+        Dim sSafeFolder As String
+        sSafeFolder = ApplicationDirectory$()
+        iSuccess = SetCurrentDirectory(sSafeFolder)
+        Call MyPrint("Moving files from the working folder ...")
+        Call MyPrint("Source folder = '" + sWorkingPath + "'.")
+        Call MyPrint("Destination folder = '" + sLocalPath + "'.")
 
-	    sCmd = "cmd.exe /c robocopy " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E /R:3 /W:2"
+	    sCmd = "robocopy.exe " + sQ + sWorkingPath + sQ + " " + sQ + sLocalPath + sQ + " /MOVE /E /R:3 /W:2 /IS /IT /IM"
 
 	    iMoveResult = ExecuteAndWait(sCmd)
+        ' A partial transfer may already have moved the journal.
+        If Not FileExists(sLogFileTmp) And FileExists(sLocalPath + "\" + sLogFileNameTmp) Then
+            sLogFileTmp = sLocalPath + "\" + sLogFileNameTmp
+        End If
 
 	    If iMoveResult < 0 Or iMoveResult >= 8 Then
 
 	        Call MyPrint("ERROR: Robocopy failed moving files to the output folder.")
 		Call MyPrint("Robocopy exit code = " + Str$(iMoveResult))
+        Call MyPrint("Untransferred files retained in '" + sWorkingPath + "'.")
 
 	        Note "Error moving files to the output folder. Robocopy exit code: " + Str$(iMoveResult)
 
@@ -2750,7 +2701,7 @@ HideLayer:
 			Call MyPrint("Reopening buffer table ...")
 		End If
 		
-		Close Table sBufferTable
+		If TableIsOpen(sBufferTable) Then Close Table sBufferTable End If
 		
 		sBufferTable = sBufferSaveName
 		If Not TryOpenTableFromPath(sLocalPath + "\" + sBufferTable + ".tab", sBufferTable) Then
@@ -2772,7 +2723,7 @@ HideLayer:
 			Call MyPrint("Reopening search area table ...")
 		End If
 		
-		Close Table sSearchAreaTable
+		If TableIsOpen(sSearchAreaTable) Then Close Table sSearchAreaTable End If
 		
 		If Not TryOpenTableFromPath(sLocalPath + "\" + sSearchAreaTable + ".tab", sSearchAreaTable) Then
 
@@ -2911,6 +2862,11 @@ ProcessComplete:
 	lResponse = Ask("Processing complete!" + Chr$(10) + Chr$(10) + Chr$(10) + "Do you wish to close the form?", "Yes", "No")
 
 Response:
+    If sWorkingRun <> "" Then
+        If FileExists(sLogFileTmp) And PathIsWithin(sLogFileTmp, sWorkingRun) Then
+            Call MyPrint("Run files retained in '" + sWorkingRun + "'.")
+        End If
+    End If
 	If lResponse = True Then
 		'-------------------------------------------------
 		' Close the dialog
@@ -5157,38 +5113,23 @@ Sub MyPrint(ByVal sMsg As String)
 End Sub
 
 Sub CommitLogMessages()
-'***************************************************************
-'* Writes all stored log messages to the output log file
-'***************************************************************
-
-	If Not bLogMessages Or iLogCount = 0 Then Exit Sub End If
-
-	' Set a default log file handler, just in case
-	If iLogFileNum < 1 Then
-		iLogFileNum = 99
-	End If
-	
-	OnError Goto HandleFileError
-
-	Open File sLogFile For Append As #iLogFileNum
-
-	Dim i As Integer
-	For i = 1 To iLogCount
-		Print #iLogFileNum, sLogMessages(i)
-	Next
-
-	Close File #iLogFileNum
-
-	' Reset the log array
-	iLogCount = 0
-	ReDim sLogMessages(0)
-	
-	Exit Sub
-
+    OnError Goto HandleFileError
+    Dim i As Integer, bOpened As Logical
+    If iLogCount = 0 Then Exit Sub End If
+    If iLogFileNum < 1 Then iLogFileNum = 99 End If
+    Open File sLogFile For Append As #iLogFileNum
+    bOpened = True
+    For i = 1 To iLogCount
+        Print #iLogFileNum, sLogMessages(i)
+    Next
+    Close File #iLogFileNum
+    bOpened = False
+    iLogCount = 0
+    ReDim sLogMessages(0)
+    Exit Sub
 HandleFileError:
-	Note "ERROR: Could not write log to file: " + sLogFile
-	Resume Next
-
+    If bOpened Then Close File #iLogFileNum End If
+    Note "ERROR: Could not append to final log: " + sLogFile + Chr$(10) + "Messages remain in memory. Temporary log: " + sLogFileTmp
 End Sub
 
 Sub PrintLogFile()

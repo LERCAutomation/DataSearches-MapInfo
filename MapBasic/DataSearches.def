@@ -2,7 +2,7 @@
 '* habitat, species and other layers and allows the user to select
 '* which layers to extract for the current data search.
 '*
-'* Copyright © 2013 - 2019 TVERC, GiGL, SBIC
+'* Copyright © 2012 - 2026 TVERC, GiGL, SBIC, DERC, Andy Foy Consulting
 '* 
 '* This file is part of the MapInfo tool 'DataSearches'.
 '* 
@@ -20,13 +20,13 @@
 '* along with DataSearches.  If not, see <http://www.gnu.org/licenses/>.
 
 '***************************************************************
-'* DataSearches.def v1.09
+'* DataSearches.def v1.10
 '*
 '* Defines global variables and declares subroutines and functions.
 '*
 '*
 '* Created:			Andy Foy - February 2013
-'* Last revised:	Andy Foy - August 2025
+'* Last revised:		Andy Foy - October 2026
 '***************************************************************
 
 Include "MapBasic.def"
@@ -252,6 +252,18 @@ Declare Function GetExitCodeProcess Lib "kernel32"
 	(ByVal hProcess As Integer,
 	lpExitCode As Integer) As Integer
 Declare Function GetUserID() As String
+Declare Function NewWorkingFolder
+    (ByVal sRoot As String, ByVal sPrefix As String) As String
+Declare Function GetFileAttributes Lib "kernel32" Alias "GetFileAttributesA"
+    (ByVal lpFileName As String) As Integer
+Declare Function FullPath
+    (ByVal sPath As String) As String
+Declare Function PathIsWithin
+    (ByVal sPath As String, ByVal sRoot As String) As Logical
+Declare Function GetFullPathName Lib "kernel32" Alias "GetFullPathNameA"
+    (ByVal lpFileName As String, ByVal nBufferLength As Integer, lpBuffer As String, ByVal lpFilePart As Integer) As Integer
+Declare Function RemoveDirectory Lib "kernel32" Alias "RemoveDirectoryA"
+    (ByVal lpPathName As String) As Integer
 Declare Function ExecuteAndWait
 	(ByVal cmdLine as string) As Integer
 Declare Function CreateDirectory Lib "kernel32"
@@ -361,6 +373,7 @@ Global sRequireSiteName As String
 Global sRepChar As String
 Global sWorkingDir As String
 Global sWorkingPath As String
+Global sWorkingRun As String
 Global sSaveRootDir As String
 
 Global sDefaultSaveFolder As String
